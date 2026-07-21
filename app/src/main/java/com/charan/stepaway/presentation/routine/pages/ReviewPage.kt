@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import com.charan.stepaway.core.utils.DateUtils.toDisplayString
 import com.charan.stepaway.presentation.routine.RoutineScheduleState
 import com.charan.stepaway.presentation.routine.UnlockChallengeType
 import com.charan.stepaway.presentation.routine.InstalledAppsUiModel
@@ -38,8 +39,6 @@ fun ReviewPage(
     scheduleState: RoutineScheduleState,
     unlockChallengeType: UnlockChallengeType,
     waitTimeSeconds: Int,
-    oneTimeUnlockWaitTimeHours: Int,
-    oneTimeUnlockWaitTimeMinutes: Int,
     selectedApps: List<InstalledAppsUiModel>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
@@ -101,7 +100,7 @@ fun ReviewPage(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            val timeText = if (scheduleState.isAllDay) "All Day" else "${scheduleState.routineStartTime} - ${scheduleState.routineEndTime}"
+                            val timeText = if (scheduleState.isAllDay) "All Day" else "${scheduleState.routineStartTime.toDisplayString()} - ${scheduleState.routineEndTime.toDisplayString()}"
                             Text(timeText, style = MaterialTheme.typography.bodyLarge)
                         }
                     }
@@ -117,11 +116,8 @@ fun ReviewPage(
                                 if (scheduleState.intervalHours > 0) append("${scheduleState.intervalHours}h ")
                                 append("${scheduleState.intervalMinutes}m")
                             }
-                            val lockText = buildString {
-                                if (scheduleState.lockDurationHours > 0) append("${scheduleState.lockDurationHours}h ")
-                                append("${scheduleState.lockDurationMinutes}m")
-                            }
-                            Text("Locks every $intervalText for $lockText duration", style = MaterialTheme.typography.bodyLarge)
+
+                            Text("Locks every $intervalText", style = MaterialTheme.typography.bodyLarge)
                         } else {
                             val hrs = scheduleState.routineFrequency / 60
                             val mins = scheduleState.routineFrequency % 60
@@ -147,11 +143,7 @@ fun ReviewPage(
                     val challengeText = when (unlockChallengeType) {
                         UnlockChallengeType.WAIT_TIME -> "Wait Time Challenge (${waitTimeSeconds} seconds delay)"
                         UnlockChallengeType.ONE_TIME_UNLOCK -> {
-                            val waitText = buildString {
-                                if (oneTimeUnlockWaitTimeHours > 0) append("${oneTimeUnlockWaitTimeHours}h ")
-                                append("${oneTimeUnlockWaitTimeMinutes}m")
-                            }
-                            "Emergency One-time Unlock ($waitText unlock delay)"
+                            "Emergency One-time Unlock ($waitTimeSeconds seconds unlock delay)"
                         }
                         UnlockChallengeType.STRICT_MODE -> "Strict Mode (No unlocks allowed)"
                     }

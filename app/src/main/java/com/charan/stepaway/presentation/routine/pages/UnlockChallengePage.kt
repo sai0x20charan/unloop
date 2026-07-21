@@ -49,17 +49,10 @@ import com.swmansion.kmpwheelpicker.rememberWheelPickerState
 fun UnlockChallengePage(
     unlockChallengeType: UnlockChallengeType,
     waitTimeSeconds: Int,
-    oneTimeUnlockWaitTimeHours: Int,
-    oneTimeUnlockWaitTimeMinutes: Int,
-    isIntervalBlocking: Boolean,
-    lockDurationHours: Int,
-    lockDurationMinutes: Int,
     onEvent: (RoutineEvent) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
 ) {
-    var showOneTimeUnlockDialog by remember { mutableStateOf(false) }
-    var showLockDurationDialog by remember { mutableStateOf(false) }
 
     RoutineLazyColumn(
         modifier = modifier,
@@ -119,21 +112,28 @@ fun UnlockChallengePage(
                     isSelected = unlockChallengeType == UnlockChallengeType.ONE_TIME_UNLOCK,
                     onClick = { onEvent(RoutineEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.ONE_TIME_UNLOCK)) }
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        val waitText = buildString {
-                            if (oneTimeUnlockWaitTimeHours > 0) append("${oneTimeUnlockWaitTimeHours}h ")
-                            append("${oneTimeUnlockWaitTimeMinutes}m")
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Wait Duration",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                text = "$waitTimeSeconds seconds",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
-
-                        TimeCard(
-                            label = "One-Time Unlock Delay",
-                            value = waitText,
-                            icon = Icons.Rounded.LockOpen,
-                            onClick = { showOneTimeUnlockDialog = true },
-                            modifier = Modifier.fillMaxWidth()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Slider(
+                            value = waitTimeSeconds.toFloat(),
+                            onValueChange = { onEvent(RoutineEvent.OnWaitTimeSecondsChange(it.toInt())) },
+                            valueRange = 5f..120f,
+                            steps = 22
                         )
                     }
                 }
@@ -176,159 +176,6 @@ fun UnlockChallengePage(
                                 )
                             }
                         }
-                    }
-                }
-
-                if (isIntervalBlocking) {
-                    HorizontalDivider()
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Interval Lock Duration",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(
-                            text = "How long the phone stays locked during each block interval.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        val lockText = buildString {
-                            if (lockDurationHours > 0) append("${lockDurationHours}h ")
-                            append("${lockDurationMinutes}m")
-                        }
-                        TimeCard(
-                            label = "Lock Duration",
-                            value = lockText,
-                            icon = Icons.Rounded.Lock,
-                            onClick = { showLockDurationDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    if (showOneTimeUnlockDialog) {
-        IntervalPickerDialog(
-            title = "Select One-Time Unlock Delay",
-            initialHours = oneTimeUnlockWaitTimeHours,
-            initialMinutes = oneTimeUnlockWaitTimeMinutes,
-            onConfirm = { hours, minutes ->
-                onEvent(RoutineEvent.OnOneTimeUnlockWaitTimeChange(hours, minutes))
-            },
-            onDismiss = { showOneTimeUnlockDialog = false }
-        )
-    }
-
-    if (showLockDurationDialog) {
-        IntervalPickerDialog(
-            title = "Select Lock Duration",
-            initialHours = lockDurationHours,
-            initialMinutes = lockDurationMinutes,
-            onConfirm = { hours, minutes ->
-                onEvent(RoutineEvent.OnLockDurationHoursChange(hours))
-                onEvent(RoutineEvent.OnLockDurationMinutesChange(minutes))
-            },
-            onDismiss = { showLockDurationDialog = false }
-        )
-    }
-}
-
-/**
- * Reusable dialog for choosing hours and minutes.
- */
-@Composable
-private fun IntervalPickerDialog(
-    title: String,
-    initialHours: Int,
-    initialMinutes: Int,
-    onConfirm: (hours: Int, minutes: Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val hoursState = rememberWheelPickerState(
-        itemCount = 24,
-        initialIndex = initialHours
-    )
-    val minutesState = rememberWheelPickerState(
-        itemCount = 60,
-        initialIndex = initialMinutes
-    )
-
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "HOURS",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        NumberPicker(
-                            state = hoursState,
-                            onValueChange = {},
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "MINUTES",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        NumberPicker(
-                            state = minutesState,
-                            onValueChange = {},
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancel")
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = {
-                        onConfirm(hoursState.index, minutesState.index)
-                        onDismiss()
-                    }) {
-                        Text("OK")
                     }
                 }
             }
@@ -405,44 +252,6 @@ fun ChallengeOptionCard(
                         content()
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TimeCard(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedCard(
-        onClick = onClick,
-        modifier = modifier.semantics {
-            contentDescription = "$label, $value"
-        }
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Column(modifier = Modifier.padding(start = 8.dp)) {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    value,
-                    style = MaterialTheme.typography.titleMedium,
-                )
             }
         }
     }

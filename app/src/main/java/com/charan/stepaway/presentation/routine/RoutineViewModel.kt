@@ -5,9 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.stepaway.data.repository.InstalledAppsRepository
+import com.charan.stepaway.data.repository.RoutineRepository
+import com.charan.stepaway.presentation.common.toRoutineEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DayOfWeek
@@ -16,12 +20,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RoutineViewModel @Inject constructor(
-    private val installedAppsRepository: InstalledAppsRepository
+    private val installedAppsRepository: InstalledAppsRepository,
+    private val routineRepository: RoutineRepository
 
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RoutineState())
     val state = _state.asStateFlow()
+
+    private val _effect = Channel<RoutineEffect>()
+    val effect = _effect.receiveAsFlow()
     init {
         initInstalledApps()
     }
@@ -50,69 +58,36 @@ class RoutineViewModel @Inject constructor(
             RoutineEvent.OnBackClick -> handleBackClick()
             RoutineEvent.OnCreateRoutineClick -> handleCreateRoutineClick()
             is RoutineEvent.OnEndTimeChange -> handleEndTimeChange(event.hour, event.minute)
-            RoutineEvent.OnEndTimeClick -> handleShowEndTimeDialog()
+            RoutineEvent.OnEndTimeToggle -> handleShowEndTimeDialog()
             RoutineEvent.OnNextClick -> handleNextClick()
             is RoutineEvent.OnRepeatIntervalChange -> handleRepeatIntervalChange(event.interval)
             is RoutineEvent.OnRoutineDaySelect -> handleRoutineDaySelect(event.day)
             is RoutineEvent.OnRoutineNameChange -> handleRoutineNameChange(event.name)
             is RoutineEvent.OnStartTimeChange -> handleStartTimeChange(event.hour, event.minute)
-            RoutineEvent.OnStartTimeClick -> handleShowStartTimeDialog()
-            RoutineEvent.OnStartTimeDialogDismiss -> handleStartTimeDialogDismiss()
-            RoutineEvent.OnEndTimeDialogDismiss -> handleEndTimeDialogDismiss()
+            RoutineEvent.OnStartTimeToggle -> handleShowStartTimeDialog()
             is RoutineEvent.OnInstalledAppSelect -> handleInstalledAppSelect(event.packageName)
             RoutineEvent.OnIntervalBlockingToggle -> handleIntervalBlockingToggle()
-            is RoutineEvent.OnIntervalHoursChange -> handleIntervalHoursChange(event.hours)
-            is RoutineEvent.OnIntervalMinutesChange -> handleIntervalMinutesChange(event.minutes)
-            is RoutineEvent.OnLockDurationHoursChange -> handleLockDurationHoursChange(event.hours)
-            is RoutineEvent.OnLockDurationMinutesChange -> handleLockDurationMinutesChange(event.minutes)
+
             is RoutineEvent.OnUnlockChallengeTypeChange -> handleUnlockChallengeTypeChange(event.type)
             is RoutineEvent.OnWaitTimeSecondsChange -> handleWaitTimeSecondsChange(event.seconds)
-            is RoutineEvent.OnOneTimeUnlockWaitTimeChange -> handleOneTimeUnlockWaitTimeChange(event.hour, event.minute)
-            RoutineEvent.OnOneTimeUnlockTimeClick -> handleShowOneTimeUnlockTimeDialog()
-            RoutineEvent.OnOneTimeUnlockTimeDialogDismiss -> handleOneTimeUnlockTimeDialogDismiss()
+            is RoutineEvent.OnIntervalTimeChange -> handleIntervalChange(event.hours, event.minutes)
+            RoutineEvent.OnIntervalTimeToggle -> handleShowIntervalDialog()
         }
 
     }
 
-    private fun handleIntervalHoursChange(hours: Int) {
-        _state.update {
-            it.copy(
-                routineScheduleState = it.routineScheduleState.copy(
-                    intervalHours = hours
-                )
-            )
-        }
-    }
 
-    private fun handleIntervalMinutesChange(minutes: Int) {
+    private fun handleIntervalChange(hours: Int, minutes: Int) {
         _state.update {
             it.copy(
                 routineScheduleState = it.routineScheduleState.copy(
+                    intervalHours = hours,
                     intervalMinutes = minutes
                 )
             )
         }
     }
 
-    private fun handleLockDurationHoursChange(hours: Int) {
-        _state.update {
-            it.copy(
-                routineScheduleState = it.routineScheduleState.copy(
-                    lockDurationHours = hours
-                )
-            )
-        }
-    }
-
-    private fun handleLockDurationMinutesChange(minutes: Int) {
-        _state.update {
-            it.copy(
-                routineScheduleState = it.routineScheduleState.copy(
-                    lockDurationMinutes = minutes
-                )
-            )
-        }
-    }
 
     private fun handleIntervalBlockingToggle() {
         _state.update {
@@ -136,13 +111,19 @@ class RoutineViewModel @Inject constructor(
 
     private fun handleShowStartTimeDialog() {
         _state.update {
-            it.copy(showStartTimeDialog = true)
+            it.copy(showStartTimeDialog = !it.showStartTimeDialog)
         }
     }
 
     private fun handleShowEndTimeDialog() {
         _state.update {
-            it.copy(showEndTimeDialog = true)
+            it.copy(showEndTimeDialog = !it.showEndTimeDialog)
+        }
+    }
+
+    private fun handleShowIntervalDialog() {
+        _state.update {
+            it.copy(showIntervalDialog = !it.showIntervalDialog)
         }
     }
 
@@ -193,18 +174,6 @@ class RoutineViewModel @Inject constructor(
         }
     }
 
-    private fun handleStartTimeDialogDismiss() {
-        _state.update {
-            it.copy(showStartTimeDialog = false)
-        }
-    }
-
-    private fun handleEndTimeDialogDismiss() {
-        _state.update {
-            it.copy(showEndTimeDialog = false)
-        }
-    }
-
     private fun handleRepeatIntervalChange(interval: Int) {
         _state.update {
             it.copy(
@@ -235,44 +204,58 @@ class RoutineViewModel @Inject constructor(
         }
     }
 
-    private fun handleCreateRoutineClick() {
-        // Log creation or insert to database in future
+    private fun handleCreateRoutineClick() = viewModelScope.launch{
+        if(isDataValid()){
+            routineRepository.upsertRoutine(_state.value.toRoutineEntity())
+
+        }
+    }
+
+    private fun isDataValid(): Boolean {
+        val currentState = _state.value
+        val scheduleState = currentState.routineScheduleState
+
+        // Validate routine name
+        if (currentState.routineName.isBlank()) {
+            viewModelScope.launch {
+                _effect.send(RoutineEffect.ShowToast("Routine name cannot be empty"))
+            }
+            return false
+        }
+
+        // Validate routine days
+        if (scheduleState.routineDays.isEmpty()) {
+            viewModelScope.launch {
+                _effect.send(RoutineEffect.ShowToast("Please select at least one day for the routine"))
+            }
+            return false
+        }
+
+        // Validate start and end times if not all day
+        if (!scheduleState.isAllDay) {
+            if (scheduleState.routineStartTime >= scheduleState.routineEndTime) {
+                viewModelScope.launch {
+                    _effect.send(RoutineEffect.ShowToast("Start time must be before end time"))
+                }
+                return false
+            }
+        }
+
+        return true
     }
 
     private fun handleUnlockChallengeTypeChange(type: UnlockChallengeType) {
         _state.update {
             it.copy(
-                unlockChallengeType = type,
-                showOneTimeUnlockTimeDialog = type == UnlockChallengeType.ONE_TIME_UNLOCK
-            )
+                routineScheduleState = it.routineScheduleState.copy(unlockChallengeType = type),
+                )
         }
     }
 
     private fun handleWaitTimeSecondsChange(seconds: Int) {
         _state.update {
-            it.copy(waitTimeSeconds = seconds)
+            it.copy(routineScheduleState = it.routineScheduleState.copy(waitTimeSeconds = seconds))
         }
     }
 
-    private fun handleOneTimeUnlockWaitTimeChange(hour: Int, minute: Int) {
-        _state.update {
-            it.copy(
-                oneTimeUnlockWaitTimeHours = hour,
-                oneTimeUnlockWaitTimeMinutes = minute,
-                showOneTimeUnlockTimeDialog = false
-            )
-        }
-    }
-
-    private fun handleShowOneTimeUnlockTimeDialog() {
-        _state.update {
-            it.copy(showOneTimeUnlockTimeDialog = true)
-        }
-    }
-
-    private fun handleOneTimeUnlockTimeDialogDismiss() {
-        _state.update {
-            it.copy(showOneTimeUnlockTimeDialog = false)
-        }
-    }
 }

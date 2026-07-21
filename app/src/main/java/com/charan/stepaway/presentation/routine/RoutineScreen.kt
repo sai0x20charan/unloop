@@ -46,18 +46,23 @@ fun RoutineScreen() {
         initialPage = state.pageState,
         pageCount = { state.totalPageState }
     )
-    LaunchedEffect(Unit) {
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-
-        val apps = context.packageManager.queryIntentActivities(intent, 0)
-        Log.d("TAG", "RoutineScreen: $apps")
-    }
 
     LaunchedEffect(state.pageState) {
         if (pagerState.currentPage != state.pageState) {
             pagerState.animateScrollToPage(state.pageState)
+        }
+    }
+
+    LaunchedEffect(viewModel.effect) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is RoutineEffect.RoutineCreated -> {
+                    android.widget.Toast.makeText(context, "Routine Created!", android.widget.Toast.LENGTH_SHORT).show()
+                }
+                is RoutineEffect.ShowToast -> {
+                    android.widget.Toast.makeText(context, effect.message, android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -72,7 +77,7 @@ fun RoutineScreen() {
                 viewModel.onEvent(RoutineEvent.OnStartTimeChange(hour, minute))
             },
             onDismiss = {
-                viewModel.onEvent(RoutineEvent.OnStartTimeDialogDismiss)
+                viewModel.onEvent(RoutineEvent.OnStartTimeToggle)
             }
         )
     }
@@ -86,7 +91,7 @@ fun RoutineScreen() {
                 viewModel.onEvent(RoutineEvent.OnEndTimeChange(hour, minute))
             },
             onDismiss = {
-                viewModel.onEvent(RoutineEvent.OnEndTimeDialogDismiss)
+                viewModel.onEvent(RoutineEvent.OnEndTimeToggle)
             }
         )
     }
@@ -170,6 +175,7 @@ fun RoutineScreen() {
                     0 -> ScheduleRoutinePage(
                         routineName = state.routineName,
                         scheduleState = state.routineScheduleState,
+                        showIntervalDialog = state.showIntervalDialog,
                         onEvent = viewModel::onEvent,
                         contentPadding = innerPadding.toScreenContentPadding(includeTopInset = false, top = 10.dp)
                     )
@@ -187,13 +193,8 @@ fun RoutineScreen() {
                     )
 
                     2 -> UnlockChallengePage(
-                        unlockChallengeType = state.unlockChallengeType,
-                        waitTimeSeconds = state.waitTimeSeconds,
-                        oneTimeUnlockWaitTimeHours = state.oneTimeUnlockWaitTimeHours,
-                        oneTimeUnlockWaitTimeMinutes = state.oneTimeUnlockWaitTimeMinutes,
-                        isIntervalBlocking = state.routineScheduleState.isIntervalBlocking,
-                        lockDurationHours = state.routineScheduleState.lockDurationHours,
-                        lockDurationMinutes = state.routineScheduleState.lockDurationMinutes,
+                        unlockChallengeType = state.routineScheduleState.unlockChallengeType,
+                        waitTimeSeconds = state.routineScheduleState.waitTimeSeconds,
                         onEvent = viewModel::onEvent,
                         contentPadding = innerPadding.toScreenContentPadding(includeTopInset = false, top = 10.dp)
                     )
@@ -201,10 +202,8 @@ fun RoutineScreen() {
                     3 -> ReviewPage(
                         routineName = state.routineName,
                         scheduleState = state.routineScheduleState,
-                        unlockChallengeType = state.unlockChallengeType,
-                        waitTimeSeconds = state.waitTimeSeconds,
-                        oneTimeUnlockWaitTimeHours = state.oneTimeUnlockWaitTimeHours,
-                        oneTimeUnlockWaitTimeMinutes = state.oneTimeUnlockWaitTimeMinutes,
+                        unlockChallengeType = state.routineScheduleState.unlockChallengeType,
+                        waitTimeSeconds = state.routineScheduleState.waitTimeSeconds,
                         selectedApps = state.installedApps.filter { it.isSelected },
                         contentPadding = innerPadding.toScreenContentPadding(includeTopInset = false, top = 10.dp)
                     )

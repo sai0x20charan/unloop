@@ -3,6 +3,7 @@ package com.charan.stepaway.core.di
 import android.content.Context
 import androidx.room.Room
 import com.charan.stepaway.data.local.AppDatabase
+import com.charan.stepaway.data.local.dao.RoutineDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,5 +26,11 @@ object DatabaseModule {
             .fallbackToDestructiveMigration(true)
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRoutineDao(database: AppDatabase): RoutineDao {
+        return database.routineDao()
     }
 }

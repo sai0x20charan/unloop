@@ -18,26 +18,23 @@ data class RoutineState(
     val routineScheduleState : RoutineScheduleState = RoutineScheduleState(),
     val showEndTimeDialog : Boolean = false,
     val showStartTimeDialog : Boolean = false,
-    val showOneTimeUnlockTimeDialog : Boolean = false,
+    val showIntervalDialog : Boolean = false,
     val installedApps : List<InstalledAppsUiModel> = emptyList(),
     val stepTitles: List<String> = listOf("Schedule", "Select Apps", "Unlock Challenge", "Review & Confirm"),
-    val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.WAIT_TIME,
-    val waitTimeSeconds: Int = 30,
-    val oneTimeUnlockWaitTimeHours: Int = 0,
-    val oneTimeUnlockWaitTimeMinutes: Int = 5
 )
 
 data class RoutineScheduleState(
     val routineStartTime : LocalTime = LocalTime(0, 0, 0),
     val routineEndTime : LocalTime = LocalTime(0, 0, 0),
+
     val routineDays : List<DayOfWeek> = emptyList(),
     val routineFrequency : Int = 0,
     val isAllDay : Boolean = false,
     val isIntervalBlocking : Boolean = false,
     val intervalHours : Int = 1,
     val intervalMinutes : Int = 0,
-    val lockDurationHours : Int = 0,
-    val lockDurationMinutes : Int = 10
+    val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.WAIT_TIME,
+    val waitTimeSeconds: Int = 30,
 )
 
 data class InstalledAppsUiModel(

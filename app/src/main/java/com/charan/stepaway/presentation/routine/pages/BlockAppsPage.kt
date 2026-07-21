@@ -35,13 +35,6 @@ fun BlockAppsPage(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    val filteredApps = remember(appsList, searchQuery) {
-        appsList.filter {
-            it.appName.contains(searchQuery, ignoreCase = true) ||
-            it.packageName.contains(searchQuery, ignoreCase = true)
-        }
-    }
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -52,8 +45,8 @@ fun BlockAppsPage(
             contentPadding = contentPadding,
             verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
-            items(filteredApps.size) { index ->
-                val app = filteredApps[index]
+            items(appsList.size) { index ->
+                val app = appsList[index]
                 CustomSegmentedListItem(
                     headLineContent = {
                         Text(
@@ -77,7 +70,7 @@ fun BlockAppsPage(
                             )
                         }
                     },
-                    indexItem = filteredApps.indexItemFor(index),
+                    indexItem = appsList.indexItemFor(index),
                     onClick = { onAppSelect(app.packageName) },
                     isSelected = app.isSelected,
                 )

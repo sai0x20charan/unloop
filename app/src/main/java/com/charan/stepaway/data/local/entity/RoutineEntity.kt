@@ -3,6 +3,7 @@ package com.charan.stepaway.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.charan.stepaway.data.local.model.enums.ScheduleType
+import com.charan.stepaway.presentation.routine.UnlockChallengeType
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -10,7 +11,6 @@ import kotlin.uuid.Uuid
 
 @Entity(tableName = "routines")
 data class RoutineEntity(
-
     @PrimaryKey
     val id: String,
 
@@ -18,7 +18,7 @@ data class RoutineEntity(
 
     val description: String?,
 
-    val scheduleType: ScheduleType,
+    val isAllDay : Boolean ,
 
     val startTime: LocalTime?,
 
@@ -26,7 +26,9 @@ data class RoutineEntity(
 
     val daysOfWeek: List<DayOfWeek>?,
 
-    val frequencyMinutes: Int?,
+    val unlockChallengeType: UnlockChallengeType,
+
+    val waitDurationSeconds: Int?,
 
     val createdAt: LocalDateTime,
 
@@ -37,12 +39,6 @@ data class RoutineEntity(
     val isDeleted: Boolean = false,
 
     val isIntervalBlocking: Boolean = false,
+    val intervalMinutes : Int?,
 
-    val intervalHours: Int? = null,
-
-    val intervalMinutes: Int? = null,
-
-    val lockDurationHours: Int? = null,
-
-    val lockDurationMinutes: Int? = null
-)
+    )

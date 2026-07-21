@@ -2,6 +2,7 @@ package com.charan.stepaway.data.local
 
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import com.charan.stepaway.presentation.routine.UnlockChallengeType
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -62,5 +63,15 @@ object Converters {
     @TypeConverter
     fun localDateTimeToLocalDate(value: LocalDateTime): LocalDate {
         return value.date
+    }
+
+    @TypeConverter
+    fun unlockChallengeTypeToString(value: UnlockChallengeType): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun stringToUnlockChallengeType(value: String): UnlockChallengeType {
+        return UnlockChallengeType.valueOf(value)
     }
 }

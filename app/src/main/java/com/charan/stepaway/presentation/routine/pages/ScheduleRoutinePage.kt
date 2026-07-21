@@ -18,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreTime
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -43,7 +45,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.charan.stepaway.core.utils.DateUtils
+import com.charan.stepaway.core.utils.DateUtils.toDisplayString
 import com.charan.stepaway.core.utils.DateUtils.toLocale
 import com.swmansion.kmpwheelpicker.rememberWheelPickerState
 import kotlinx.datetime.DayOfWeek
@@ -57,12 +62,12 @@ import com.charan.stepaway.presentation.routine.RoutineEvent
 fun ScheduleRoutinePage(
     routineName: String,
     scheduleState: RoutineScheduleState,
+    showIntervalDialog: Boolean,
     onEvent: (RoutineEvent) -> Unit,
     modifier: Modifier = Modifier,
     dayInitials: List<DayOfWeek> = DateUtils.getDaysOfWeek(),
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
 ) {
-    var showIntervalDialog by remember { mutableStateOf(false) }
 
     RoutineLazyColumn(
         modifier = modifier,
@@ -141,16 +146,16 @@ fun ScheduleRoutinePage(
                         ) {
                             TimeCard(
                                 label = "Start Time",
-                                value = scheduleState.routineStartTime.toString(),
+                                value = scheduleState.routineStartTime.toDisplayString(),
                                 icon = Icons.Rounded.MoreTime,
-                                onClick = { onEvent(RoutineEvent.OnStartTimeClick) },
+                                onClick = { onEvent(RoutineEvent.OnStartTimeToggle) },
                                 modifier = Modifier.weight(1f)
                             )
                             TimeCard(
                                 label = "End Time",
-                                value = scheduleState.routineEndTime.toString(),
+                                value = scheduleState.routineEndTime.toDisplayString(),
                                 icon = Icons.Rounded.MoreTime,
-                                onClick = { onEvent(RoutineEvent.OnEndTimeClick) },
+                                onClick = { onEvent(RoutineEvent.OnEndTimeToggle) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -186,51 +191,14 @@ fun ScheduleRoutinePage(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            val intervalText = buildString {
-                                if (scheduleState.intervalHours > 0) append("${scheduleState.intervalHours}h ")
-                                append("${scheduleState.intervalMinutes}m")
-                            }
 
                             TimeCard(
                                 label = "Block Interval",
-                                value = intervalText,
+                                value = "${scheduleState.intervalHours}h ${scheduleState.intervalMinutes}m",
                                 icon = Icons.Rounded.Timer,
-                                onClick = { showIntervalDialog = true },
+                                onClick = { onEvent(RoutineEvent.OnIntervalTimeToggle) },
                                 modifier = Modifier.fillMaxWidth()
                             )
-
-                            // Summary
-                            val intervalStr = buildString {
-                                if (scheduleState.intervalHours > 0) {
-                                    append("${scheduleState.intervalHours} hr")
-                                }
-                                if (scheduleState.intervalMinutes > 0) {
-                                    if (isNotEmpty()) append(" ")
-                                    append("${scheduleState.intervalMinutes} min")
-                                }
-                                if (isEmpty()) {
-                                    append("0 min")
-                                }
-                            }
-                            val summaryText = "Every $intervalStr, Step Away locks your phone."
-
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = MaterialTheme.shapes.medium,
-                                color = MaterialTheme.colorScheme.surfaceContainerLow
-                            ) {
-                                Box(
-                                    modifier = Modifier.padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = summaryText,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -244,17 +212,14 @@ fun ScheduleRoutinePage(
             initialHours = scheduleState.intervalHours,
             initialMinutes = scheduleState.intervalMinutes,
             onConfirm = { hours, minutes ->
-                onEvent(RoutineEvent.OnIntervalHoursChange(hours))
-                onEvent(RoutineEvent.OnIntervalMinutesChange(minutes))
+                onEvent(RoutineEvent.OnIntervalTimeChange(hours, minutes))
             },
-            onDismiss = { showIntervalDialog = false }
+            onDismiss = { onEvent(RoutineEvent.OnIntervalTimeToggle) }
         )
     }
 }
 
-/**
- * Reusable dialog for choosing hours and minutes.
- */
+
 @Composable
 private fun IntervalPickerDialog(
     title: String,
@@ -272,7 +237,7 @@ private fun IntervalPickerDialog(
         initialIndex = initialMinutes
     )
 
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -344,6 +309,7 @@ private fun IntervalPickerDialog(
                     }
                 }
             }
+
         }
     }
 }
@@ -353,7 +319,7 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.colorScheme.secondary,
         modifier = modifier
     )
 }
