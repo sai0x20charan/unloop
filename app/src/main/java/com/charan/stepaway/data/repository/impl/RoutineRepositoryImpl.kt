@@ -16,4 +16,10 @@ class RoutineRepositoryImpl @Inject constructor(
 
         }
     }
+
+    override suspend fun getRoutineById(routineId: String): RoutineEntity? {
+        return withContext(Dispatchers.IO) {
+            routineDao.getRoutineById(routineId)
+        }
+    }
 }

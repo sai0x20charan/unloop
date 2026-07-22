@@ -57,7 +57,6 @@ import java.time.format.TextStyle
 import com.charan.stepaway.presentation.routine.RoutineScheduleState
 import com.charan.stepaway.presentation.routine.RoutineEvent
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ScheduleRoutinePage(
     routineName: String,

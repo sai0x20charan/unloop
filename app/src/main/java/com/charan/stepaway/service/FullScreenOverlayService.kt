@@ -4,6 +4,8 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.IBinder
+import android.provider.Settings
+import android.util.Log
 import android.view.WindowManager
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.ComposeView
@@ -44,6 +46,12 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         savedStateRegistryController.performRestore(null)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
 
+        if (!Settings.canDrawOverlays(this)) {
+            Log.e("FullScreenOverlayService", "Overlay permission not granted!")
+            stopSelf()
+            return
+        }
+
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
 
@@ -56,7 +64,6 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             }
         }
         composeView = view
-        windowManager?.removeView(composeView)
 
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -70,13 +77,23 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
 
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
 
-        windowManager?.addView(view, params)
+        try {
+            windowManager?.addView(view, params)
+        } catch (e: Exception) {
+            Log.e("FullScreenOverlayService", "Failed to add overlay window", e)
+            stopSelf()
+        }
     }
 
     override fun onDestroy() {
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
-        composeView?.let {
-            windowManager?.removeView(it)
+        composeView?.let { view ->
+            if (view.isAttachedToWindow) {
+                try {
+                    windowManager?.removeView(view)
+                } catch (_: Exception) {
+                }
+            }
         }
         viewModelStore.clear()
         super.onDestroy()

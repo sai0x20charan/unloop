@@ -22,6 +22,7 @@ fun RoutineState.toRoutineEntity(id : String? = null, createdAt : LocalDateTime?
         unlockChallengeType = this.routineScheduleState.unlockChallengeType,
         waitDurationSeconds = this.routineScheduleState.waitTimeSeconds,
         createdAt = createdAt ?: DateUtils.currentDateTime(),
-        updatedAt = DateUtils.currentDateTime()
+        updatedAt = DateUtils.currentDateTime(),
+        disableAppPackages = this.installedApps.filter { it.isSelected }.map { it.packageName }
         )
 }

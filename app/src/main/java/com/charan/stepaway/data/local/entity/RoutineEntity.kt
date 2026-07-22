@@ -40,5 +40,6 @@ data class RoutineEntity(
 
     val isIntervalBlocking: Boolean = false,
     val intervalMinutes : Int?,
+    val disableAppPackages : List<String>?
 
     )

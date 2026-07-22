@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.charan.stepaway.core.overlay.RoutineScheduler
 import com.charan.stepaway.data.repository.InstalledAppsRepository
 import com.charan.stepaway.data.repository.RoutineRepository
 import com.charan.stepaway.presentation.common.toRoutineEntity
@@ -21,8 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RoutineViewModel @Inject constructor(
     private val installedAppsRepository: InstalledAppsRepository,
-    private val routineRepository: RoutineRepository
-
+    private val routineRepository: RoutineRepository,
+    private val routineScheduler: RoutineScheduler
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RoutineState())
@@ -204,10 +205,23 @@ class RoutineViewModel @Inject constructor(
         }
     }
 
-    private fun handleCreateRoutineClick() = viewModelScope.launch{
-        if(isDataValid()){
-            routineRepository.upsertRoutine(_state.value.toRoutineEntity())
+    private fun handleCreateRoutineClick() = viewModelScope.launch {
+        if (isDataValid()) {
+            val routineEntity = _state.value.toRoutineEntity()
+            routineRepository.upsertRoutine(routineEntity)
 
+            val startTime = routineEntity.startTime
+            val daysOfWeek = routineEntity.daysOfWeek
+            if (!daysOfWeek.isNullOrEmpty()) {
+                routineScheduler.scheduleRoutine(
+                    routineId = routineEntity.id,
+                    startTime = startTime,
+                    frequency = daysOfWeek,
+                    isAllDay = routineEntity.isAllDay
+                )
+            }
+
+            _effect.send(RoutineEffect.RoutineCreated)
         }
     }
 

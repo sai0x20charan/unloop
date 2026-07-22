@@ -52,6 +52,18 @@ object Converters {
     }
 
     @TypeConverter
+    fun stringListToString(value: List<String>?): String? {
+        return value?.joinToString(separator = ",")
+    }
+
+    @TypeConverter
+    fun stringToStringList(value: String?): List<String>? {
+        return value?.let {
+            if (it.isEmpty()) emptyList() else it.split(",")
+        }
+    }
+
+    @TypeConverter
     fun dayOfWeekToString(value: DayOfWeek): String {
         return value.name
     }

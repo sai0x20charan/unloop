@@ -51,4 +51,8 @@ object DateUtils {
     fun currentDateTime() : LocalDateTime {
         return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     }
+
+    fun getCurrentTime (): LocalTime {
+        return currentDateTime().time
+    }
 }
