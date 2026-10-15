@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
 
     <application
-        android:name=".StepAwayApplication"
+        android:name=".UnloopApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -19,7 +19,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.StepAway">
+        android:theme="@style/Theme.Unloop">
         <service
             android:name=".service.FullScreenOverlayService"
             android:exported="false"/>
@@ -29,7 +29,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Monitoring app usage for StepAway routines" />
+                android:value="Monitoring app usage for Unloop routines" />
         </service>
         <receiver
             android:name=".core.overlay.RoutineReceiver"
@@ -38,7 +38,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.StepAway"
+            android:theme="@style/Theme.Unloop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

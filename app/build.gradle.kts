@@ -1,12 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
 
 android {
-    namespace = "com.charan.stepaway"
+    namespace = "com.charan.unloop"
     compileSdk {
         version = release(37) {
             minorApiLevel = 0
@@ -14,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.charan.stepaway"
+        applicationId = "com.charan.unloop"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
@@ -57,6 +58,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.swmansion.kmpWheelPicker)
 
     // Hilt

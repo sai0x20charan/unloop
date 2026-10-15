@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Step Away"
+rootProject.name = "Unloop"
 include(":app")
  
