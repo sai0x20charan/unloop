@@ -17,6 +17,8 @@ navigation3 = "1.2.0-alpha06"
 hiltNavigationCompose = "1.4.0"
 material3 = "1.5.0-alpha23"
 kmpWheelPicker = "0.3.0"
+nav3Lifecycle = "2.11.0"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +55,8 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 # Navigation 3
 navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
 navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "nav3Lifecycle" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
