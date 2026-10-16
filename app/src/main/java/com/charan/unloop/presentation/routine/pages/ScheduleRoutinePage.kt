@@ -54,13 +54,12 @@ import com.swmansion.kmpwheelpicker.rememberWheelPickerState
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 import java.time.format.TextStyle
-import com.charan.unloop.presentation.routine.RoutineScheduleState
+import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.routine.RoutineEvent
 
 @Composable
 fun ScheduleRoutinePage(
-    routineName: String,
-    scheduleState: RoutineScheduleState,
+    routine: RoutineUiModel,
     showIntervalDialog: Boolean,
     onEvent: (RoutineEvent) -> Unit,
     modifier: Modifier = Modifier,
@@ -79,7 +78,7 @@ fun ScheduleRoutinePage(
             ) {
                 SectionLabel("Routine Name")
                 OutlinedTextField(
-                    value = routineName,
+                    value = routine.name,
                     onValueChange = { onEvent(RoutineEvent.OnRoutineNameChange(it)) },
                     label = { Text("Enter routine name") },
                     singleLine = true,
@@ -89,30 +88,36 @@ fun ScheduleRoutinePage(
                 HorizontalDivider()
 
                 SectionLabel("Select Days")
-                FlowRow(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(
-                        ButtonGroupDefaults.ConnectedSpaceBetween,
-                        Alignment.CenterHorizontally
+                        ButtonGroupDefaults.ConnectedSpaceBetween
                     )
                 ) {
                     dayInitials.forEachIndexed { index, day ->
-                        val isSelected = scheduleState.routineDays.contains(day)
+                        val isSelected = routine.selectedDays.contains(day)
+
                         ToggleButton(
                             checked = isSelected,
-                            onCheckedChange = { onEvent(RoutineEvent.OnRoutineDaySelect(day)) },
+                            onCheckedChange = {
+                                onEvent(RoutineEvent.OnRoutineDaySelect(day))
+                            },
                             shapes = when (index) {
                                 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                                 dayInitials.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                 else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
-                            modifier = Modifier.semantics {
-                                contentDescription = day.toLocale(TextStyle.FULL_STANDALONE) +
-                                        if (isSelected) ", selected" else ", not selected"
-                            }
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics {
+                                    contentDescription =
+                                        day.toLocale(TextStyle.FULL_STANDALONE) +
+                                                if (isSelected) ", selected" else ", not selected"
+                                },
+                            contentPadding = PaddingValues(0.dp)
                         ) {
                             Text(
-                                day.toLocale(TextStyle.NARROW_STANDALONE),
+                                text = day.toLocale(TextStyle.NARROW_STANDALONE),
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
@@ -124,194 +129,36 @@ fun ScheduleRoutinePage(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("All Day", style = MaterialTheme.typography.bodyLarge)
-                        Switch(
-                            checked = scheduleState.isAllDay,
-                            onCheckedChange = { onEvent(RoutineEvent.OnAllDayToggle) }
-                        )
-                    }
-
-                    AnimatedVisibility(
-                        visible = !scheduleState.isAllDay,
-                    ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             TimeCard(
                                 label = "Start Time",
-                                value = scheduleState.routineStartTime.toDisplayString(),
+                                value = routine.startTime?.toDisplayString() ?: "Select time",
                                 icon = Icons.Rounded.MoreTime,
                                 onClick = { onEvent(RoutineEvent.OnStartTimeToggle) },
                                 modifier = Modifier.weight(1f)
                             )
                             TimeCard(
                                 label = "End Time",
-                                value = scheduleState.routineEndTime.toDisplayString(),
+                                value = routine.endTime?.toDisplayString() ?: "Select time",
                                 icon = Icons.Rounded.MoreTime,
                                 onClick = { onEvent(RoutineEvent.OnEndTimeToggle) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                    }
+
                 }
 
-                HorizontalDivider()
-
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SectionLabel("Blocking Mode")
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Interval Blocking", style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                "Lock the phone periodically, not the whole window",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(
-                            checked = scheduleState.isIntervalBlocking,
-                            onCheckedChange = { onEvent(RoutineEvent.OnIntervalBlockingToggle) }
-                        )
-                    }
-
-                    AnimatedVisibility(visible = scheduleState.isIntervalBlocking) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-
-                            TimeCard(
-                                label = "Block Interval",
-                                value = "${scheduleState.intervalHours}h ${scheduleState.intervalMinutes}m",
-                                icon = Icons.Rounded.Timer,
-                                onClick = { onEvent(RoutineEvent.OnIntervalTimeToggle) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-                }
             }
         }
     }
 
-    if (showIntervalDialog) {
-        IntervalPickerDialog(
-            title = "Select Block Interval",
-            initialHours = scheduleState.intervalHours,
-            initialMinutes = scheduleState.intervalMinutes,
-            onConfirm = { hours, minutes ->
-                onEvent(RoutineEvent.OnIntervalTimeChange(hours, minutes))
-            },
-            onDismiss = { onEvent(RoutineEvent.OnIntervalTimeToggle) }
-        )
-    }
 }
 
 
-@Composable
-private fun IntervalPickerDialog(
-    title: String,
-    initialHours: Int,
-    initialMinutes: Int,
-    onConfirm: (hours: Int, minutes: Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val hoursState = rememberWheelPickerState(
-        itemCount = 24,
-        initialIndex = initialHours
-    )
-    val minutesState = rememberWheelPickerState(
-        itemCount = 60,
-        initialIndex = initialMinutes
-    )
 
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "HOURS",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        NumberPicker(
-                            state = hoursState,
-                            onValueChange = {},
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "MINUTES",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        NumberPicker(
-                            state = minutesState,
-                            onValueChange = {},
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancel")
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = {
-                        onConfirm(hoursState.index, minutesState.index)
-                        onDismiss()
-                    }) {
-                        Text("OK")
-                    }
-                }
-            }
-
-        }
-    }
-}
 
 @Composable
 fun SectionLabel(text: String, modifier: Modifier = Modifier) {

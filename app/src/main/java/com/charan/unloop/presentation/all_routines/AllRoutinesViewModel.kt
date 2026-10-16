@@ -47,9 +47,13 @@ class AllRoutinesViewModel @Inject constructor(
             is AllRoutineEvent.OnDeleteClick -> _state.update { it.copy() }
             AllRoutineEvent.OnConfirmDelete -> handleConfirmDelete()
             AllRoutineEvent.OnDismissDeleteDialog -> _state.update { it.copy() }
-            AllRoutineEvent.OnAddRoutineClick -> _effect.send(AllRoutineEffect.NavigateToCreateRoutine)
+            is AllRoutineEvent.OnEditRoutineClick -> handleRoutineSelect(event.routineId)
             AllRoutineEvent.OnBackClick -> _effect.send(AllRoutineEffect.NavigateBack)
         }
+    }
+
+    private fun handleRoutineSelect(routineId : String?) {
+        sendEffect(AllRoutineEffect.NavigateToEditRoutine(routineId))
     }
 
     private fun handleToggleRoutine(routineId: String, isEnabled: Boolean) = viewModelScope.launch {
@@ -74,5 +78,9 @@ class AllRoutinesViewModel @Inject constructor(
     }
 
     private fun handleConfirmDelete() = viewModelScope.launch {
+    }
+
+    private fun sendEffect(effect: AllRoutineEffect) = viewModelScope.launch {
+        _effect.send(effect)
     }
 }

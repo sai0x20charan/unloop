@@ -2,6 +2,7 @@ package com.charan.unloop.presentation.routine
 
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import com.charan.unloop.presentation.routine.components.*
 
@@ -28,6 +29,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -45,11 +47,17 @@ import com.charan.unloop.presentation.routine.pages.UnlockChallengePage
 fun RoutineScreen(
     onBackClick: () -> Unit = {},
     onRoutineCreated: () -> Unit = {},
-    onNavigateToAllRoutines: () -> Unit = {},
-    showBackButton: Boolean = false,
+    routineId : String? = null
+
 ) {
-    val viewModel = hiltViewModel<RoutineViewModel>()
+    val viewModel = hiltViewModel<RoutineViewModel, RoutineViewModel.Factory>(
+        creationCallback = { factory ->
+            factory.create(routineId)
+
+        }
+    )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val routine = state.routine
     val context = LocalContext.current
 
     val pagerState = rememberPagerState(
@@ -66,12 +74,11 @@ fun RoutineScreen(
     LaunchedEffect(viewModel.effect) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is RoutineEffect.RoutineCreated -> {
-                    android.widget.Toast.makeText(context, "Routine Created!", android.widget.Toast.LENGTH_SHORT).show()
+                is RoutineEffect.OnBack -> {
                     onRoutineCreated()
                 }
                 is RoutineEffect.ShowToast -> {
-                    android.widget.Toast.makeText(context, effect.message, android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -82,8 +89,8 @@ fun RoutineScreen(
     if (state.showStartTimeDialog) {
         TimePickerDialog(
             title = "Select Start Time",
-            initialHour = state.routineScheduleState.routineStartTime.hour,
-            initialMinute = state.routineScheduleState.routineStartTime.minute,
+            initialHour = routine.startTime?.hour ?: 0,
+            initialMinute = routine.startTime?.minute ?: 0,
             onConfirm = { hour, minute ->
                 viewModel.onEvent(RoutineEvent.OnStartTimeChange(hour, minute))
             },
@@ -96,8 +103,8 @@ fun RoutineScreen(
     if (state.showEndTimeDialog) {
         TimePickerDialog(
             title = "Select End Time",
-            initialHour = state.routineScheduleState.routineEndTime.hour,
-            initialMinute = state.routineScheduleState.routineEndTime.minute,
+            initialHour = routine.endTime?.hour ?: 0,
+            initialMinute = routine.endTime?.minute ?: 0,
             onConfirm = { hour, minute ->
                 viewModel.onEvent(RoutineEvent.OnEndTimeChange(hour, minute))
             },
@@ -112,17 +119,10 @@ fun RoutineScreen(
         topBar = {
             CustomMediumTopBar(
                 title = "Create Routine",
-                showBackButton = showBackButton,
+                showBackButton = true,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
-                actions = {
-                    IconButton(onClick = onNavigateToAllRoutines) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.List,
-                            contentDescription = "All Routines"
-                        )
-                    }
-                }
+
             )
         },
         bottomBar = {
@@ -192,8 +192,7 @@ fun RoutineScreen(
             ) { page ->
                 when (page) {
                     0 -> ScheduleRoutinePage(
-                        routineName = state.routineName,
-                        scheduleState = state.routineScheduleState,
+                        routine = routine,
                         showIntervalDialog = state.showIntervalDialog,
                         onEvent = viewModel::onEvent,
                         contentPadding = innerPadding.toScreenContentPadding(includeTopInset = false, top = 10.dp)
@@ -201,6 +200,9 @@ fun RoutineScreen(
 
                     1 -> BlockAppsPage(
                         appsList = state.installedApps,
+                        onSelectAllApps = {
+                            viewModel.onEvent(RoutineEvent.OnSelectAllAppsClick)
+                        },
                         onAppSelect = {
                             viewModel.onEvent(
                                 RoutineEvent.OnInstalledAppSelect(
@@ -212,17 +214,14 @@ fun RoutineScreen(
                     )
 
                     2 -> UnlockChallengePage(
-                        unlockChallengeType = state.routineScheduleState.unlockChallengeType,
-                        waitTimeSeconds = state.routineScheduleState.waitTimeSeconds,
+                        unlockChallengeType = routine.unlockChallengeType,
+                        waitTimeSeconds = routine.waitDurationSeconds ?: 30,
                         onEvent = viewModel::onEvent,
                         contentPadding = innerPadding.toScreenContentPadding(includeTopInset = false, top = 10.dp)
                     )
 
                     3 -> ReviewPage(
-                        routineName = state.routineName,
-                        scheduleState = state.routineScheduleState,
-                        unlockChallengeType = state.routineScheduleState.unlockChallengeType,
-                        waitTimeSeconds = state.routineScheduleState.waitTimeSeconds,
+                        routine = routine,
                         selectedApps = state.installedApps.filter { it.isSelected },
                         contentPadding = innerPadding.toScreenContentPadding(includeTopInset = false, top = 10.dp)
                     )

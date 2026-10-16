@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Destination : NavKey {
     @Serializable
-    data object Routine : Destination()
+    data class Routine(val routineId : String? = null) : Destination()
 
     @Serializable
     data object AllRoutines : Destination()

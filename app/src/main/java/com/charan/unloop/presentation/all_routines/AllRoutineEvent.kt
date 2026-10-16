@@ -7,6 +7,7 @@ sealed interface AllRoutineEvent {
     data class OnDeleteClick(val routine: RoutineUiModel) : AllRoutineEvent
     data object OnConfirmDelete : AllRoutineEvent
     data object OnDismissDeleteDialog : AllRoutineEvent
-    data object OnAddRoutineClick : AllRoutineEvent
+    data class OnEditRoutineClick(val routineId: String?) : AllRoutineEvent
     data object OnBackClick : AllRoutineEvent
+
 }

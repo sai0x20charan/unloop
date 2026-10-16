@@ -20,7 +20,7 @@ fun RootNavigation() {
                 is Destination.AllRoutines -> NavEntry(key) {
                     AllRoutinesScreen(
                         onNavigateToCreateRoutine = {
-                            backStack.add(Destination.Routine)
+                            backStack.add(Destination.Routine(it))
                         },
 
                     )
@@ -34,10 +34,7 @@ fun RootNavigation() {
                         onRoutineCreated = {
                             backStack.removeLastOrNull()
                         },
-                        onNavigateToAllRoutines = {
-                            backStack.add(Destination.AllRoutines)
-                        },
-                        showBackButton = backStack.size > 1
+                        routineId = key.routineId
                     )
                 }
                 else -> throw IllegalArgumentException("Unknown destination: $key")

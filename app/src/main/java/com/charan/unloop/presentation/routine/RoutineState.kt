@@ -1,7 +1,7 @@
 package com.charan.unloop.presentation.routine
 
 import android.graphics.drawable.Drawable
-import kotlinx.datetime.DayOfWeek
+import com.charan.unloop.presentation.common.models.RoutineUiModel
 import kotlinx.datetime.LocalTime
 
 enum class UnlockChallengeType {
@@ -10,30 +10,18 @@ enum class UnlockChallengeType {
 }
 
 data class RoutineState(
+    val routine: RoutineUiModel = RoutineUiModel(
+        startTime = LocalTime(0, 0),
+        endTime = LocalTime(0, 0),
+        waitDurationSeconds = 30
+    ),
     val pageState : Int = 0,
     val totalPageState : Int = 4,
-    val routineName : String = "",
-    val routineDescription : String = "",
-    val routineScheduleState : RoutineScheduleState = RoutineScheduleState(),
     val showEndTimeDialog : Boolean = false,
     val showStartTimeDialog : Boolean = false,
     val showIntervalDialog : Boolean = false,
     val installedApps : List<InstalledAppsUiModel> = emptyList(),
     val stepTitles: List<String> = listOf("Schedule", "Select Apps", "Unlock Challenge", "Review & Confirm"),
-)
-
-data class RoutineScheduleState(
-    val routineStartTime : LocalTime = LocalTime(0, 0, 0),
-    val routineEndTime : LocalTime = LocalTime(0, 0, 0),
-
-    val routineDays : List<DayOfWeek> = emptyList(),
-    val routineFrequency : Int = 0,
-    val isAllDay : Boolean = false,
-    val isIntervalBlocking : Boolean = false,
-    val intervalHours : Int = 1,
-    val intervalMinutes : Int = 0,
-    val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.WAIT_TIME,
-    val waitTimeSeconds: Int = 30,
 )
 
 data class InstalledAppsUiModel(

@@ -1,13 +1,15 @@
 package com.charan.unloop.presentation.routine
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.overlay.RoutineScheduler
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.presentation.common.toRoutineEntity
+import com.charan.unloop.presentation.common.toRoutineUiModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,12 +21,18 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 import javax.inject.Inject
 
-@HiltViewModel
-class RoutineViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = RoutineViewModel.Factory::class)
+class RoutineViewModel @AssistedInject constructor(
+    @Assisted("routineId") private val routineId: String?,
     private val installedAppsRepository: InstalledAppsRepository,
     private val routineRepository: RoutineRepository,
     private val routineScheduler: RoutineScheduler
 ) : ViewModel() {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(@Assisted("routineId") routineId: String?): RoutineViewModel
+    }
 
     private val _state = MutableStateFlow(RoutineState())
     val state = _state.asStateFlow()
@@ -32,7 +40,22 @@ class RoutineViewModel @Inject constructor(
     private val _effect = Channel<RoutineEffect>()
     val effect = _effect.receiveAsFlow()
     init {
+        initRoutine()
         initInstalledApps()
+
+    }
+
+    private fun initRoutine() = viewModelScope.launch {
+        if (routineId != null) {
+            val routineEntity = routineRepository.getRoutineById(routineId)
+            if (routineEntity != null) {
+                _state.update {
+                    it.copy(
+                        routine = routineEntity.toRoutineUiModel()
+                    )
+                }
+            }
+        }
     }
 
 
@@ -45,7 +68,7 @@ class RoutineViewModel @Inject constructor(
                     appName = app.appName,
                     packageName = app.packageName,
                     icon = app.icon,
-                    isSelected = false
+                    isSelected = app.packageName in it.routine.blockedApps
                 )
             })
         }
@@ -55,45 +78,40 @@ class RoutineViewModel @Inject constructor(
     fun onEvent(event : RoutineEvent) = viewModelScope.launch {
 
         when(event){
-            RoutineEvent.OnAllDayToggle -> handleAllDayToggle()
+
             RoutineEvent.OnBackClick -> handleBackClick()
             RoutineEvent.OnCreateRoutineClick -> handleCreateRoutineClick()
             is RoutineEvent.OnEndTimeChange -> handleEndTimeChange(event.hour, event.minute)
             RoutineEvent.OnEndTimeToggle -> handleShowEndTimeDialog()
             RoutineEvent.OnNextClick -> handleNextClick()
-            is RoutineEvent.OnRepeatIntervalChange -> handleRepeatIntervalChange(event.interval)
             is RoutineEvent.OnRoutineDaySelect -> handleRoutineDaySelect(event.day)
             is RoutineEvent.OnRoutineNameChange -> handleRoutineNameChange(event.name)
             is RoutineEvent.OnStartTimeChange -> handleStartTimeChange(event.hour, event.minute)
             RoutineEvent.OnStartTimeToggle -> handleShowStartTimeDialog()
             is RoutineEvent.OnInstalledAppSelect -> handleInstalledAppSelect(event.packageName)
-            RoutineEvent.OnIntervalBlockingToggle -> handleIntervalBlockingToggle()
+            RoutineEvent.OnSelectAllAppsClick -> handleSelectAllAppsClick()
+
 
             is RoutineEvent.OnUnlockChallengeTypeChange -> handleUnlockChallengeTypeChange(event.type)
             is RoutineEvent.OnWaitTimeSecondsChange -> handleWaitTimeSecondsChange(event.seconds)
-            is RoutineEvent.OnIntervalTimeChange -> handleIntervalChange(event.hours, event.minutes)
-            RoutineEvent.OnIntervalTimeToggle -> handleShowIntervalDialog()
+
         }
 
     }
 
 
-    private fun handleIntervalChange(hours: Int, minutes: Int) {
-        _state.update {
-            it.copy(
-                routineScheduleState = it.routineScheduleState.copy(
-                    intervalHours = hours,
-                    intervalMinutes = minutes
-                )
-            )
-        }
-    }
 
 
-    private fun handleIntervalBlockingToggle() {
-        _state.update {
-            val isIntervalBlocking = !it.routineScheduleState.isIntervalBlocking
-            it.copy(routineScheduleState = it.routineScheduleState.copy(isIntervalBlocking = isIntervalBlocking))
+
+
+    private fun handleSelectAllAppsClick() {
+        _state.update { state ->
+
+            val allSelected = state.installedApps.all { it.isSelected }
+            val updatedApps = state.installedApps.map { app ->
+                app.copy(isSelected = !allSelected)
+            }
+            state.copy(installedApps = updatedApps)
         }
     }
 
@@ -122,42 +140,30 @@ class RoutineViewModel @Inject constructor(
         }
     }
 
-    private fun handleShowIntervalDialog() {
-        _state.update {
-            it.copy(showIntervalDialog = !it.showIntervalDialog)
-        }
-    }
 
     private fun handleRoutineNameChange(name: String) {
        _state.update {
-            it.copy(routineName = name)
+            it.copy(routine = it.routine.copy(name = name))
        }
     }
 
     private fun handleRoutineDaySelect(day: DayOfWeek) {
         _state.update {
-            val currentDays = it.routineScheduleState.routineDays
+            val currentDays = it.routine.selectedDays
             val updatedDays = if (currentDays.contains(day)) {
                 currentDays - day
             } else {
                 currentDays + day
             }
-            it.copy(routineScheduleState = it.routineScheduleState.copy(routineDays = updatedDays))
-        }
-    }
-
-    private fun handleAllDayToggle() {
-        _state.update {
-            val isAllDay = !it.routineScheduleState.isAllDay
-            it.copy(routineScheduleState = it.routineScheduleState.copy(isAllDay = isAllDay))
+            it.copy(routine = it.routine.copy(selectedDays = updatedDays))
         }
     }
 
     private fun handleStartTimeChange(hour: Int, minute: Int) {
         _state.update {
             it.copy(
-                routineScheduleState = it.routineScheduleState.copy(
-                    routineStartTime = LocalTime(hour, minute)
+                routine = it.routine.copy(
+                    startTime = LocalTime(hour, minute)
                 ),
                 showStartTimeDialog = false
             )
@@ -167,20 +173,10 @@ class RoutineViewModel @Inject constructor(
     private fun handleEndTimeChange(hour: Int, minute: Int) {
         _state.update {
             it.copy(
-                routineScheduleState = it.routineScheduleState.copy(
-                    routineEndTime = LocalTime(hour, minute)
+                routine = it.routine.copy(
+                    endTime = LocalTime(hour, minute)
                 ),
                 showEndTimeDialog = false
-            )
-        }
-    }
-
-    private fun handleRepeatIntervalChange(interval: Int) {
-        _state.update {
-            it.copy(
-                routineScheduleState = it.routineScheduleState.copy(
-                    routineFrequency = interval
-                )
             )
         }
     }
@@ -207,7 +203,14 @@ class RoutineViewModel @Inject constructor(
 
     private fun handleCreateRoutineClick() = viewModelScope.launch {
         if (isDataValid()) {
-            val routineEntity = _state.value.toRoutineEntity()
+            _state.update {
+                it.copy(
+                    routine = it.routine.copy(
+                        blockedApps = it.installedApps.filter { app -> app.isSelected }.map { app -> app.packageName }
+                    )
+                )
+            }
+            val routineEntity = _state.value.routine.toRoutineEntity()
             routineRepository.upsertRoutine(routineEntity)
 
             val startTime = routineEntity.startTime
@@ -221,16 +224,13 @@ class RoutineViewModel @Inject constructor(
                 )
             }
 
-            _effect.send(RoutineEffect.RoutineCreated)
+            _effect.send(RoutineEffect.OnBack)
         }
     }
 
     private fun isDataValid(): Boolean {
-        val currentState = _state.value
-        val scheduleState = currentState.routineScheduleState
-
-        // Validate routine name
-        if (currentState.routineName.isBlank()) {
+        val routine = _state.value.routine
+        if (routine.name.isBlank()) {
             viewModelScope.launch {
                 _effect.send(RoutineEffect.ShowToast("Routine name cannot be empty"))
             }
@@ -238,7 +238,7 @@ class RoutineViewModel @Inject constructor(
         }
 
         // Validate routine days
-        if (scheduleState.routineDays.isEmpty()) {
+        if (routine.selectedDays.isEmpty()) {
             viewModelScope.launch {
                 _effect.send(RoutineEffect.ShowToast("Please select at least one day for the routine"))
             }
@@ -246,14 +246,22 @@ class RoutineViewModel @Inject constructor(
         }
 
         // Validate start and end times if not all day
-        if (!scheduleState.isAllDay) {
-            if (scheduleState.routineStartTime >= scheduleState.routineEndTime) {
+
+            val startTime = routine.startTime
+            val endTime = routine.endTime
+            if (startTime == null || endTime == null) {
+                viewModelScope.launch {
+                    _effect.send(RoutineEffect.ShowToast("Please select start and end times"))
+                }
+                return false
+            }
+            if (startTime >= endTime) {
                 viewModelScope.launch {
                     _effect.send(RoutineEffect.ShowToast("Start time must be before end time"))
                 }
                 return false
             }
-        }
+
 
         return true
     }
@@ -261,15 +269,19 @@ class RoutineViewModel @Inject constructor(
     private fun handleUnlockChallengeTypeChange(type: UnlockChallengeType) {
         _state.update {
             it.copy(
-                routineScheduleState = it.routineScheduleState.copy(unlockChallengeType = type),
+                routine = it.routine.copy(unlockChallengeType = type),
                 )
         }
     }
 
     private fun handleWaitTimeSecondsChange(seconds: Int) {
         _state.update {
-            it.copy(routineScheduleState = it.routineScheduleState.copy(waitTimeSeconds = seconds))
+            it.copy(routine = it.routine.copy(waitDurationSeconds = seconds))
         }
+    }
+
+    private fun sendEffect(effect : RoutineEffect) = viewModelScope.launch {
+        _effect.send(effect)
     }
 
 }

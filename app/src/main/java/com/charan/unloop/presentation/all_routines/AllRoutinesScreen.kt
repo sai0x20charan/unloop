@@ -51,7 +51,7 @@ import com.charan.unloop.ui.theme.indexItemFor
 
 @Composable
 fun AllRoutinesScreen(
-    onNavigateToCreateRoutine: () -> Unit = {},
+    onNavigateToCreateRoutine: (String?) -> Unit = {},
 ) {
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val viewModel = hiltViewModel<AllRoutinesViewModel>()
@@ -65,8 +65,8 @@ fun AllRoutinesScreen(
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
 
-                AllRoutineEffect.NavigateToCreateRoutine -> {
-                    onNavigateToCreateRoutine()
+                is AllRoutineEffect.NavigateToEditRoutine -> {
+                    onNavigateToCreateRoutine(effect.routineId)
                 }
 
                 AllRoutineEffect.NavigateBack -> {
@@ -89,7 +89,7 @@ fun AllRoutinesScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    viewModel.onEvent(AllRoutineEvent.OnAddRoutineClick)
+                    viewModel.onEvent(AllRoutineEvent.OnEditRoutineClick(null))
                 }
             ) {
                 Icon(
@@ -136,20 +136,6 @@ fun AllRoutinesScreen(
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                                if (routine.isIntervalBlocking) {
-                                    val intervalText = routine.intervalMinutes?.let { mins ->
-                                        val h = mins / 60
-                                        val m = mins % 60
-                                        if (h > 0 && m > 0) "${h}h ${m}m" else if (h > 0) "${h}h" else "${m}m"
-                                    } ?: ""
-                                    if (intervalText.isNotEmpty()) {
-                                        Text(
-                                            text = "Every $intervalText",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                }
                             }
                         }
                     },
@@ -161,7 +147,7 @@ fun AllRoutinesScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = if (routine.isIntervalBlocking) Icons.Rounded.HourglassTop else Icons.Rounded.Schedule,
+                                    imageVector =Icons.Rounded.Schedule ,
                                     contentDescription = null,
                                     tint = if (routine.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(22.dp)
@@ -196,7 +182,10 @@ fun AllRoutinesScreen(
                         }
                     },
                     indexItem = state.allRoutines.indexItemFor(index),
-                    isSelected = false
+                    isSelected = false,
+                    onClick = {
+                        viewModel.onEvent(AllRoutineEvent.OnEditRoutineClick(routine.id))
+                    }
                 )
             }
         }
