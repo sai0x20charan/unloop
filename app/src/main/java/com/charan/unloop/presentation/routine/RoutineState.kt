@@ -6,7 +6,6 @@ import kotlinx.datetime.LocalTime
 
 enum class UnlockChallengeType {
     WAIT_TIME,
-    ONE_TIME_UNLOCK,
     STRICT_MODE
 }
 

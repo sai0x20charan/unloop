@@ -78,7 +78,7 @@ class RoutineForegroundService : Service() {
 
         startMonitoring(routineId)
 
-        return START_STICKY
+        return START_REDELIVER_INTENT
     }
 
     fun stopRoutine(routineId: String?) {
@@ -113,7 +113,17 @@ class RoutineForegroundService : Service() {
                     if(blockedAppPackages?.contains(foregroundPackage) == true){
 
                         val overlayIntent = Intent(this@RoutineForegroundService, FullScreenOverlayService::class.java)
-                        overlayIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        overlayIntent.putExtra(
+                            FullScreenOverlayService.EXTRA_UNLOCK_TYPE,
+                            routine.unlockChallengeType.name
+                        )
+                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_ROUTINE_ID, routine.id)
+                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_ROUTINE_NAME, routine.name)
+                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_APP_PACKAGE, foregroundPackage)
+                        overlayIntent.putExtra(
+                            FullScreenOverlayService.EXTRA_WAIT_SECONDS,
+                            routine.waitDurationSeconds ?: 30
+                        )
                         startService(overlayIntent)
                     } else {
                         val overlayIntent = Intent(this@RoutineForegroundService, FullScreenOverlayService::class.java)

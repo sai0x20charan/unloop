@@ -21,7 +21,7 @@ class AllRoutinesViewModel @Inject constructor(
     private val routineScheduler: RoutineScheduler
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(AllRoutinesState(isLoading = true))
+    private val _state = MutableStateFlow(AllRoutinesState())
     val state = _state.asStateFlow()
 
     private val _effect = Channel<AllRoutineEffect>()
@@ -36,7 +36,6 @@ class AllRoutinesViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     allRoutines = routines.map { routine -> routine.toRoutineUiModel() },
-                    isLoading = false
                 )
             }
         }
@@ -45,9 +44,9 @@ class AllRoutinesViewModel @Inject constructor(
     fun onEvent(event: AllRoutineEvent) = viewModelScope.launch {
         when (event) {
             is AllRoutineEvent.OnToggleRoutine -> handleToggleRoutine(event.routineId, event.isEnabled)
-            is AllRoutineEvent.OnDeleteClick -> _state.update { it.copy(routineToDelete = event.routine) }
+            is AllRoutineEvent.OnDeleteClick -> _state.update { it.copy() }
             AllRoutineEvent.OnConfirmDelete -> handleConfirmDelete()
-            AllRoutineEvent.OnDismissDeleteDialog -> _state.update { it.copy(routineToDelete = null) }
+            AllRoutineEvent.OnDismissDeleteDialog -> _state.update { it.copy() }
             AllRoutineEvent.OnAddRoutineClick -> _effect.send(AllRoutineEffect.NavigateToCreateRoutine)
             AllRoutineEvent.OnBackClick -> _effect.send(AllRoutineEffect.NavigateBack)
         }
@@ -75,10 +74,5 @@ class AllRoutinesViewModel @Inject constructor(
     }
 
     private fun handleConfirmDelete() = viewModelScope.launch {
-        val routine = _state.value.routineToDelete ?: return@launch
-        routineRepository.deleteRoutine(routine.id)
-        routineScheduler.cancelRoutine(routine.id)
-        _state.update { it.copy(routineToDelete = null) }
-        _effect.send(AllRoutineEffect.ShowToast("Routine deleted"))
     }
 }

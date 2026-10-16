@@ -142,9 +142,7 @@ fun ReviewPage(
                     )
                     val challengeText = when (unlockChallengeType) {
                         UnlockChallengeType.WAIT_TIME -> "Wait Time Challenge (${waitTimeSeconds} seconds delay)"
-                        UnlockChallengeType.ONE_TIME_UNLOCK -> {
-                            "Emergency One-time Unlock ($waitTimeSeconds seconds unlock delay)"
-                        }
+
                         UnlockChallengeType.STRICT_MODE -> "Strict Mode (No unlocks allowed)"
                     }
                     Text(challengeText, style = MaterialTheme.typography.bodyLarge)

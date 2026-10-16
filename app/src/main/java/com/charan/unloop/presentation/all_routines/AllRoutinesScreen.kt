@@ -52,8 +52,6 @@ import com.charan.unloop.ui.theme.indexItemFor
 @Composable
 fun AllRoutinesScreen(
     onNavigateToCreateRoutine: () -> Unit = {},
-    onBackClick: () -> Unit = {},
-    showBackButton: Boolean = true,
 ) {
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val viewModel = hiltViewModel<AllRoutinesViewModel>()
@@ -66,36 +64,16 @@ fun AllRoutinesScreen(
                 is AllRoutineEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
+
                 AllRoutineEffect.NavigateToCreateRoutine -> {
                     onNavigateToCreateRoutine()
                 }
+
                 AllRoutineEffect.NavigateBack -> {
-                    onBackClick()
+
                 }
             }
         }
-    }
-
-    if (state.routineToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.onEvent(AllRoutineEvent.OnDismissDeleteDialog) },
-            title = { Text("Delete Routine") },
-            text = { Text("Are you sure you want to delete \"${state.routineToDelete?.name}\"?") },
-            confirmButton = {
-                TextButton(
-                    onClick = { viewModel.onEvent(AllRoutineEvent.OnConfirmDelete) }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { viewModel.onEvent(AllRoutineEvent.OnDismissDeleteDialog) }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 
     Scaffold(
@@ -103,10 +81,8 @@ fun AllRoutinesScreen(
         topBar = {
             CustomMediumTopBar(
                 title = "All Routines",
-                showBackButton = showBackButton,
-                onBackClick = {
-                    viewModel.onEvent(AllRoutineEvent.OnBackClick)
-                },
+                showBackButton = false,
+
                 scrollBehavior = scroll
             )
         },
@@ -123,174 +99,107 @@ fun AllRoutinesScreen(
             }
         }
     ) { innerPadding ->
-        when {
-            state.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding.toScreenContentPadding()),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            state.allRoutines.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding.toScreenContentPadding()),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.padding(horizontal = 32.dp)
-                    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = innerPadding.toScreenContentPadding(bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
+        ) {
+            items(state.allRoutines.size) { index ->
+                val routine = state.allRoutines[index]
+                CustomSegmentedListItem(
+                    headLineContent = {
+                        Text(
+                            text = routine.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    supportingContent = {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(top = 2.dp)
+                        ) {
+                            Text(
+                                text = "${routine.formattedTime} • ${routine.formattedDays}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (routine.blockedApps.isNotEmpty()) {
+                                    Text(
+                                        text = "${routine.blockedApps.size} apps blocked",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                if (routine.isIntervalBlocking) {
+                                    val intervalText = routine.intervalMinutes?.let { mins ->
+                                        val h = mins / 60
+                                        val m = mins % 60
+                                        if (h > 0 && m > 0) "${h}h ${m}m" else if (h > 0) "${h}h" else "${m}m"
+                                    } ?: ""
+                                    if (intervalText.isNotEmpty()) {
+                                        Text(
+                                            text = "Every $intervalText",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    leadingContent = {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            modifier = Modifier.size(80.dp)
+                            color = if (routine.isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.size(40.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Rounded.AlarmOff,
+                                    imageVector = if (routine.isIntervalBlocking) Icons.Rounded.HourglassTop else Icons.Rounded.Schedule,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(40.dp)
+                                    tint = if (routine.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
-                        Text(
-                            text = "No routines yet",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "Create a routine to schedule focus sessions, block distracting apps, and step away.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                        Button(
-                            onClick = { viewModel.onEvent(AllRoutineEvent.OnAddRoutineClick) }
+                    },
+                    trailingContent = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                            Switch(
+                                checked = routine.isEnabled,
+                                onCheckedChange = { isChecked ->
+                                    viewModel.onEvent(
+                                        AllRoutineEvent.OnToggleRoutine(routine.id, isChecked)
+                                    )
+                                }
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Create Routine")
-                        }
-                    }
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = innerPadding.toScreenContentPadding(bottom = 88.dp),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
-                ) {
-                    items(state.allRoutines.size) { index ->
-                        val routine = state.allRoutines[index]
-                        CustomSegmentedListItem(
-                            headLineContent = {
-                                Text(
-                                    text = routine.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                            IconButton(
+                                onClick = {
+                                    viewModel.onEvent(AllRoutineEvent.OnDeleteClick(routine))
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.DeleteOutline,
+                                    contentDescription = "Delete routine",
+                                    tint = MaterialTheme.colorScheme.error
                                 )
-                            },
-                            supportingContent = {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    modifier = Modifier.padding(top = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "${routine.formattedTime} • ${routine.formattedDays}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        if (routine.blockedApps.isNotEmpty()) {
-                                            Text(
-                                                text = "${routine.blockedApps.size} apps blocked",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                        if (routine.isIntervalBlocking) {
-                                            val intervalText = routine.intervalMinutes?.let { mins ->
-                                                val h = mins / 60
-                                                val m = mins % 60
-                                                if (h > 0 && m > 0) "${h}h ${m}m" else if (h > 0) "${h}h" else "${m}m"
-                                            } ?: ""
-                                            if (intervalText.isNotEmpty()) {
-                                                Text(
-                                                    text = "Every $intervalText",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.secondary
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            leadingContent = {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = if (routine.isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                    modifier = Modifier.size(40.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = if (routine.isIntervalBlocking) Icons.Rounded.HourglassTop else Icons.Rounded.Schedule,
-                                            contentDescription = null,
-                                            tint = if (routine.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(22.dp)
-                                        )
-                                    }
-                                }
-                            },
-                            trailingContent = {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Switch(
-                                        checked = routine.isEnabled,
-                                        onCheckedChange = { isChecked ->
-                                            viewModel.onEvent(
-                                                AllRoutineEvent.OnToggleRoutine(routine.id, isChecked)
-                                            )
-                                        }
-                                    )
-                                    IconButton(
-                                        onClick = {
-                                            viewModel.onEvent(AllRoutineEvent.OnDeleteClick(routine))
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.DeleteOutline,
-                                            contentDescription = "Delete routine",
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                }
-                            },
-                            indexItem = state.allRoutines.indexItemFor(index),
-                            isSelected = false
-                        )
-                    }
-                }
+                            }
+                        }
+                    },
+                    indexItem = state.allRoutines.indexItemFor(index),
+                    isSelected = false
+                )
             }
         }
     }
+
 }

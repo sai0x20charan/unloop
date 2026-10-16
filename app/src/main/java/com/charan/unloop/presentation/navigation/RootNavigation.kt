@@ -9,7 +9,7 @@ import com.charan.unloop.presentation.routine.RoutineScreen
 
 @Composable
 fun RootNavigation() {
-    val backStack = rememberNavBackStack(Destination.Routine)
+    val backStack = rememberNavBackStack(Destination.AllRoutines)
     NavDisplay(
         backStack = backStack,
         onBack = {
@@ -22,12 +22,7 @@ fun RootNavigation() {
                         onNavigateToCreateRoutine = {
                             backStack.add(Destination.Routine)
                         },
-                        onBackClick = {
-                            if (backStack.size > 1) {
-                                backStack.removeLastOrNull()
-                            }
-                        },
-                        showBackButton = backStack.size > 1
+
                     )
                 }
 

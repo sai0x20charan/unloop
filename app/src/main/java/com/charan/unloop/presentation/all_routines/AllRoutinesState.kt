@@ -4,6 +4,4 @@ import com.charan.unloop.presentation.common.models.RoutineUiModel
 
 data class AllRoutinesState(
     val allRoutines: List<RoutineUiModel> = emptyList(),
-    val isLoading: Boolean = false,
-    val routineToDelete: RoutineUiModel? = null,
 )

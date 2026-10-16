@@ -106,39 +106,6 @@ fun UnlockChallengePage(
                 }
 
                 ChallengeOptionCard(
-                    title = "Emergency One-time Unlock",
-                    description = "Allows a single unlock per app per session. Forces a custom delay time before opening.",
-                    icon = Icons.Rounded.LockOpen,
-                    isSelected = unlockChallengeType == UnlockChallengeType.ONE_TIME_UNLOCK,
-                    onClick = { onEvent(RoutineEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.ONE_TIME_UNLOCK)) }
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Wait Duration",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Text(
-                                text = "$waitTimeSeconds seconds",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Slider(
-                            value = waitTimeSeconds.toFloat(),
-                            onValueChange = { onEvent(RoutineEvent.OnWaitTimeSecondsChange(it.toInt())) },
-                            valueRange = 5f..120f,
-                            steps = 22
-                        )
-                    }
-                }
-
-                ChallengeOptionCard(
                     title = "Strict Mode",
                     description = "No unlocks allowed under any circumstance. Pure blocking logic.",
                     icon = Icons.Rounded.Lock,
