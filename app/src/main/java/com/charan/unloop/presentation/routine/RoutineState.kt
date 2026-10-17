@@ -1,6 +1,7 @@
 package com.charan.unloop.presentation.routine
 
 import android.graphics.drawable.Drawable
+import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import kotlinx.datetime.LocalTime
 
@@ -24,9 +25,4 @@ data class RoutineState(
     val stepTitles: List<String> = listOf("Schedule", "Select Apps", "Unlock Challenge", "Review & Confirm"),
 )
 
-data class InstalledAppsUiModel(
-    val appName : String = "",
-    val packageName : String = "",
-    val icon : Drawable? = null,
-    val isSelected : Boolean = false
-)
+

@@ -28,9 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.routine.UnlockChallengeType
-import com.charan.unloop.presentation.routine.InstalledAppsUiModel
 
 @Composable
 fun ReviewPage(

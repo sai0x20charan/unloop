@@ -1,8 +1,6 @@
 package com.charan.unloop.presentation.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
-import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -15,7 +13,6 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.charan.unloop.presentation.all_routines.AllRoutinesScreen
 import com.charan.unloop.presentation.routine.RoutineScreen
 
 private val navigationAnimationSpec = tween<IntOffset>(
@@ -25,12 +22,14 @@ private val navigationAnimationSpec = tween<IntOffset>(
 
 @Composable
 fun RootNavigation() {
-    val backStack = rememberNavBackStack(Destination.AllRoutines)
+    val backStack = rememberNavBackStack(Destination.BottomBarNav)
 
     NavDisplay(
         backStack = backStack,
         onBack = {
-            backStack.removeLastOrNull()
+            if (backStack.size > 1) {
+                backStack.removeLastOrNull()
+            }
         },
         entryDecorators = listOf(
 
@@ -73,12 +72,11 @@ fun RootNavigation() {
         },
         entryProvider = { key ->
             when (key) {
-                is Destination.AllRoutines -> NavEntry(key) {
-                    AllRoutinesScreen(
+                is Destination.BottomBarNav -> NavEntry(key) {
+                    BottomBarNavigation(
                         onNavigateToCreateRoutine = {
                             backStack.add(Destination.Routine(it))
-                        },
-
+                        }
                     )
                 }
 

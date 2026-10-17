@@ -4,6 +4,7 @@ import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.impl.InstalledAppsRepositoryImpl
 import com.charan.unloop.data.repository.impl.RoutineRepositoryImpl
+import com.charan.unloop.data.repository.impl.SessionRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +26,10 @@ abstract class RepositoryModule {
     abstract fun bindRoutineRepository(
         routineRepositoryImpl: RoutineRepositoryImpl
     ): RoutineRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSessionRepository(
+        sessionRepositoryImpl: SessionRepositoryImpl
+    ): com.charan.unloop.data.repository.SessionRepository
 }

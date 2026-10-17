@@ -33,7 +33,6 @@ class RoutineScheduler @Inject constructor(
         if (frequency.isEmpty()) return
 
         val now = DateUtils.currentDateTime()
-        val triggerTime = startTime
 
         val pendingIntent = createPendingIntent(routineId)
 
@@ -45,8 +44,8 @@ class RoutineScheduler @Inject constructor(
                 year = date.year,
                 month = date.month.number,
                 day = date.day,
-                hour = triggerTime.hour,
-                minute = triggerTime.minute,
+                hour = startTime.hour,
+                minute = startTime.minute,
                 second = 0,
                 nanosecond = 0
             )
@@ -85,7 +84,7 @@ class RoutineScheduler @Inject constructor(
     }
 
     fun scheduleStopRoutine(
-        routineId: String,
+        sessionId: String,
         endTime: LocalTime
     ) {
         val now = DateUtils.currentDateTime()
@@ -116,7 +115,7 @@ class RoutineScheduler @Inject constructor(
             .toInstant(TimeZone.currentSystemDefault())
             .toEpochMilliseconds()
 
-        val pendingIntent = createStopPendingIntent(routineId)
+        val pendingIntent = createStopPendingIntent(sessionId)
 
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
@@ -159,7 +158,7 @@ class RoutineScheduler @Inject constructor(
     private fun createStopPendingIntent(routineId: String): PendingIntent {
         val intent = Intent(context, RoutineForegroundService::class.java).apply {
             action = RoutineForegroundService.ACTION_STOP_ROUTINE
-            putExtra(RoutineForegroundService.EXTRA_ROUTINE_ID, routineId)
+            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, routineId)
         }
 
         return PendingIntent.getForegroundService(
@@ -168,5 +167,11 @@ class RoutineScheduler @Inject constructor(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+    }
+
+    fun startSession(id : String){
+        val serviceIntent = Intent(context, RoutineForegroundService::class.java)
+        serviceIntent.putExtra(RoutineForegroundService.EXTRA_SESSION_ID, id)
+        context.startForegroundService(serviceIntent)
     }
 }

@@ -1,7 +1,8 @@
 package com.charan.unloop.data.local
 
 import androidx.room.TypeConverter
-import androidx.room.TypeConverters
+import com.charan.unloop.data.local.model.enums.SessionStatus
+import com.charan.unloop.data.local.model.enums.SessionType
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -12,7 +13,6 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalTime::class)
 object Converters {
@@ -67,6 +67,7 @@ object Converters {
     fun dayOfWeekToString(value: DayOfWeek): String {
         return value.name
     }
+
     @TypeConverter
     fun stringToDayOfWeek(value: String): DayOfWeek {
         return DayOfWeek.valueOf(value)
@@ -85,5 +86,25 @@ object Converters {
     @TypeConverter
     fun stringToUnlockChallengeType(value: String): UnlockChallengeType {
         return UnlockChallengeType.valueOf(value)
+    }
+
+    @TypeConverter
+    fun sessionStatusToString(value: SessionStatus): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun stringToSessionStatus(value: String): SessionStatus {
+        return SessionStatus.valueOf(value)
+    }
+
+    @TypeConverter
+    fun sessionTypeToString(value: SessionType): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun stringToSessionType(value: String): SessionType {
+        return SessionType.valueOf(value)
     }
 }

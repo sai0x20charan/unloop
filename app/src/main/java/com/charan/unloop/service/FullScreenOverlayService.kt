@@ -84,6 +84,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             unlockedForCurrentVisit = false
             details = nextDetails
         }
+        Log.d("TAG", "onStartCommand: details=$details, unlockedForCurrentVisit=$unlockedForCurrentVisit")
         if (!unlockedForCurrentVisit) showOverlay()
         return START_NOT_STICKY
     }

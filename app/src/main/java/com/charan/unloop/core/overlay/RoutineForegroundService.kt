@@ -8,7 +8,9 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import com.charan.unloop.R
+import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.repository.RoutineRepository
+import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.service.FullScreenOverlayService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +29,7 @@ class RoutineForegroundService : Service() {
     lateinit var appUsageChecker: AppUsageChecker
 
     @Inject
-    lateinit var routineRepository: RoutineRepository
+    lateinit var sessionRepository: SessionRepository
 
     @Inject
     lateinit var notificationHelper: NotificationHelper
@@ -35,13 +37,15 @@ class RoutineForegroundService : Service() {
     @Inject
     lateinit var routineScheduler: RoutineScheduler
 
+    var session : SessionEntity? = null
+
     private val alarmManager by lazy {
         getSystemService(Context.ALARM_SERVICE) as AlarmManager
     }
 
     companion object {
         const val ACTION_STOP_ROUTINE = "com.charan.unloop.ACTION_STOP_ROUTINE"
-        const val EXTRA_ROUTINE_ID = "routineId"
+        const val EXTRA_SESSION_ID = "sessionId"
     }
 
     private val serviceScope = CoroutineScope(
@@ -57,13 +61,15 @@ class RoutineForegroundService : Service() {
         startId: Int
     ): Int {
 
-        val routineId = intent?.getStringExtra(EXTRA_ROUTINE_ID)
+        val sessionId = intent?.getStringExtra(EXTRA_SESSION_ID)
         val action = intent?.action
 
         if (action == ACTION_STOP_ROUTINE) {
-            stopRoutine(routineId)
+            stopRoutine(sessionId)
             return START_NOT_STICKY
         }
+
+
 
         notificationHelper.createNotificationChannel()
 
@@ -76,7 +82,7 @@ class RoutineForegroundService : Service() {
 
         startForeground(NotificationHelper.NOTIFICATION_ID, notification)
 
-        startMonitoring(routineId)
+        startMonitoring(sessionId)
 
         return START_REDELIVER_INTENT
     }
@@ -92,14 +98,18 @@ class RoutineForegroundService : Service() {
     }
 
 
-    private fun startMonitoring(routineId: String?) {
+    private fun startMonitoring(sessionId: String?) {
         serviceScope.launch {
-            if (routineId != null) {
-                val routine = routineRepository.getRoutineById(routineId)
-                if (routine != null && routine.endTime != null && !routine.isAllDay) {
-                    routineScheduler.scheduleStopRoutine(routineId, routine.endTime)
-                }
+            if (sessionId != null) {
+                session = sessionRepository.getSessionById(sessionId)
+
             }
+
+            routineScheduler.scheduleStopRoutine(
+                sessionId = sessionId ?: "",
+                endTime = session?.endTime ?: throw IllegalArgumentException("Session end time is null")
+            )
+
 
             while (true) {
 
@@ -107,22 +117,21 @@ class RoutineForegroundService : Service() {
                     appUsageChecker.getForegroundApp()
 
                 if (foregroundPackage != null) {
-                    val routine = routineId?.let { routineRepository.getRoutineById(it) }
 
-                    val blockedAppPackages = routine?.disableAppPackages
+                    val blockedAppPackages = session?.blockedApps
+                    Log.d("TAG", "startMonitoring: $blockedAppPackages")
                     if(blockedAppPackages?.contains(foregroundPackage) == true){
 
                         val overlayIntent = Intent(this@RoutineForegroundService, FullScreenOverlayService::class.java)
                         overlayIntent.putExtra(
                             FullScreenOverlayService.EXTRA_UNLOCK_TYPE,
-                            routine.unlockChallengeType.name
+                            session?.unlockChallengeType?.name
                         )
-                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_ROUTINE_ID, routine.id)
-                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_ROUTINE_NAME, routine.name)
+                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_ROUTINE_NAME, session?.sessionName)
                         overlayIntent.putExtra(FullScreenOverlayService.EXTRA_APP_PACKAGE, foregroundPackage)
                         overlayIntent.putExtra(
                             FullScreenOverlayService.EXTRA_WAIT_SECONDS,
-                            routine.waitDurationSeconds ?: 30
+                            session?.waitDurationSeconds ?: 30
                         )
                         startService(overlayIntent)
                     } else {

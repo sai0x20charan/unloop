@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.overlay.RoutineScheduler
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
+import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.toRoutineEntity
 import com.charan.unloop.presentation.common.toRoutineUiModel
 import dagger.assisted.Assisted

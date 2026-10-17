@@ -55,4 +55,21 @@ object DateUtils {
     fun getCurrentTime (): LocalTime {
         return currentDateTime().time
     }
+
+    fun getEndTimeForDuration(seconds : Int) : LocalTime{
+        val currentTime = getCurrentTime()
+        val endTime = currentTime.toMillisecondOfDay() + seconds * 1000
+        return LocalTime.fromMillisecondOfDay(endTime)
+    }
+
+    fun getRemainingDuration(endTime: LocalTime): Long {
+        val currentSeconds = getCurrentTime().toSecondOfDay()
+        val endSeconds = endTime.toSecondOfDay()
+        return if (endSeconds >= currentSeconds) {
+            (endSeconds - currentSeconds).toLong()
+        } else {
+            // Handles crossing midnight (e.g. starts 23:45, ends 00:15)
+            ((86400 - currentSeconds) + endSeconds).toLong()
+        }
+    }
 }

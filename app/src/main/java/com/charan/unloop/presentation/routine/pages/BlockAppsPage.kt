@@ -26,7 +26,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
-import com.charan.unloop.presentation.routine.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.routine.components.RoutineLazyColumn
 import com.charan.unloop.ui.theme.indexItemFor
 

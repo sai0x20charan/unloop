@@ -168,17 +168,6 @@ fun AllRoutinesScreen(
                                     )
                                 }
                             )
-                            IconButton(
-                                onClick = {
-                                    viewModel.onEvent(AllRoutineEvent.OnDeleteClick(routine))
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.DeleteOutline,
-                                    contentDescription = "Delete routine",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
                         }
                     },
                     indexItem = state.allRoutines.indexItemFor(index),

@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">Unloop</string>
+    <string name="navigation_home">Home</string>
+    <string name="navigation_routines">Routines</string>
+    <string name="navigation_profile">Profile</string>
+    <string name="home_instant_session">Instant session</string>
+    <string name="home_session_duration">Duration</string>
+    <string name="home_hours">Hours</string>
+    <string name="home_minutes">Minutes</string>
+    <string name="home_duration_hint">Choose any duration up to 24 hours.</string>
+    <string name="home_hours_error">Hours must be between 0 and 24.</string>
+    <string name="home_minutes_error">Minutes must be between 0 and 59.</string>
+    <string name="home_max_duration_error">Maximum duration is 24 hours. Set minutes to 0 for a full day.</string>
+    <string name="home_min_duration_error">Choose at least 1 minute.</string>
+    <string name="home_apps_to_block">Apps to block</string>
+    <string name="home_select_all">Select all</string>
+    <string name="home_clear_all">Clear all</string>
+    <string name="home_select_apps_hint">Select at least one app to start</string>
+    <string name="home_start_session">Start session</string>
+    <string name="home_start">Start</string>
+    <string name="home_end_session">End session</string>
+    <string name="home_customize">Customize</string>
+    <plurals name="home_selected_apps">
+        <item quantity="one">%d app selected</item>
+        <item quantity="other">%d apps selected</item>
+    </plurals>
+    <string name="home_app_instagram" translatable="false">Instagram</string>
+    <string name="home_app_youtube" translatable="false">YouTube</string>
+    <string name="home_app_tiktok" translatable="false">TikTok</string>
+    <string name="home_app_reddit" translatable="false">Reddit</string>
+    <string name="home_app_x" translatable="false">X</string>
+    <string name="home_app_chrome" translatable="false">Chrome</string>
 </resources>

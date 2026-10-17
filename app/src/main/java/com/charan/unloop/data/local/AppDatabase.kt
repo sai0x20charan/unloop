@@ -5,17 +5,21 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.charan.unloop.data.local.dao.RoutineDao
+import com.charan.unloop.data.local.dao.SessionDao
 import com.charan.unloop.data.local.entity.RoutineEntity
+import com.charan.unloop.data.local.entity.SessionEntity
 
 @Database(
-    entities = [RoutineEntity::class],
-    version = 3,
+    entities = [RoutineEntity::class, SessionEntity::class],
+    version = 1,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun routineDao(): RoutineDao
+
+    abstract fun sessionDao(): SessionDao
     companion object {
-        const val DATABASE_NAME = "step_away_database"
+        const val DATABASE_NAME = "unloop_database"
     }
 }
