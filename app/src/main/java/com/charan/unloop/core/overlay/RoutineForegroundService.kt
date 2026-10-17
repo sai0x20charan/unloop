@@ -1,26 +1,29 @@
 package com.charan.unloop.core.overlay
 
-import android.app.AlarmManager
-import android.app.Notification
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import android.util.Log
-import com.charan.unloop.R
+import com.charan.unloop.core.utils.DateUtils
 import com.charan.unloop.data.local.entity.SessionEntity
+import com.charan.unloop.data.local.model.enums.SessionStatus
+import com.charan.unloop.data.local.model.enums.SessionType
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.service.FullScreenOverlayService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalTime
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @AndroidEntryPoint
 class RoutineForegroundService : Service() {
@@ -32,20 +35,21 @@ class RoutineForegroundService : Service() {
     lateinit var sessionRepository: SessionRepository
 
     @Inject
+    lateinit var routineRepository: RoutineRepository
+
+    @Inject
     lateinit var notificationHelper: NotificationHelper
 
     @Inject
     lateinit var routineScheduler: RoutineScheduler
 
-    var session : SessionEntity? = null
-
-    private val alarmManager by lazy {
-        getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    }
+    private var activeSession: SessionEntity? = null
+    private var monitoringJob: Job? = null
 
     companion object {
         const val ACTION_STOP_ROUTINE = "com.charan.unloop.ACTION_STOP_ROUTINE"
         const val EXTRA_SESSION_ID = "sessionId"
+        const val EXTRA_ROUTINE_ID = "routineId"
     }
 
     private val serviceScope = CoroutineScope(
@@ -54,97 +58,129 @@ class RoutineForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,
         startId: Int
     ): Int {
-
         val sessionId = intent?.getStringExtra(EXTRA_SESSION_ID)
+        val routineId = intent?.getStringExtra(EXTRA_ROUTINE_ID)
         val action = intent?.action
 
+        startForeground(
+            NotificationHelper.NOTIFICATION_ID,
+            notificationHelper.buildForegroundNotification()
+        )
+
         if (action == ACTION_STOP_ROUTINE) {
-            stopRoutine(sessionId)
+            completeAndStopSession(sessionId)
             return START_NOT_STICKY
         }
 
-
-
-        notificationHelper.createNotificationChannel()
-
-        val notification = Notification.Builder(this, NotificationHelper.NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("Routine Active")
-            .setContentText("Monitoring app usage for routine")
-            .setSmallIcon(R.drawable.ic_launcher_background)
-            .setOngoing(true)
-            .build()
-
-        startForeground(NotificationHelper.NOTIFICATION_ID, notification)
-
-        startMonitoring(sessionId)
+        startMonitoring(sessionId = sessionId, routineId = routineId)
 
         return START_REDELIVER_INTENT
     }
 
-    fun stopRoutine(routineId: String?) {
-        if (routineId != null) {
-            routineScheduler.stopAlarm(routineId)
+    private fun completeAndStopSession(sessionId: String?) {
+        monitoringJob?.cancel()
+        serviceScope.launch {
+            val targetId = sessionId
+                ?: activeSession?.id
+                ?: sessionRepository.getActiveSessionOnce()?.id
+
+            if (!targetId.isNullOrBlank()) {
+                sessionRepository.updateSessionStatus(
+                    sessionId = targetId,
+                    status = SessionStatus.COMPLETED,
+                    actualEndTime = DateUtils.getCurrentTime()
+                )
+                routineScheduler.cancelStopRoutine(targetId)
+            }
+            stopOverlayAndSelf()
         }
-        val overlayIntent = Intent(this, FullScreenOverlayService::class.java)
-        stopService(overlayIntent)
+    }
+
+    private fun stopOverlayAndSelf() {
+        stopService(Intent(this, FullScreenOverlayService::class.java))
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
-
-    private fun startMonitoring(sessionId: String?) {
-        serviceScope.launch {
-            if (sessionId != null) {
-                session = sessionRepository.getSessionById(sessionId)
-
+    private fun startMonitoring(sessionId: String?, routineId: String?) {
+        monitoringJob?.cancel()
+        monitoringJob = serviceScope.launch {
+            val session = when {
+                !sessionId.isNullOrBlank() -> sessionRepository.getSessionById(sessionId)
+                !routineId.isNullOrBlank() -> createOrGetScheduledSession(routineId)
+                else -> sessionRepository.getActiveSessionOnce()
             }
 
+            if (session == null || session.sessionStatus != SessionStatus.RUNNING) {
+                stopOverlayAndSelf()
+                return@launch
+            }
+
+            activeSession = session
+
             routineScheduler.scheduleStopRoutine(
-                sessionId = sessionId ?: "",
-                endTime = session?.endTime ?: throw IllegalArgumentException("Session end time is null")
+                sessionId = session.id,
+                endTime = session.endTime
             )
 
+            while (isActive) {
+                val remainingSeconds = DateUtils.getRemainingDuration(
+                    startTime = session.startTime,
+                    endTime = session.endTime
+                )
 
-            while (true) {
+                if (remainingSeconds <= 0L) {
+                    sessionRepository.updateSessionStatus(
+                        sessionId = session.id,
+                        status = SessionStatus.COMPLETED,
+                        actualEndTime = DateUtils.getCurrentTime()
+                    )
+                    routineScheduler.cancelStopRoutine(session.id)
+                    stopOverlayAndSelf()
+                    break
+                }
 
-                val foregroundPackage =
-                    appUsageChecker.getForegroundApp()
-
+                val foregroundPackage = appUsageChecker.getForegroundApp()
                 if (foregroundPackage != null) {
-
-                    val blockedAppPackages = session?.blockedApps
-                    Log.d("TAG", "startMonitoring: $blockedAppPackages")
-                    if(blockedAppPackages?.contains(foregroundPackage) == true){
-
-                        val overlayIntent = Intent(this@RoutineForegroundService, FullScreenOverlayService::class.java)
-                        overlayIntent.putExtra(
-                            FullScreenOverlayService.EXTRA_UNLOCK_TYPE,
-                            session?.unlockChallengeType?.name
-                        )
-                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_ROUTINE_NAME, session?.sessionName)
-                        overlayIntent.putExtra(FullScreenOverlayService.EXTRA_APP_PACKAGE, foregroundPackage)
-                        overlayIntent.putExtra(
-                            FullScreenOverlayService.EXTRA_WAIT_SECONDS,
-                            session?.waitDurationSeconds ?: 30
-                        )
+                    if (session.blockedApps?.contains(foregroundPackage) == true) {
+                        val overlayIntent = Intent(
+                            this@RoutineForegroundService,
+                            FullScreenOverlayService::class.java
+                        ).apply {
+                            putExtra(
+                                FullScreenOverlayService.EXTRA_UNLOCK_TYPE,
+                                session.unlockChallengeType.name
+                            )
+                            putExtra(
+                                FullScreenOverlayService.EXTRA_ROUTINE_ID,
+                                session.id
+                            )
+                            putExtra(
+                                FullScreenOverlayService.EXTRA_ROUTINE_NAME,
+                                session.sessionName
+                            )
+                            putExtra(
+                                FullScreenOverlayService.EXTRA_APP_PACKAGE,
+                                foregroundPackage
+                            )
+                            putExtra(
+                                FullScreenOverlayService.EXTRA_WAIT_SECONDS,
+                                session.waitDurationSeconds ?: 30
+                            )
+                            putExtra(
+                                FullScreenOverlayService.EXTRA_END_TIME_SECOND_OF_DAY,
+                                session.endTime.toSecondOfDay()
+                            )
+                        }
                         startService(overlayIntent)
                     } else {
-                        val overlayIntent = Intent(this@RoutineForegroundService, FullScreenOverlayService::class.java)
-                        stopService(overlayIntent)
-
-
+                        stopService(Intent(this@RoutineForegroundService, FullScreenOverlayService::class.java))
                     }
-
-                    Log.d("TAG", "startMonitoring: hi $foregroundPackage")
-
-                    // check if package is blocked
-                    // show overlay if needed
                 }
 
                 delay(1000.milliseconds)
@@ -152,8 +188,46 @@ class RoutineForegroundService : Service() {
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
+    private suspend fun createOrGetScheduledSession(routineId: String): SessionEntity? {
+        val existingActive = sessionRepository.getActiveSessionOnce()
+        if (existingActive != null && existingActive.routineId == routineId) {
+            return existingActive
+        }
+
+        val routine = routineRepository.getRoutineById(routineId) ?: return null
+        if (!routine.isEnabled || routine.isDeleted) return null
+
+        val nowTime = DateUtils.getCurrentTime()
+        val newSession = SessionEntity(
+            id = Uuid.generateV4().toString(),
+            routineId = routine.id,
+            actualStartTime = nowTime,
+            startTime = routine.startTime ?: nowTime,
+            endTime = routine.endTime ?: LocalTime(23, 59, 59),
+            sessionStatus = SessionStatus.RUNNING,
+            sessionType = SessionType.SCHEDULED,
+            blockedApps = routine.disableAppPackages,
+            unlockChallengeType = routine.unlockChallengeType,
+            sessionName = routine.name,
+            waitDurationSeconds = routine.waitDurationSeconds
+        )
+        sessionRepository.insertSession(newSession)
+
+        if (!routine.daysOfWeek.isNullOrEmpty() && routine.startTime != null) {
+            routineScheduler.scheduleRoutine(
+                routineId = routine.id,
+                startTime = routine.startTime,
+                frequency = routine.daysOfWeek,
+                isAllDay = routine.isAllDay
+            )
+        }
+
+        return newSession
+    }
 
     override fun onDestroy() {
+        stopService(Intent(this, FullScreenOverlayService::class.java))
         serviceScope.cancel()
         super.onDestroy()
     }

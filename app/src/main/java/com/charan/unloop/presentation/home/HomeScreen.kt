@@ -119,7 +119,7 @@ fun HomeScreen(
                     .padding(24.dp),
             ) {
                 TimerRing(
-                    progress = if (state.startSessionState.isRunning) {
+                    progress = if (state.startSessionState.isRunning && state.startSessionState.totalSeconds > 0) {
                         state.startSessionState.remainingSeconds / state.startSessionState.totalSeconds.toFloat()
                     } else {
                         1f
@@ -183,7 +183,7 @@ fun HomeScreen(
                     if (running) {
                         FilledTonalButton(
                             onClick = {
-
+                                viewModel.onEvent(HomeEvent.OnEndSessionClick)
                             },
                             shapes = ButtonDefaults.shapes(),
                         ) {
@@ -198,9 +198,7 @@ fun HomeScreen(
                     } else {
                         Button(
                             onClick = {
-
-                                    viewModel.onEvent(HomeEvent.OnStartSessionClick)
-
+                                viewModel.onEvent(HomeEvent.OnStartSessionClick)
                                 focusManager.clearFocus()
                             },
                             shapes = ButtonDefaults.shapes(),

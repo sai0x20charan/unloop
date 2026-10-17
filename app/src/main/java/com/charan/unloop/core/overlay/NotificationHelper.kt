@@ -11,9 +11,9 @@ import javax.inject.Inject
 class NotificationHelper @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    private val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-
-    private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     init {
         createNotificationChannel()
     }
@@ -33,19 +33,15 @@ class NotificationHelper @Inject constructor(
         notificationManager.createNotificationChannel(channel)
     }
 
-
-
-    fun showRoutineProgressNotification(title : String,message : String,routineId: String) {
-        val builder =
-            Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
-
-        val notification = builder
+    fun buildForegroundNotification(
+        title: String = "Routine Active",
+        message: String = "Monitoring app usage for routine"
+    ): Notification {
+        return Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(message)
             .setSmallIcon(R.drawable.ic_launcher_background)
-            .setAutoCancel(true)
+            .setOngoing(true)
             .build()
-
-        notificationManager.notify(1, notification)
     }
 }

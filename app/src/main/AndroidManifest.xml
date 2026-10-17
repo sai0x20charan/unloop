@@ -31,9 +31,6 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Monitoring app usage for Unloop routines" />
         </service>
-        <receiver
-            android:name=".core.overlay.RoutineReceiver"
-            android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

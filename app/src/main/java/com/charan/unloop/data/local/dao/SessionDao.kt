@@ -2,15 +2,21 @@ package com.charan.unloop.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalTime
 
 @Dao
 interface SessionDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSession(session: SessionEntity)
+
+    @Update
+    suspend fun updateSession(session: SessionEntity)
 
     @Query("""
     SELECT * FROM sessions 
@@ -24,6 +30,29 @@ interface SessionDao {
         )
     ): Flow<SessionEntity?>
 
+    @Query("""
+    SELECT * FROM sessions 
+    WHERE sessionStatus IN (:statuses)
+    LIMIT 1
+""")
+    suspend fun getActiveSessionOnce(
+        statuses: List<SessionStatus> = listOf(
+            SessionStatus.RUNNING,
+            SessionStatus.PAUSED
+        )
+    ): SessionEntity?
+
     @Query("SELECT * FROM sessions WHERE id = :sessionId LIMIT 1")
     suspend fun getSessionById(sessionId: String): SessionEntity?
+
+    @Query("""
+    UPDATE sessions 
+    SET sessionStatus = :status, actualEndTime = :actualEndTime 
+    WHERE id = :sessionId
+""")
+    suspend fun updateSessionStatus(
+        sessionId: String,
+        status: SessionStatus,
+        actualEndTime: LocalTime?
+    )
 }

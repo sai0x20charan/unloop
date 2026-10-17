@@ -58,8 +58,25 @@ object DateUtils {
 
     fun getEndTimeForDuration(seconds : Int) : LocalTime{
         val currentTime = getCurrentTime()
-        val endTime = currentTime.toMillisecondOfDay() + seconds * 1000
-        return LocalTime.fromMillisecondOfDay(endTime)
+        val endMillis = (currentTime.toMillisecondOfDay().toLong() + seconds * 1000L).mod(86_400_000L).toInt()
+        return LocalTime.fromMillisecondOfDay(endMillis)
+    }
+
+    fun getRemainingDuration(startTime: LocalTime, endTime: LocalTime): Long {
+        val currentSeconds = getCurrentTime().toSecondOfDay()
+        val startSeconds = startTime.toSecondOfDay()
+        val endSeconds = endTime.toSecondOfDay()
+
+        return if (endSeconds >= startSeconds) {
+            (endSeconds - currentSeconds).coerceAtLeast(0).toLong()
+        } else {
+            // Session crosses midnight (e.g. starts 23:45, ends 00:15)
+            when {
+                currentSeconds >= startSeconds -> ((86400 - currentSeconds) + endSeconds).toLong()
+                currentSeconds <= endSeconds -> (endSeconds - currentSeconds).toLong()
+                else -> 0L
+            }
+        }
     }
 
     fun getRemainingDuration(endTime: LocalTime): Long {
@@ -68,7 +85,6 @@ object DateUtils {
         return if (endSeconds >= currentSeconds) {
             (endSeconds - currentSeconds).toLong()
         } else {
-            // Handles crossing midnight (e.g. starts 23:45, ends 00:15)
             ((86400 - currentSeconds) + endSeconds).toLong()
         }
     }

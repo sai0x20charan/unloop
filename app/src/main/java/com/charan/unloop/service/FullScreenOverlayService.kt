@@ -38,6 +38,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         const val EXTRA_ROUTINE_NAME = "routine_name"
         const val EXTRA_APP_PACKAGE = "app_package"
         const val EXTRA_WAIT_SECONDS = "wait_seconds"
+        const val EXTRA_END_TIME_SECOND_OF_DAY = "end_time_second_of_day"
     }
 
     private data class OverlayDetails(
@@ -46,6 +47,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         val appPackage: String?,
         val unlockType: UnlockChallengeType,
         val waitSeconds: Int,
+        val endTime: LocalTime,
     )
 
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -72,13 +74,20 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             return START_NOT_STICKY
         }
         val unlockTypeName = intent.getStringExtra(EXTRA_UNLOCK_TYPE)
+        val endSecondOfDay = intent.getIntExtra(EXTRA_END_TIME_SECOND_OF_DAY, -1)
+        val endTime = if (endSecondOfDay in 0..86399) {
+            LocalTime.fromSecondOfDay(endSecondOfDay)
+        } else {
+            LocalTime(23, 59)
+        }
         val nextDetails = OverlayDetails(
             routineId = intent.getStringExtra(EXTRA_ROUTINE_ID),
             routineName = intent.getStringExtra(EXTRA_ROUTINE_NAME).orEmpty().ifBlank { "Focus time" },
             appPackage = intent.getStringExtra(EXTRA_APP_PACKAGE),
             unlockType = UnlockChallengeType.entries.firstOrNull { it.name == unlockTypeName }
                 ?: UnlockChallengeType.WAIT_TIME,
-            waitSeconds = intent.getIntExtra(EXTRA_WAIT_SECONDS, 30).coerceIn(5, 120)
+            waitSeconds = intent.getIntExtra(EXTRA_WAIT_SECONDS, 30).coerceIn(5, 120),
+            endTime = endTime
         )
         if (details != nextDetails) {
             unlockedForCurrentVisit = false
@@ -117,7 +126,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
                                 routineName = current.routineName,
                                 appName = appLabel(current.appPackage),
                                 waitTimeSeconds = current.waitSeconds,
-                                endTime = LocalTime(10,20),
+                                endTime = current.endTime,
                                 onKeepFocusing = ::returnHome,
                                 onUnlock = {
                                     if (details?.unlockType == UnlockChallengeType.WAIT_TIME) {

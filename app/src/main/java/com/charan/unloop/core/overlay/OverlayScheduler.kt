@@ -4,7 +4,9 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import com.charan.unloop.core.utils.DateUtils
+import com.charan.unloop.service.FullScreenOverlayService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -29,42 +31,29 @@ class RoutineScheduler @Inject constructor(
         frequency: List<DayOfWeek>,
         isAllDay: Boolean = false
     ) {
-        if(startTime == null) return
-        if (frequency.isEmpty()) return
+        if (startTime == null || frequency.isEmpty()) return
 
         val now = DateUtils.currentDateTime()
-
         val pendingIntent = createPendingIntent(routineId)
-
         var date = now.date
 
         while (true) {
-
             val dateTime = LocalDateTime(
                 year = date.year,
                 month = date.month.number,
                 day = date.day,
                 hour = startTime.hour,
                 minute = startTime.minute,
-                second = 0,
+                second = startTime.second,
                 nanosecond = 0
             )
 
-            val validDay = frequency.contains(dateTime.dayOfWeek)
-            val futureTime = dateTime > now
-
-            if (validDay && (isAllDay || futureTime)) {
-
+            if (frequency.contains(dateTime.dayOfWeek) && (isAllDay || dateTime > now)) {
                 val millis = dateTime
                     .toInstant(TimeZone.currentSystemDefault())
                     .toEpochMilliseconds()
 
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    millis,
-                    pendingIntent
-                )
-
+                setExactAlarmSafe(millis, pendingIntent)
                 return
             }
 
@@ -72,21 +61,22 @@ class RoutineScheduler @Inject constructor(
         }
     }
 
-    fun stopAlarm(routineId: String) {
+    fun cancelRoutine(routineId: String) {
         val pendingIntent = createPendingIntent(routineId)
         alarmManager.cancel(pendingIntent)
         pendingIntent.cancel()
 
         cancelStopRoutine(routineId)
 
-        val serviceIntent = Intent(context, RoutineForegroundService::class.java)
-        context.stopService(serviceIntent)
+        context.stopService(Intent(context, RoutineForegroundService::class.java))
     }
 
     fun scheduleStopRoutine(
         sessionId: String,
         endTime: LocalTime
     ) {
+        if (sessionId.isBlank()) return
+
         val now = DateUtils.currentDateTime()
         var endDateTime = LocalDateTime(
             year = now.year,
@@ -94,7 +84,7 @@ class RoutineScheduler @Inject constructor(
             day = now.day,
             hour = endTime.hour,
             minute = endTime.minute,
-            second = 0,
+            second = endTime.second,
             nanosecond = 0
         )
 
@@ -106,7 +96,7 @@ class RoutineScheduler @Inject constructor(
                 day = nextDate.day,
                 hour = endTime.hour,
                 minute = endTime.minute,
-                second = 0,
+                second = endTime.second,
                 nanosecond = 0
             )
         }
@@ -115,39 +105,38 @@ class RoutineScheduler @Inject constructor(
             .toInstant(TimeZone.currentSystemDefault())
             .toEpochMilliseconds()
 
-        val pendingIntent = createStopPendingIntent(sessionId)
-
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            millis,
-            pendingIntent
-        )
+        setExactAlarmSafe(millis, createStopPendingIntent(sessionId))
     }
 
-    fun cancelStopRoutine(routineId: String) {
-        val pendingIntent = createStopPendingIntent(routineId)
+    private fun setExactAlarmSafe(triggerAtMillis: Long, pendingIntent: PendingIntent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerAtMillis,
+                pendingIntent
+            )
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerAtMillis,
+                pendingIntent
+            )
+        }
+    }
+
+    fun cancelStopRoutine(sessionId: String) {
+        if (sessionId.isBlank()) return
+        val pendingIntent = createStopPendingIntent(sessionId)
         alarmManager.cancel(pendingIntent)
         pendingIntent.cancel()
     }
 
-    fun cancelAlarm(routineId: String) {
-        stopAlarm(routineId)
-    }
-
-    fun stopRoutine(routineId: String) {
-        stopAlarm(routineId)
-    }
-
-    fun cancelRoutine(routineId: String) {
-        stopAlarm(routineId)
-    }
-
     private fun createPendingIntent(routineId: String): PendingIntent {
-        val intent = Intent(context, RoutineReceiver::class.java).apply {
-            putExtra("routineId", routineId)
+        val intent = Intent(context, RoutineForegroundService::class.java).apply {
+            putExtra(RoutineForegroundService.EXTRA_ROUTINE_ID, routineId)
         }
 
-        return PendingIntent.getBroadcast(
+        return PendingIntent.getForegroundService(
             context,
             routineId.hashCode(),
             intent,
@@ -155,23 +144,30 @@ class RoutineScheduler @Inject constructor(
         )
     }
 
-    private fun createStopPendingIntent(routineId: String): PendingIntent {
+    private fun createStopPendingIntent(sessionId: String): PendingIntent {
         val intent = Intent(context, RoutineForegroundService::class.java).apply {
             action = RoutineForegroundService.ACTION_STOP_ROUTINE
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, routineId)
+            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
         }
 
         return PendingIntent.getForegroundService(
             context,
-            (routineId + "_stop").hashCode(),
+            (sessionId + "_stop").hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 
-    fun startSession(id : String){
-        val serviceIntent = Intent(context, RoutineForegroundService::class.java)
-        serviceIntent.putExtra(RoutineForegroundService.EXTRA_SESSION_ID, id)
+    fun startSession(id: String) {
+        val serviceIntent = Intent(context, RoutineForegroundService::class.java).apply {
+            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, id)
+        }
         context.startForegroundService(serviceIntent)
+    }
+
+    fun stopSession(sessionId: String) {
+        cancelStopRoutine(sessionId)
+        context.stopService(Intent(context, FullScreenOverlayService::class.java))
+        context.stopService(Intent(context, RoutineForegroundService::class.java))
     }
 }

@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.overlay.RoutineScheduler
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
-import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.toggleAppSelection
+import com.charan.unloop.presentation.common.models.toggleSelectAll
 import com.charan.unloop.presentation.common.toRoutineEntity
 import com.charan.unloop.presentation.common.toRoutineUiModel
 import dagger.assisted.Assisted
@@ -20,7 +22,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
-import javax.inject.Inject
 
 @HiltViewModel(assistedFactory = RoutineViewModel.Factory::class)
 class RoutineViewModel @AssistedInject constructor(
@@ -40,46 +41,28 @@ class RoutineViewModel @AssistedInject constructor(
 
     private val _effect = Channel<RoutineEffect>()
     val effect = _effect.receiveAsFlow()
+
     init {
-        initRoutine()
-        initInstalledApps()
-
+        initRoutineAndApps()
     }
 
-    private fun initRoutine() = viewModelScope.launch {
-        if (routineId != null) {
-            val routineEntity = routineRepository.getRoutineById(routineId)
-            if (routineEntity != null) {
-                _state.update {
-                    it.copy(
-                        routine = routineEntity.toRoutineUiModel()
-                    )
-                }
-            }
-        }
-    }
-
-
-    private fun initInstalledApps() = viewModelScope.launch {
-
+    private fun initRoutineAndApps() = viewModelScope.launch {
+        val routineUiModel = routineId?.let { routineRepository.getRoutineById(it)?.toRoutineUiModel() }
         val installedApps = installedAppsRepository.getInstalledApps()
-        _state.update {
-            it.copy(installedApps = installedApps.map { app ->
-                InstalledAppsUiModel(
-                    appName = app.appName,
-                    packageName = app.packageName,
-                    icon = app.icon,
-                    isSelected = app.packageName in it.routine.blockedApps
-                )
-            })
+        val blockedSet = routineUiModel?.blockedApps.orEmpty().toSet()
+
+        _state.update { current ->
+            current.copy(
+                routine = routineUiModel ?: current.routine,
+                installedApps = installedApps.map { app ->
+                    app.toInstalledAppsUiModel(isSelected = app.packageName in blockedSet)
+                }
+            )
         }
     }
 
-
-    fun onEvent(event : RoutineEvent) = viewModelScope.launch {
-
-        when(event){
-
+    fun onEvent(event: RoutineEvent) = viewModelScope.launch {
+        when (event) {
             RoutineEvent.OnBackClick -> handleBackClick()
             RoutineEvent.OnCreateRoutineClick -> handleCreateRoutineClick()
             is RoutineEvent.OnEndTimeChange -> handleEndTimeChange(event.hour, event.minute)
@@ -91,71 +74,39 @@ class RoutineViewModel @AssistedInject constructor(
             RoutineEvent.OnStartTimeToggle -> handleShowStartTimeDialog()
             is RoutineEvent.OnInstalledAppSelect -> handleInstalledAppSelect(event.packageName)
             RoutineEvent.OnSelectAllAppsClick -> handleSelectAllAppsClick()
-
-
             is RoutineEvent.OnUnlockChallengeTypeChange -> handleUnlockChallengeTypeChange(event.type)
             is RoutineEvent.OnWaitTimeSecondsChange -> handleWaitTimeSecondsChange(event.seconds)
-
         }
-
     }
-
-
-
-
-
 
     private fun handleSelectAllAppsClick() {
         _state.update { state ->
-
-            val allSelected = state.installedApps.all { it.isSelected }
-            val updatedApps = state.installedApps.map { app ->
-                app.copy(isSelected = !allSelected)
-            }
-            state.copy(installedApps = updatedApps)
+            state.copy(installedApps = state.installedApps.toggleSelectAll())
         }
     }
 
     private fun handleInstalledAppSelect(packageName: String) {
-        _state.update {
-            val updatedApps = it.installedApps.map { app ->
-                if (app.packageName == packageName) {
-                    app.copy(isSelected = !app.isSelected)
-                } else {
-                    app
-                }
-            }
-            it.copy(installedApps = updatedApps)
+        _state.update { state ->
+            state.copy(installedApps = state.installedApps.toggleAppSelection(packageName))
         }
     }
 
     private fun handleShowStartTimeDialog() {
-        _state.update {
-            it.copy(showStartTimeDialog = !it.showStartTimeDialog)
-        }
+        _state.update { it.copy(showStartTimeDialog = !it.showStartTimeDialog) }
     }
 
     private fun handleShowEndTimeDialog() {
-        _state.update {
-            it.copy(showEndTimeDialog = !it.showEndTimeDialog)
-        }
+        _state.update { it.copy(showEndTimeDialog = !it.showEndTimeDialog) }
     }
 
-
     private fun handleRoutineNameChange(name: String) {
-       _state.update {
-            it.copy(routine = it.routine.copy(name = name))
-       }
+        _state.update { it.copy(routine = it.routine.copy(name = name)) }
     }
 
     private fun handleRoutineDaySelect(day: DayOfWeek) {
         _state.update {
             val currentDays = it.routine.selectedDays
-            val updatedDays = if (currentDays.contains(day)) {
-                currentDays - day
-            } else {
-                currentDays + day
-            }
+            val updatedDays = if (day in currentDays) currentDays - day else currentDays + day
             it.copy(routine = it.routine.copy(selectedDays = updatedDays))
         }
     }
@@ -163,9 +114,7 @@ class RoutineViewModel @AssistedInject constructor(
     private fun handleStartTimeChange(hour: Int, minute: Int) {
         _state.update {
             it.copy(
-                routine = it.routine.copy(
-                    startTime = LocalTime(hour, minute)
-                ),
+                routine = it.routine.copy(startTime = LocalTime(hour, minute)),
                 showStartTimeDialog = false
             )
         }
@@ -174,9 +123,7 @@ class RoutineViewModel @AssistedInject constructor(
     private fun handleEndTimeChange(hour: Int, minute: Int) {
         _state.update {
             it.copy(
-                routine = it.routine.copy(
-                    endTime = LocalTime(hour, minute)
-                ),
+                routine = it.routine.copy(endTime = LocalTime(hour, minute)),
                 showEndTimeDialog = false
             )
         }
@@ -184,105 +131,67 @@ class RoutineViewModel @AssistedInject constructor(
 
     private fun handleNextClick() {
         _state.update {
-            if (it.pageState < it.totalPageState - 1) {
-                it.copy(pageState = it.pageState + 1)
-            } else {
-                it
-            }
+            if (it.pageState < it.totalPageState - 1) it.copy(pageState = it.pageState + 1) else it
         }
     }
 
     private fun handleBackClick() {
         _state.update {
-            if (it.pageState > 0) {
-                it.copy(pageState = it.pageState - 1)
-            } else {
-                it
-            }
+            if (it.pageState > 0) it.copy(pageState = it.pageState - 1) else it
         }
     }
 
     private fun handleCreateRoutineClick() = viewModelScope.launch {
-        if (isDataValid()) {
-            _state.update {
-                it.copy(
-                    routine = it.routine.copy(
-                        blockedApps = it.installedApps.filter { app -> app.isSelected }.map { app -> app.packageName }
-                    )
-                )
-            }
-            val routineEntity = _state.value.routine.toRoutineEntity()
-            routineRepository.upsertRoutine(routineEntity)
+        if (!isDataValid()) return@launch
 
-            val startTime = routineEntity.startTime
-            val daysOfWeek = routineEntity.daysOfWeek
-            if (!daysOfWeek.isNullOrEmpty()) {
-                routineScheduler.scheduleRoutine(
-                    routineId = routineEntity.id,
-                    startTime = startTime,
-                    frequency = daysOfWeek,
-                    isAllDay = routineEntity.isAllDay
+        _state.update {
+            it.copy(
+                routine = it.routine.copy(
+                    blockedApps = it.installedApps.filter { app -> app.isSelected }.map { app -> app.packageName }
                 )
-            }
-
-            _effect.send(RoutineEffect.OnBack)
+            )
         }
+        val routineEntity = _state.value.routine.toRoutineEntity()
+        routineRepository.upsertRoutine(routineEntity)
+
+        val daysOfWeek = routineEntity.daysOfWeek
+        if (!daysOfWeek.isNullOrEmpty()) {
+            routineScheduler.scheduleRoutine(
+                routineId = routineEntity.id,
+                startTime = routineEntity.startTime,
+                frequency = daysOfWeek,
+                isAllDay = routineEntity.isAllDay
+            )
+        }
+
+        _effect.send(RoutineEffect.OnBack)
     }
 
-    private fun isDataValid(): Boolean {
+    private suspend fun isDataValid(): Boolean {
         val routine = _state.value.routine
-        if (routine.name.isBlank()) {
-            viewModelScope.launch {
-                _effect.send(RoutineEffect.ShowToast("Routine name cannot be empty"))
-            }
-            return false
+        val startTime = routine.startTime
+        val endTime = routine.endTime
+
+        val errorMessage = when {
+            routine.name.isBlank() -> "Routine name cannot be empty"
+            routine.selectedDays.isEmpty() -> "Please select at least one day for the routine"
+            startTime == null || endTime == null -> "Please select start and end times"
+            startTime >= endTime -> "Start time must be before end time"
+            else -> null
         }
 
-        // Validate routine days
-        if (routine.selectedDays.isEmpty()) {
-            viewModelScope.launch {
-                _effect.send(RoutineEffect.ShowToast("Please select at least one day for the routine"))
-            }
+        if (errorMessage != null) {
+            _effect.send(RoutineEffect.ShowToast(errorMessage))
             return false
         }
-
-        // Validate start and end times if not all day
-
-            val startTime = routine.startTime
-            val endTime = routine.endTime
-            if (startTime == null || endTime == null) {
-                viewModelScope.launch {
-                    _effect.send(RoutineEffect.ShowToast("Please select start and end times"))
-                }
-                return false
-            }
-            if (startTime >= endTime) {
-                viewModelScope.launch {
-                    _effect.send(RoutineEffect.ShowToast("Start time must be before end time"))
-                }
-                return false
-            }
-
-
         return true
     }
 
     private fun handleUnlockChallengeTypeChange(type: UnlockChallengeType) {
-        _state.update {
-            it.copy(
-                routine = it.routine.copy(unlockChallengeType = type),
-                )
-        }
+        _state.update { it.copy(routine = it.routine.copy(unlockChallengeType = type)) }
     }
 
     private fun handleWaitTimeSecondsChange(seconds: Int) {
-        _state.update {
-            it.copy(routine = it.routine.copy(waitDurationSeconds = seconds))
-        }
+        _state.update { it.copy(routine = it.routine.copy(waitDurationSeconds = seconds)) }
     }
-
-    private fun sendEffect(effect : RoutineEffect) = viewModelScope.launch {
-        _effect.send(effect)
-    }
-
 }
