@@ -40,7 +40,7 @@ class NotificationHelper @Inject constructor(
         return Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(message)
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.drawable.unloop_notification_icon)
             .setOngoing(true)
             .build()
     }
