@@ -19,7 +19,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Unloop">
+        android:theme="@style/Theme.Unloop.SplashScreen">
         <service
             android:name=".service.FullScreenOverlayService"
             android:exported="false"/>
@@ -35,7 +35,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Unloop"
+            android:theme="@style/Theme.Unloop.SplashScreen"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

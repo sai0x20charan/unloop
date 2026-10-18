@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.charan.unloop.presentation.navigation.RootNavigation
 import com.charan.unloop.presentation.routine.RoutineScreen
 import com.charan.unloop.service.FullScreenOverlayService
@@ -25,7 +26,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         enableEdgeToEdge()
+
         setContent {
             UnloopTheme {
                 Surface {

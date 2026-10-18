@@ -85,4 +85,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.core.splashscreen)
 }
