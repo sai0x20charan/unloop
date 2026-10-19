@@ -2,6 +2,7 @@ package com.charan.unloop.core.di
 
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
+import com.charan.unloop.data.repository.impl.DataStoreRepositoryImpl
 import com.charan.unloop.data.repository.impl.InstalledAppsRepositoryImpl
 import com.charan.unloop.data.repository.impl.RoutineRepositoryImpl
 import com.charan.unloop.data.repository.impl.SessionRepositoryImpl
@@ -32,4 +33,11 @@ abstract class RepositoryModule {
     abstract fun bindSessionRepository(
         sessionRepositoryImpl: SessionRepositoryImpl
     ): com.charan.unloop.data.repository.SessionRepository
+
+
+    @Binds
+    @Singleton
+    abstract fun bindDataStoreRepository(
+        dataStoreRepositoryImpl: DataStoreRepositoryImpl
+    ): com.charan.unloop.data.repository.DataStoreRepository
 }

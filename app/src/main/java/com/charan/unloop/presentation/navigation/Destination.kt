@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class BottomBarNavDestinations : NavKey {
+
+
     @Serializable
     data object Home : BottomBarNavDestinations()
 
@@ -17,6 +19,9 @@ sealed class BottomBarNavDestinations : NavKey {
 
 @Serializable
 sealed class Destination : NavKey {
+
+    @Serializable
+    data object OnBoarding : Destination()
     @Serializable
     data class Routine(val routineId : String? = null) : Destination()
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.charan.unloop.presentation.navigation.RootNavigation
+import com.charan.unloop.presentation.root.AppRoot
 import com.charan.unloop.presentation.routine.RoutineScreen
 import com.charan.unloop.service.FullScreenOverlayService
 import com.charan.unloop.ui.theme.UnloopTheme
@@ -31,9 +32,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             UnloopTheme {
-                Surface {
-                    RootNavigation()
-                }
+                AppRoot()
             }
         }
     }
