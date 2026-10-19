@@ -13,4 +13,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+/app/src/release/
+/app/release/
+/app/src/debug/
+/.kotlin/
+/keystore.properties
+/.idea/
+.kotlin/
 .hotswan/
+*.jks
+*.keystore

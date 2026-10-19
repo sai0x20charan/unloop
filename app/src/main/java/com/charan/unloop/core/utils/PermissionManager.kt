@@ -1,6 +1,7 @@
 package com.charan.unloop.core.utils
 
 import android.app.AppOpsManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -22,26 +23,22 @@ class PermissionManager @Inject constructor(
             }
         }
 
-    fun openSettingsPermissionScreen(){
-        val intent = Intent(
+    fun openSettingsPermissionScreen() = openSettings(
+        Intent(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
             Uri.fromParts("package", context.packageName, null)
         )
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
-    }
+    )
 
     fun hasOverlayPermission(): Boolean {
         return Settings.canDrawOverlays(context)
     }
 
-    fun requestOverlayPermission(){
-        val intent = Intent(
-            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-            "package:${context.packageName}".toUri()
-        )
-        context.startActivity(intent)
-    }
+    fun requestOverlayPermission(): Boolean = openSettings(
+        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, "package:${context.packageName}".toUri()),
+        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION),
+        appDetailsIntent(),
+    )
 
     fun hasUsageStatsPermission(): Boolean {
         val appOps = context.getSystemService(
@@ -57,10 +54,28 @@ class PermissionManager @Inject constructor(
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
-    fun requestUsageStatsPermission() {
-        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+    fun requestUsageStatsPermission(): Boolean = openSettings(
+        Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, "package:${context.packageName}".toUri()),
+        Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS),
+        appDetailsIntent(),
+    )
+    private fun appDetailsIntent() = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        "package:${context.packageName}".toUri(),
+    )
+
+    private fun openSettings(vararg intents: Intent): Boolean {
+        for (intent in intents) {
+            try {
+                context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                return true
+            } catch (_: ActivityNotFoundException) {
+
+            } catch (_: SecurityException) {
+
+            }
+        }
+        return false
     }
 
 }

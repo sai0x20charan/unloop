@@ -1,3 +1,6 @@
+import com.android.build.api.variant.impl.VariantOutputImpl
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -5,6 +8,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+val appName = "Unloop"
 
 android {
     namespace = "com.charan.unloop"
@@ -24,19 +29,88 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            optimization {
-                enable = false
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(keystorePropertiesFile.inputStream())
+    }
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = keystoreProperties.getProperty("storeFile")?.let { path ->
+                    val f = file(path)
+                    if (f.exists()) f else rootProject.file(path)
+                }
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
             }
         }
     }
+
+    buildTypes {
+        release {
+
+            optimization {
+                enable = true
+            }
+            resValue("string", "app_name", appName)
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.findByName("release")
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            isDebuggable = true
+            resValue("string", "app_name", "$appName-Debug")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         compose = true
+        buildConfig = true
+        resValues = true
+    }
+}
+
+
+
+androidComponents {
+    onVariants { variant ->
+        val variantName = variant.name
+        val capitalizedVariantName = variantName.replaceFirstChar { it.uppercase() }
+        variant.outputs.forEach { output ->
+            if (output is VariantOutputImpl) {
+                val versionName = android.defaultConfig.versionName ?: "1.0"
+                output.outputFileName.set("$appName-$variantName-$versionName.apk")
+            }
+        }
+        tasks.register("renameAab$capitalizedVariantName") {
+            doLast {
+                val versionName = android.defaultConfig.versionName ?: "1.0"
+                val bundleDir = layout.buildDirectory.dir("outputs/bundle/$variantName").get().asFile
+
+                bundleDir.listFiles()
+                    ?.filter { it.extension == "aab" }
+                    ?.forEach { aab ->
+                        val newName = "$appName-$variantName-$versionName.aab"
+                        aab.renameTo(File(bundleDir, newName))
+                        println("Renamed AAB to: $newName")
+                    }
+            }
+        }
+        afterEvaluate {
+            val bundleTaskName = "bundle$capitalizedVariantName"
+            tasks.findByName(bundleTaskName)?.finalizedBy("renameAab$capitalizedVariantName")
+        }
     }
 }
 
