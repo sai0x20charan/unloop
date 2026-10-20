@@ -6,29 +6,53 @@ import com.charan.unloop.data.repository.DataStoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val dataStoreRepository: DataStoreRepository
-
-) : ViewModel(){
+) : ViewModel() {
 
     private val _state = MutableStateFlow(AppState())
     val state = _state.asStateFlow()
 
     init {
-        checkPreferences()
+        observeAppState()
     }
-    fun checkPreferences() = viewModelScope.launch {
-        _state.update {
 
+    private fun observeAppState() = viewModelScope.launch {
+        val initialTheme = dataStoreRepository.getTheme.first()
+        val initialDynamic = dataStoreRepository.getDynamicColorsState.first()
+        val initialOnboarding = dataStoreRepository.isOnBoardingCompleted.first()
+
+        _state.update {
             it.copy(
-                isOnBoardingCompleted = dataStoreRepository.isOnBoardingCompleted.first()
+                isLoading = false,
+                theme = initialTheme,
+                dynamicColorsEnabled = initialDynamic,
+                isOnBoardingCompleted = initialOnboarding
             )
         }
-    }
 
+        launch {
+            combine(
+                dataStoreRepository.getTheme,
+                dataStoreRepository.getDynamicColorsState
+            ) { theme, dynamicColorsEnabled ->
+                theme to dynamicColorsEnabled
+            }.collectLatest { (theme, dynamicColorsEnabled) ->
+                _state.update {
+                    it.copy(
+                        theme = theme,
+                        dynamicColorsEnabled = dynamicColorsEnabled
+                    )
+                }
+            }
+        }
+    }
 }

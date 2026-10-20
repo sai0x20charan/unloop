@@ -13,11 +13,11 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -42,7 +42,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.charan.unloop.R
 import com.charan.unloop.presentation.all_routines.AllRoutinesScreen
 import com.charan.unloop.presentation.home.HomeScreen
-import com.charan.unloop.presentation.profile.ProfileScreen
+import com.charan.unloop.presentation.settings.SettingsScreen
 
 private enum class MainTab(
     @param:StringRes val label: Int,
@@ -62,11 +62,11 @@ private enum class MainTab(
         Icons.Outlined.Schedule,
         BottomBarNavDestinations.AllRoutines,
     ),
-    Profile(
-        R.string.navigation_profile,
-        Icons.Rounded.Person,
-        Icons.Outlined.Person,
-        BottomBarNavDestinations.Profile,
+    Settings(
+        R.string.settings,
+        Icons.Rounded.Settings,
+        Icons.Outlined.Settings,
+        BottomBarNavDestinations.Settings,
     ),
 }
 
@@ -165,8 +165,8 @@ fun BottomBarNavigation(onNavigateToCreateRoutine: (String?) -> Unit) {
                             onNavigateToCreateRoutine = onNavigateToCreateRoutine
                         )
                     }
-                    BottomBarNavDestinations.Profile -> NavEntry(key) {
-                        ProfileScreen()
+                    BottomBarNavDestinations.Settings -> NavEntry(key) {
+                        SettingsScreen()
                     }
                     else -> throw IllegalArgumentException("Unknown bottom bar destination: $key")
                 }

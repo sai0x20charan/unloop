@@ -14,7 +14,7 @@ sealed class BottomBarNavDestinations : NavKey {
     data object AllRoutines : BottomBarNavDestinations()
 
     @Serializable
-    data object Profile : BottomBarNavDestinations()
+    data object Settings : BottomBarNavDestinations()
 }
 
 @Serializable
