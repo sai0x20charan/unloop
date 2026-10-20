@@ -43,6 +43,7 @@ data class StartSessionState(
     val remainingSeconds: Int = 0,
     val totalSeconds: Int = 0,
     val isPaused: Boolean = false,
+    val sessionId : String = ""
 ) {
 
     val progress : Float

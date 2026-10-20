@@ -37,6 +37,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.Button
@@ -92,6 +93,8 @@ fun HomeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val isSessionRunning = state.startSessionState.isRunning
+    val isSessionPaused = state.startSessionState.isPaused
+    val isSessionActive = isSessionRunning || isSessionPaused
     val mediumButtonSize = ButtonDefaults.MediumContainerHeight
     val mediumButtonIconSize = ButtonDefaults.iconSizeFor(mediumButtonSize)
 
@@ -106,12 +109,12 @@ fun HomeScreen(
             item {
 
                 TimerRing(
-                    progress = if (isSessionRunning && state.startSessionState.totalSeconds > 0) {
+                    progress = if (isSessionActive && state.startSessionState.totalSeconds > 0) {
                         state.startSessionState.progress
                     } else {
                         1f
                     },
-                    text = if (isSessionRunning) state.startSessionState.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
+                    text = if (isSessionActive) state.startSessionState.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
                     endTimeText = state.startSessionState.endTimeFormatted,
                     onTimeChangeClick = {
                         focusManager.clearFocus()
@@ -119,7 +122,8 @@ fun HomeScreen(
                     },
                     hour = state.instantSessionUiModel.hour,
                     minute = state.instantSessionUiModel.minute,
-                    isRunning = isSessionRunning,
+                    isSessionActive = isSessionActive,
+                    isPaused = isSessionPaused,
                     isEditing = state.instantSessionUiModel.isSessionTimeEditing,
                     onHourChange = { viewModel.onEvent(HomeEvent.OnHourChange(it)) },
                     onMinuteChange = { viewModel.onEvent(HomeEvent.OnMinuteChange(it)) },
@@ -127,7 +131,7 @@ fun HomeScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                AnimatedVisibility(visible = !isSessionRunning) {
+                AnimatedVisibility(visible = !isSessionActive) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         PresetDurationSelector(
                             presets = state.instantSessionUiModel.durationPresets,
@@ -143,7 +147,7 @@ fun HomeScreen(
                 }
 
                 Spacer(Modifier.height(20.dp))
-                AnimatedVisibility(visible = !isSessionRunning) {
+                AnimatedVisibility(visible = !isSessionActive) {
 
                     SelectedBlockedAppsCard(
                         selectedApps = state.instantSessionUiModel.installedApps.filter { it.isSelected },
@@ -161,28 +165,66 @@ fun HomeScreen(
                 Spacer(Modifier.height(32.dp))
 
                 AnimatedContent(
-                    targetState = isSessionRunning,
+                    targetState = isSessionActive,
                     label = "sessionAction",
                     modifier = Modifier.fillMaxWidth(),
-                ) { sessionRunning ->
-                    if (sessionRunning) {
-                        FilledTonalButton(
-                            onClick = { viewModel.onEvent(HomeEvent.OnEndSessionClick) },
-                            shapes = ButtonDefaults.shapes(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(mediumButtonSize),
+                ) { sessionActive ->
+                    if (sessionActive) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Stop,
-                                contentDescription = null,
-                                modifier = Modifier.size(mediumButtonIconSize),
-                            )
-                            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                            Text(
-                                text = stringResource(R.string.home_end_session),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
+                            Button(
+                                onClick = {
+                                    viewModel.onEvent(HomeEvent.OnPauseSessionClick)
+                                },
+                                shapes = ButtonDefaults.shapes(),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(mediumButtonSize),
+                            ) {
+                                AnimatedContent(
+                                    targetState = isSessionPaused,
+                                    label = "pauseResumeButtonContent",
+                                ) { paused ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(mediumButtonIconSize),
+                                        )
+                                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                        Text(
+                                            text = stringResource(
+                                                if (paused) R.string.home_resume_session else R.string.home_pause_session
+                                            ),
+                                            style = MaterialTheme.typography.titleMedium,
+                                        )
+                                    }
+                                }
+                            }
+
+                            FilledTonalButton(
+                                onClick = { viewModel.onEvent(HomeEvent.OnEndSessionClick) },
+                                shapes = ButtonDefaults.shapes(),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(mediumButtonSize),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Stop,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(mediumButtonIconSize),
+                                )
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(
+                                    text = stringResource(R.string.home_end_session),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
                         }
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -232,7 +274,8 @@ private fun TimerRing(
     text: String,
     endTimeText: String,
     onTimeChangeClick: () -> Unit,
-    isRunning: Boolean,
+    isSessionActive: Boolean,
+    isPaused: Boolean,
     isEditing: Boolean,
     hour: Int,
     minute: Int,
@@ -265,17 +308,22 @@ private fun TimerRing(
         modifier = Modifier
             .size(280.dp)
             .clip(CircleShape)
-            .clickable(enabled = !isRunning && !isEditing, onClick = onTimeChangeClick),
+            .clickable(enabled = !isSessionActive && !isEditing, onClick = onTimeChangeClick),
     ) {
         CircularProgressIndicator(
             progress = { animatedProgress },
             strokeWidth = 10.dp,
+            color = if (isPaused) {
+                MaterialTheme.colorScheme.outline
+            } else {
+                MaterialTheme.colorScheme.primary
+            },
             trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             modifier = Modifier.size(280.dp),
         )
 
         AnimatedContent(
-            targetState = isEditing && !isRunning,
+            targetState = isEditing && !isSessionActive,
             transitionSpec = {
                 (fadeIn(animationSpec = tween(220, delayMillis = 40, easing = LinearOutSlowInEasing)) +
                     scaleIn(initialScale = 0.9f, animationSpec = tween(220, delayMillis = 40, easing = LinearOutSlowInEasing)))
@@ -357,20 +405,50 @@ private fun TimerRing(
                 }
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (isRunning) {
-                        Text(
-                            text = stringResource(R.string.home_remaining),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    if (isSessionActive) {
+                        if (isPaused) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier.padding(bottom = 6.dp),
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Pause,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.home_session_paused),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = stringResource(R.string.home_remaining),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                     Text(
                         text = text,
                         style = MaterialTheme.typography.displayLargeEmphasized,
-
-                        )
+                        color = if (isPaused) {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                    )
                     Spacer(Modifier.height(8.dp))
-                    if (isRunning) {
+                    if (isSessionActive) {
                         if (endTimeText.isNotEmpty()) {
                             Text(
                                 text = stringResource(R.string.home_ends_at, endTimeText),

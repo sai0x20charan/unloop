@@ -85,7 +85,8 @@ class HomeViewModel @Inject constructor(
                         remainingSeconds = DateUtils.getRemainingDuration(
                             startTime = sessionEntity.startTime,
                             endTime = sessionEntity.endTime
-                        ).toInt().coerceAtLeast(0)
+                        ).toInt().coerceAtLeast(0),
+                        sessionId = sessionEntity.id
                     )
                 )
             }
@@ -123,7 +124,21 @@ class HomeViewModel @Inject constructor(
             HomeEvent.OnAppsSheetDismiss -> _state.update {
                 it.copy(instantSessionUiModel = it.instantSessionUiModel.copy(showBottomSheet = false))
             }
+
+            is HomeEvent.OnPauseSessionClick -> {
+                handlePauseSessionClick()
+
+            }
         }
+    }
+
+    private fun handlePauseSessionClick() = viewModelScope.launch {
+        if(_state.value.startSessionState.isRunning) {
+            routineScheduler.pauseRoutine(state.value.startSessionState.sessionId)
+        } else if(_state.value.startSessionState.isPaused){
+            routineScheduler.resumeRoutine(state.value.startSessionState.sessionId)
+        }
+
     }
 
     private fun handleSessionTitleChange(title: String) {

@@ -45,6 +45,9 @@
     <string name="home_select_apps_hint">Select at least one app to start</string>
     <string name="home_start_session">Start session</string>
     <string name="home_start">Start</string>
+    <string name="home_pause_session">Pause</string>
+    <string name="home_resume_session">Resume</string>
+    <string name="home_session_paused">Paused</string>
     <string name="home_end_session">End session</string>
     <string name="home_customize">Customize</string>
     <string name="home_session_title_label">Session name</string>

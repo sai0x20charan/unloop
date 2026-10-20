@@ -19,4 +19,6 @@ sealed class HomeEvent {
 
     data object OnEndSessionClick : HomeEvent()
 
+    data object OnPauseSessionClick : HomeEvent()
+
 }

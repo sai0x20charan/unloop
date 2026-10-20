@@ -48,6 +48,10 @@ class RoutineForegroundService : Service() {
 
     companion object {
         const val ACTION_STOP_ROUTINE = "com.charan.unloop.ACTION_STOP_ROUTINE"
+
+        const val ACTION_PAUSE_ROUTINE = "com.charan.unloop.ACTION_PAUSE_ROUTINE"
+
+        const val ACTION_RESUME_ROUTINE = "com.charan.unloop.ACTION_RESUME_ROUTINE"
         const val EXTRA_SESSION_ID = "sessionId"
         const val EXTRA_ROUTINE_ID = "routineId"
     }
@@ -66,6 +70,12 @@ class RoutineForegroundService : Service() {
         val sessionId = intent?.getStringExtra(EXTRA_SESSION_ID)
         val routineId = intent?.getStringExtra(EXTRA_ROUTINE_ID)
         val action = intent?.action
+        if(action == ACTION_PAUSE_ROUTINE){
+            monitoringJob?.cancel()
+            removeOverLay()
+            updateSessionStatus(sessionId ?: activeSession?.id ?: return START_NOT_STICKY, SessionStatus.PAUSED)
+            return START_NOT_STICKY
+        }
 
         startForeground(
             NotificationHelper.NOTIFICATION_ID,
@@ -76,6 +86,8 @@ class RoutineForegroundService : Service() {
             completeAndStopSession(sessionId)
             return START_NOT_STICKY
         }
+
+
 
         startMonitoring(sessionId = sessionId, routineId = routineId)
 
@@ -101,6 +113,18 @@ class RoutineForegroundService : Service() {
         }
     }
 
+    private fun updateSessionStatus(sessionId : String, sessionStatus: SessionStatus) = serviceScope.launch{
+        sessionRepository.updateSessionStatus(
+            sessionId = sessionId,
+            status = sessionStatus,
+            actualEndTime = null
+        )
+    }
+
+    private fun removeOverLay() {
+        stopService(Intent(this, FullScreenOverlayService::class.java))
+    }
+
     private fun stopOverlayAndSelf() {
         stopService(Intent(this, FullScreenOverlayService::class.java))
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -115,11 +139,7 @@ class RoutineForegroundService : Service() {
                 !routineId.isNullOrBlank() -> createOrGetScheduledSession(routineId)
                 else -> sessionRepository.getActiveSessionOnce()
             }
-
-            if (session == null || session.sessionStatus != SessionStatus.RUNNING) {
-                stopOverlayAndSelf()
-                return@launch
-            }
+            updateSessionStatus(sessionId = session?.id ?: return@launch, sessionStatus = SessionStatus.RUNNING)
 
             activeSession = session
 
@@ -129,6 +149,11 @@ class RoutineForegroundService : Service() {
             )
 
             while (isActive) {
+                val sessionStatus = sessionRepository.getSessionById(session.id)?.sessionStatus
+                if(sessionStatus == SessionStatus.PAUSED){
+                    removeOverLay()
+                    continue
+                }
                 val remainingSeconds = DateUtils.getRemainingDuration(
                     startTime = session.startTime,
                     endTime = session.endTime

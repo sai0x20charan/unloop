@@ -124,6 +124,31 @@ class RoutineScheduler @Inject constructor(
         }
     }
 
+
+    fun pauseRoutine(sessionId: String) {
+        val intent = Intent(
+            context,
+            RoutineForegroundService::class.java
+        ).apply {
+            action = RoutineForegroundService.ACTION_PAUSE_ROUTINE
+            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+        }
+
+        context.startService(intent)
+    }
+
+    fun resumeRoutine(sessionId: String) {
+        val intent = Intent(
+            context,
+            RoutineForegroundService::class.java
+        ).apply {
+            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+        }
+
+        context.startForegroundService(intent)
+    }
+
+
     fun cancelStopRoutine(sessionId: String) {
         if (sessionId.isBlank()) return
         val pendingIntent = createStopPendingIntent(sessionId)
