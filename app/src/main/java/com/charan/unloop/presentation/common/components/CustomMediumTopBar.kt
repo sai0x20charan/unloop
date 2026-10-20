@@ -10,6 +10,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 
@@ -22,6 +23,34 @@ fun CustomMediumTopBar(
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     MediumTopAppBar(
+        title = {
+            Text(
+                text = title,
+            )
+        },
+        navigationIcon = {
+            if (showBackButton) {
+                BackButton(onBackClick)
+            }
+        },
+        actions = actions,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface
+        ),
+        scrollBehavior = scrollBehavior
+    )
+}
+
+@Composable
+fun CustomCenterAlignTopBar(
+    title: String,
+    onBackClick: () -> Unit = {},
+    showBackButton: Boolean = true,
+    scrollBehavior: TopAppBarScrollBehavior,
+    actions: @Composable RowScope.() -> Unit = {}
+) {
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 text = title,

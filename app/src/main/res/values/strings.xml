@@ -47,6 +47,25 @@
     <string name="home_start">Start</string>
     <string name="home_end_session">End session</string>
     <string name="home_customize">Customize</string>
+    <string name="home_session_title_label">Session name</string>
+    <string name="home_session_title_default">Focus session</string>
+    <string name="home_session_title_edit">Edit session name</string>
+    <string name="home_new_session">New session</string>
+    <string name="home_session_in_progress">In progress</string>
+    <string name="home_tap_to_edit">Tap to edit</string>
+    <string name="home_set_duration">Set duration</string>
+    <string name="home_done">Done</string>
+    <string name="home_remaining">Remaining</string>
+    <string name="home_ends_at">Ends at %1$s</string>
+    <string name="home_quick_pick">Quick pick</string>
+    <string name="home_blocked_apps">Blocked apps</string>
+    <string name="home_choose_duration_hint">Set a duration to start</string>
+    <string name="home_sheet_subtitle">Tap an app to add or remove it</string>
+    <string name="home_sheet_done_none">Done</string>
+    <plurals name="home_sheet_done">
+        <item quantity="one">Done · %d app</item>
+        <item quantity="other">Done · %d apps</item>
+    </plurals>
     <plurals name="home_selected_apps">
         <item quantity="one">%d app selected</item>
         <item quantity="other">%d apps selected</item>

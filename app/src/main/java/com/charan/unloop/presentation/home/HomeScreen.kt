@@ -3,46 +3,55 @@ package com.charan.unloop.presentation.home
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,23 +60,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
-import com.charan.unloop.presentation.common.components.CustomMediumTopBar
+import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.home.components.DurationInputField
-import com.charan.unloop.presentation.home.components.InstantSessionSheet
 import com.charan.unloop.presentation.home.components.PresetDurationSelector
+import com.charan.unloop.presentation.home.components.SelectAppsSheet
 import com.charan.unloop.presentation.home.components.SelectedBlockedAppsCard
 import com.charan.unloop.ui.theme.UnloopTheme
 import kotlinx.coroutines.delay
@@ -81,74 +91,44 @@ fun HomeScreen(
     val viewModel = hiltViewModel<HomeViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    val isSessionRunning = state.startSessionState.isRunning
+    val mediumButtonSize = ButtonDefaults.MediumContainerHeight
+    val mediumButtonIconSize = ButtonDefaults.iconSizeFor(mediumButtonSize)
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val selectedApps = remember(state.instantSessionUiModel.installedApps) {
-        state.instantSessionUiModel.installedApps.filter { it.isSelected }
-    }
-
-
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            CustomMediumTopBar(
-                title = stringResource(R.string.navigation_home),
-                scrollBehavior = scrollBehavior,
-                showBackButton = false,
-            )
-        },
-    ) { innerPadding ->
-        Box(
+    Scaffold(modifier = modifier) { innerPadding ->
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                ) {
-                    focusManager.clearFocus()
-                    if (state.instantSessionUiModel.isSessionTimeEditing) {
-                        viewModel.onEvent(HomeEvent.OnEditSessionTime)
-                    }
-                },
-            contentAlignment = Alignment.Center,
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            contentPadding = innerPadding.toScreenContentPadding()
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-            ) {
+            item {
+
                 TimerRing(
-                    progress = if (state.startSessionState.isRunning && state.startSessionState.totalSeconds > 0) {
-                        state.startSessionState.remainingSeconds / state.startSessionState.totalSeconds.toFloat()
+                    progress = if (isSessionRunning && state.startSessionState.totalSeconds > 0) {
+                        state.startSessionState.progress
                     } else {
                         1f
                     },
-                    text = if (state.startSessionState.isRunning) {
-                        state.startSessionState.remainingTimeFormatted
-                    } else {
-                        state.instantSessionUiModel.durationFormatted
-                    },
+                    text = if (isSessionRunning) state.startSessionState.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
+                    endTimeText = state.startSessionState.endTimeFormatted,
                     onTimeChangeClick = {
+                        focusManager.clearFocus()
                         viewModel.onEvent(HomeEvent.OnEditSessionTime)
                     },
                     hour = state.instantSessionUiModel.hour,
                     minute = state.instantSessionUiModel.minute,
-                    isRunning = state.startSessionState.isRunning,
+                    isRunning = isSessionRunning,
                     isEditing = state.instantSessionUiModel.isSessionTimeEditing,
-                    onHourChange = {
-                        viewModel.onEvent(HomeEvent.OnHourChange(it))
-                    },
-                    onMinuteChange = {
-                        viewModel.onEvent(HomeEvent.OnMinuteChange(it))
-                    },
+                    onHourChange = { viewModel.onEvent(HomeEvent.OnHourChange(it)) },
+                    onMinuteChange = { viewModel.onEvent(HomeEvent.OnMinuteChange(it)) },
                 )
 
-                AnimatedVisibility(visible = !state.startSessionState.isRunning) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(20.dp))
+
+                AnimatedVisibility(visible = !isSessionRunning) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         PresetDurationSelector(
                             presets = state.instantSessionUiModel.durationPresets,
                             hour = state.instantSessionUiModel.hour,
@@ -156,75 +136,91 @@ fun HomeScreen(
                             isHourValid = state.instantSessionUiModel.isHourValid,
                             isMinutesValid = state.instantSessionUiModel.isMinutesValid,
                             onPresetSelect = {
-                                if (state.instantSessionUiModel.isSessionTimeEditing) {
-                                    viewModel.onEvent(HomeEvent.OnEditSessionTime)
-                                }
-                                focusManager.clearFocus()
                                 viewModel.onEvent(HomeEvent.OnPresetDurationSelect(it))
                             },
                         )
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
+                AnimatedVisibility(visible = !isSessionRunning) {
 
-                SelectedBlockedAppsCard(
-                    selectedApps = selectedApps,
-                    onClick = {
-                        if (state.instantSessionUiModel.isSessionTimeEditing) {
-                            viewModel.onEvent(HomeEvent.OnEditSessionTime)
-                        }
-                        focusManager.clearFocus()
-                        viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle)
-                    },
-                )
+                    SelectedBlockedAppsCard(
+                        selectedApps = state.instantSessionUiModel.installedApps.filter { it.isSelected },
+                        enabled = true,
+                        title = stringResource(
+                            R.string.home_apps_to_block
+                        ),
+                        onClick = {
+                            viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle)
+                        },
+                    )
+                }
+
 
                 Spacer(Modifier.height(32.dp))
 
-                AnimatedContent(targetState = state.startSessionState.isRunning, label = "sessionAction") { running ->
-                    if (running) {
+                AnimatedContent(
+                    targetState = isSessionRunning,
+                    label = "sessionAction",
+                    modifier = Modifier.fillMaxWidth(),
+                ) { sessionRunning ->
+                    if (sessionRunning) {
                         FilledTonalButton(
-                            onClick = {
-                                viewModel.onEvent(HomeEvent.OnEndSessionClick)
-                            },
+                            onClick = { viewModel.onEvent(HomeEvent.OnEndSessionClick) },
                             shapes = ButtonDefaults.shapes(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(mediumButtonSize),
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Stop,
                                 contentDescription = null,
-                                modifier = Modifier.size(ButtonDefaults.IconSize),
+                                modifier = Modifier.size(mediumButtonIconSize),
                             )
                             Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                            Text(stringResource(R.string.home_end_session))
+                            Text(
+                                text = stringResource(R.string.home_end_session),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
                         }
                     } else {
-                        Button(
-                            onClick = {
-                                viewModel.onEvent(HomeEvent.OnStartSessionClick)
-                                focusManager.clearFocus()
-                            },
-                            shapes = ButtonDefaults.shapes(),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.PlayArrow,
-                                contentDescription = null,
-                                modifier = Modifier.size(ButtonDefaults.IconSize),
-                            )
-                            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                            Text(stringResource(R.string.home_start_session))
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Button(
+                                onClick = {
+                                    viewModel.onEvent(HomeEvent.OnStartSessionClick)
+                                },
+                                enabled = state.instantSessionUiModel.canStart,
+                                shapes = ButtonDefaults.shapes(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(mediumButtonSize),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.PlayArrow,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(mediumButtonIconSize),
+                                )
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(
+                                    text = stringResource(R.string.home_start_session),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+
     }
 
     if (state.instantSessionUiModel.showBottomSheet) {
-        InstantSessionSheet(
+        SelectAppsSheet(
             apps = state.instantSessionUiModel.installedApps,
             onAppSelect = { viewModel.onEvent(HomeEvent.OnAppClicked(it)) },
             onAllAppsSelect = { viewModel.onEvent(HomeEvent.OnSelectAllApps) },
-            onClose = { viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle) },
+            onClose = { viewModel.onEvent(HomeEvent.OnAppsSheetDismiss) },
         )
     }
 }
@@ -234,19 +230,26 @@ fun HomeScreen(
 private fun TimerRing(
     progress: Float,
     text: String,
-    onTimeChangeClick: (() -> Unit)? = null,
-    isRunning: Boolean = false,
-    isEditing: Boolean = false,
-    hour: Int = 0,
-    minute: Int = 0,
-    onHourChange: (String) -> Unit = {},
-    onMinuteChange: (String) -> Unit = {},
+    endTimeText: String,
+    onTimeChangeClick: () -> Unit,
+    isRunning: Boolean,
+    isEditing: Boolean,
+    hour: Int,
+    minute: Int,
+    onHourChange: (String) -> Unit,
+    onMinuteChange: (String) -> Unit,
 ) {
-    val density = LocalDensity.current
-    val stroke = with(density) { Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round) }
     val focusManager = LocalFocusManager.current
     val hourFocusRequester = remember { FocusRequester() }
     val minuteFocusRequester = remember { FocusRequester() }
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(
+            durationMillis = 1000,
+            easing = LinearEasing
+        ),
+        label = "timerProgress"
+    )
 
     LaunchedEffect(isEditing) {
         if (isEditing) {
@@ -260,14 +263,15 @@ private fun TimerRing(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(250.dp)
+            .size(280.dp)
             .clip(CircleShape)
-            .clickable(!isRunning) { onTimeChangeClick?.invoke() },
+            .clickable(enabled = !isRunning && !isEditing, onClick = onTimeChangeClick),
     ) {
         CircularProgressIndicator(
-            progress = { progress },
+            progress = { animatedProgress },
             strokeWidth = 10.dp,
-            modifier = Modifier.size(250.dp),
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            modifier = Modifier.size(280.dp),
         )
 
         AnimatedContent(
@@ -288,19 +292,17 @@ private fun TimerRing(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
+                    Text(
+                        text = stringResource(R.string.home_set_duration),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.height(8.dp))
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.home_hours),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                        DurationColumn(label = stringResource(R.string.home_hours)) {
                             DurationInputField(
                                 value = hour,
                                 onValueChange = onHourChange,
@@ -311,39 +313,16 @@ private fun TimerRing(
                             )
                         }
 
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = "",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .height(64.dp)
-                                    .padding(horizontal = 4.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = ":",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    ),
-                                )
-                            }
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.home_minutes),
-                                style = MaterialTheme.typography.labelSmall,
+                        Text(
+                            text = ":",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            ),
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 20.dp),
+                        )
+
+                        DurationColumn(label = stringResource(R.string.home_minutes)) {
                             DurationInputField(
                                 value = minute,
                                 onValueChange = onMinuteChange,
@@ -351,49 +330,98 @@ private fun TimerRing(
                                 boxWidth = 76.dp,
                                 imeAction = ImeAction.Done,
                                 focus = minuteFocusRequester,
-                                onDone = {
-                                    focusManager.clearFocus()
-                                    onTimeChangeClick?.invoke()
-                                },
+                                onDone = onTimeChangeClick,
                             )
                         }
                     }
 
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                    FilledTonalIconButton(
+                    Button(
                         onClick = {
                             focusManager.clearFocus()
-                            onTimeChangeClick?.invoke()
+                            onTimeChangeClick()
                         },
-                        modifier = Modifier.size(32.dp),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = MaterialTheme.colorScheme.primary,
-                        ),
+                        shapes = ButtonDefaults.shapes(),
+                        contentPadding = ButtonDefaults.SmallContentPadding,
+                        modifier = Modifier,
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Check,
-                            contentDescription = "Done",
-                            modifier = Modifier.size(18.dp),
+                            contentDescription = null,
+                            modifier = Modifier,
                         )
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.home_done))
                     }
                 }
             } else {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.displayMediumEmphasized,
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (isRunning) {
+                        Text(
+                            text = stringResource(R.string.home_remaining),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.displayLargeEmphasized,
+
+                        )
+                    Spacer(Modifier.height(8.dp))
+                    if (isRunning) {
+                        if (endTimeText.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.home_ends_at, endTimeText),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Edit,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Text(
+                                    text = stringResource(R.string.home_tap_to_edit),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-@Preview(name = "Home", showBackground = true)
-@Preview(name = "Home dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun HomeScreenPreview() {
-    UnloopTheme(dynamicColor = false) {
-        HomeScreen()
+private fun DurationColumn(
+    label: String,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        content()
     }
 }

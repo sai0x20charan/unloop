@@ -10,6 +10,7 @@ data class HomeState(
 data class InstantSessionUiModel(
     val installedApps: List<InstalledAppsUiModel> = emptyList(),
     val showBottomSheet: Boolean = false,
+    val sessionTitle: String = "",
     val hour: Int = 0,
     val minute: Int = 0,
     val isHourValid: Boolean = true,
@@ -26,14 +27,26 @@ data class InstantSessionUiModel(
             val minutes = (totalSeconds % 3600) / 60
             return String.format("%02d:%02d", hours, minutes)
         }
+
+    val hasSelectedApps: Boolean
+        get() = installedApps.any { it.isSelected }
+
+    val canStart: Boolean
+        get() = totalSeconds > 0 && hasSelectedApps
 }
 
 data class StartSessionState(
     val isRunning: Boolean = false,
+    val sessionName: String = "",
+    val endTimeFormatted: String = "",
+    val blockedPackages: List<String> = emptyList(),
     val remainingSeconds: Int = 0,
     val totalSeconds: Int = 0,
     val isPaused: Boolean = false,
 ) {
+
+    val progress : Float
+        get() = if (totalSeconds > 0) (totalSeconds - remainingSeconds).toFloat() / totalSeconds else 0f
     val remainingTimeFormatted: String
         get() {
             val hours = remainingSeconds / 3600

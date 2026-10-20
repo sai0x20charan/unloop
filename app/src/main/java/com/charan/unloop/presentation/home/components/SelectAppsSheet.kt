@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -34,7 +33,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -46,10 +49,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TriStateCheckbox
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.layout.Spacer
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,7 +63,6 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -83,53 +88,47 @@ import com.charan.unloop.ui.theme.indexItemFor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun InstantSessionSheet(
+fun SelectAppsSheet(
     apps: List<InstalledAppsUiModel>,
     onAppSelect: (String) -> Unit,
     onAllAppsSelect: () -> Unit,
     onClose: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { newValue ->
-            if (newValue == SheetValue.Hidden) {
-                onClose()
-            }
-            true
-        },
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+
     )
+
     ModalBottomSheet(
         onDismissRequest = onClose,
         sheetState = sheetState,
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.home_apps_to_block),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = stringResource(R.string.home_sheet_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f, fill = false)
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 32.dp),
+            contentPadding = PaddingValues(bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(1.dp),
         ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_apps_to_block),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.Rounded.Close,
-                            contentDescription = "Close",
-                        )
-                    }
-                }
-            }
-
             item(key = "select_all_apps") {
                 val selectedCount = apps.count { it.isSelected }
                 val selectionState = when {
@@ -163,15 +162,6 @@ fun InstantSessionSheet(
                                 text = stringResource(R.string.home_select_all),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = if (selectedCount == 0) {
-                                    stringResource(R.string.home_select_apps_hint)
-                                } else {
-                                    "$selectedCount of ${apps.size} selected"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
 
@@ -225,6 +215,12 @@ fun InstantSessionSheet(
                             }
                         }
                     },
+                    trailingContent = {
+                        Checkbox(
+                            checked = app.isSelected,
+                            onCheckedChange = null,
+                        )
+                    },
                     isSelected = app.isSelected,
                     indexItem = apps.indexItemFor(index),
                     onClick = {
@@ -233,6 +229,32 @@ fun InstantSessionSheet(
                 )
             }
         }
+
+        val selectedCount = apps.count { it.isSelected }
+            Button(
+                onClick = onClose,
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .height(ButtonDefaults.MediumContainerHeight),
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Done,
+                    contentDescription = null,
+                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(ButtonDefaults.MediumContainerHeight)),
+                )
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(
+                    text = if (selectedCount == 0) {
+                        stringResource(R.string.home_sheet_done_none)
+                    } else {
+                        pluralStringResource(R.plurals.home_sheet_done, selectedCount, selectedCount)
+                    },
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+
     }
 }
 
@@ -286,19 +308,20 @@ fun SelectedBlockedAppsCard(
     selectedApps: List<InstalledAppsUiModel>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    title: String = stringResource(R.string.home_apps_to_block),
 ) {
     val maxPreviewIcons = 3
     val previewApps = remember(selectedApps) { selectedApps.take(maxPreviewIcons) }
     val remainingCount = (selectedApps.size - maxPreviewIcons).coerceAtLeast(0)
 
     Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(enabled = enabled, onClick = onClick),
     ) {
         Row(
             modifier = Modifier
@@ -337,7 +360,7 @@ fun SelectedBlockedAppsCard(
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        text = stringResource(R.string.home_apps_to_block),
+                        text = title,
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -391,7 +414,7 @@ fun SelectedBlockedAppsCard(
                                         .zIndex((totalItems - index).toFloat())
                                         .border(
                                             2.dp,
-                                            MaterialTheme.colorScheme.surface,
+                                            MaterialTheme.colorScheme.surfaceContainer,
                                             CircleShape
                                         )
                                         .padding(2.dp)
@@ -408,7 +431,7 @@ fun SelectedBlockedAppsCard(
                                     .zIndex(0f)
                                     .border(
                                         2.dp,
-                                        MaterialTheme.colorScheme.surface,
+                                        MaterialTheme.colorScheme.surfaceContainer,
                                         CircleShape
                                     )
                                     .padding(2.dp)
@@ -430,12 +453,14 @@ fun SelectedBlockedAppsCard(
                     }
                 }
 
-                Icon(
-                    imageVector = Icons.Rounded.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp),
-                )
+                if (enabled) {
+                    Icon(
+                        imageVector = Icons.Rounded.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
     }

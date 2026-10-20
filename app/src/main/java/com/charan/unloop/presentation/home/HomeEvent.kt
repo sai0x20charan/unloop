@@ -5,8 +5,11 @@ sealed class HomeEvent {
     data class OnHourChange(val hour: String) : HomeEvent()
     data class OnMinuteChange(val minute: String) : HomeEvent()
     data class OnPresetDurationSelect(val preset : Int) : HomeEvent()
+    data class OnSessionTitleChange(val title: String) : HomeEvent()
 
     data object OnInstantSessionCustomizeToggle : HomeEvent()
+
+    data object OnAppsSheetDismiss : HomeEvent()
 
     data object OnSelectAllApps : HomeEvent()
 

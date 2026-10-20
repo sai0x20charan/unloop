@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.overlay.RoutineScheduler
 import com.charan.unloop.core.utils.DateUtils
+import com.charan.unloop.core.utils.DateUtils.toDisplayString
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
@@ -77,6 +78,9 @@ class HomeViewModel @Inject constructor(
                     startSessionState = it.startSessionState.copy(
                         isRunning = isRunning,
                         isPaused = isPaused,
+                        sessionName = sessionEntity.sessionName,
+                        endTimeFormatted = sessionEntity.endTime.toDisplayString(),
+                        blockedPackages = sessionEntity.blockedApps.orEmpty(),
                         totalSeconds = totalSeconds,
                         remainingSeconds = DateUtils.getRemainingDuration(
                             startTime = sessionEntity.startTime,
@@ -115,17 +119,31 @@ class HomeViewModel @Inject constructor(
             HomeEvent.OnEditSessionTime -> handleEditSessionTime()
             HomeEvent.OnStartSessionClick -> handleStartSessionClick()
             HomeEvent.OnEndSessionClick -> handleEndSessionClick()
+            is HomeEvent.OnSessionTitleChange -> handleSessionTitleChange(event.title)
+            HomeEvent.OnAppsSheetDismiss -> _state.update {
+                it.copy(instantSessionUiModel = it.instantSessionUiModel.copy(showBottomSheet = false))
+            }
+        }
+    }
+
+    private fun handleSessionTitleChange(title: String) {
+        if (title.length > MAX_TITLE_LENGTH) return
+        _state.update {
+            it.copy(
+                instantSessionUiModel = it.instantSessionUiModel.copy(sessionTitle = title)
+            )
         }
     }
 
     @OptIn(ExperimentalUuidApi::class)
     private fun handleStartSessionClick() = viewModelScope.launch {
-        val totalSeconds = state.value.instantSessionUiModel.totalSeconds
-        if (totalSeconds <= 0) return@launch
+        val uiModel = state.value.instantSessionUiModel
+        if (!uiModel.canStart) return@launch
+        val totalSeconds = uiModel.totalSeconds
 
         val startTime = DateUtils.getCurrentTime()
         val endTime = DateUtils.getEndTimeForDuration(totalSeconds)
-        val blockedApps = state.value.instantSessionUiModel.installedApps
+        val blockedApps = uiModel.installedApps
             .filter { it.isSelected }
             .map { it.packageName }
         val id = Uuid.generateV4().toString()
@@ -138,7 +156,7 @@ class HomeViewModel @Inject constructor(
                 blockedApps = blockedApps,
                 sessionStatus = SessionStatus.RUNNING,
                 sessionType = SessionType.INSTANT,
-                sessionName = "Instant Session",
+                sessionName = uiModel.sessionTitle.trim().ifBlank { DEFAULT_SESSION_TITLE },
                 unlockChallengeType = UnlockChallengeType.STRICT_MODE
             )
         )
@@ -236,5 +254,10 @@ class HomeViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    private companion object {
+        const val DEFAULT_SESSION_TITLE = "Focus session"
+        const val MAX_TITLE_LENGTH = 40
     }
 }
