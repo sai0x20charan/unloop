@@ -2,7 +2,7 @@ package com.charan.unloop.presentation.routine
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.charan.unloop.core.overlay.RoutineScheduler
+import com.charan.unloop.core.overlay.RoutineSessionController
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
@@ -28,7 +28,7 @@ class RoutineViewModel @AssistedInject constructor(
     @Assisted("routineId") private val routineId: String?,
     private val installedAppsRepository: InstalledAppsRepository,
     private val routineRepository: RoutineRepository,
-    private val routineScheduler: RoutineScheduler
+    private val routineSessionController: RoutineSessionController
 ) : ViewModel() {
 
     @AssistedFactory
@@ -156,7 +156,7 @@ class RoutineViewModel @AssistedInject constructor(
 
         val daysOfWeek = routineEntity.daysOfWeek
         if (!daysOfWeek.isNullOrEmpty()) {
-            routineScheduler.scheduleRoutine(
+            routineSessionController.scheduleRoutine(
                 routineId = routineEntity.id,
                 startTime = routineEntity.startTime,
                 frequency = daysOfWeek,

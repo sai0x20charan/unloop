@@ -52,7 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.charan.unloop.core.utils.DateUtils.toDisplayString
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 import com.charan.unloop.ui.theme.UnloopTheme
 import kotlinx.coroutines.delay
@@ -247,7 +247,6 @@ fun RoutineDetailCard(
                     textAlign = TextAlign.End
                 )
             }
-
         }
     }
 }

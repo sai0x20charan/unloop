@@ -15,7 +15,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 
-object DateUtils {
+object DateTimeUtils {
 
     fun getDaysOfWeek() : List<DayOfWeek> {
         return listOf(

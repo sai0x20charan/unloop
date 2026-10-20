@@ -2,9 +2,9 @@ package com.charan.unloop.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.charan.unloop.core.overlay.RoutineScheduler
-import com.charan.unloop.core.utils.DateUtils
-import com.charan.unloop.core.utils.DateUtils.toDisplayString
+import com.charan.unloop.core.overlay.RoutineSessionController
+import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
@@ -32,7 +32,7 @@ import kotlin.uuid.Uuid
 class HomeViewModel @Inject constructor(
     private val installedAppsRepository: InstalledAppsRepository,
     private val sessionRepository: SessionRepository,
-    private val routineScheduler: RoutineScheduler
+    private val routineSessionController: RoutineSessionController
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -89,7 +89,7 @@ class HomeViewModel @Inject constructor(
                 )
             }
             while (isRunning && isActive) {
-                val remaining = DateUtils.getRemainingDuration(
+                val remaining = DateTimeUtils.getRemainingDuration(
                     endTime = sessionEntity.endTime
                 ).toInt().coerceAtLeast(0)
                 _state.update {
@@ -126,11 +126,11 @@ class HomeViewModel @Inject constructor(
 
     private fun handlePauseSessionClick() = viewModelScope.launch {
         if (_state.value.currentSessionUiModel.isRunning) {
-            routineScheduler.pauseRoutine(
+            routineSessionController.pauseRoutine(
                 sessionId = state.value.currentSessionUiModel.sessionId,
             )
         } else if (_state.value.currentSessionUiModel.isPaused) {
-            routineScheduler.resumeRoutine(state.value.currentSessionUiModel.sessionId)
+            routineSessionController.resumeRoutine(state.value.currentSessionUiModel.sessionId)
         }
     }
 
@@ -152,8 +152,8 @@ class HomeViewModel @Inject constructor(
         if (!uiModel.canStart) return@launch
         val totalSeconds = uiModel.totalSeconds.toLong()
 
-        val startTime = DateUtils.getCurrentDateTime()
-        val endTime = DateUtils.getEndTimeForDuration(totalSeconds)
+        val startTime = DateTimeUtils.getCurrentDateTime()
+        val endTime = DateTimeUtils.getEndTimeForDuration(totalSeconds)
         val blockedApps = uiModel.installedApps
             .filter { it.isSelected }
             .map { it.packageName }
@@ -173,7 +173,7 @@ class HomeViewModel @Inject constructor(
                 createdAt = startTime
             )
         )
-        routineScheduler.startSession(id)
+        routineSessionController.startSession(id)
     }
 
     private fun handleEndSessionClick() = viewModelScope.launch {
@@ -181,9 +181,9 @@ class HomeViewModel @Inject constructor(
         sessionRepository.updateSessionStatus(
             sessionId = activeSession.id,
             status = SessionStatus.STOPPED,
-            actualEndTime = DateUtils.getCurrentDateTime()
+            actualEndTime = DateTimeUtils.getCurrentDateTime()
         )
-        routineScheduler.stopSession(activeSession.id)
+        routineSessionController.stopSession(activeSession.id)
     }
 
     private fun handleEditSessionTime() {

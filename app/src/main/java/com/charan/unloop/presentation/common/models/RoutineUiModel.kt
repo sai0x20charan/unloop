@@ -1,7 +1,7 @@
 package com.charan.unloop.presentation.common.models
 
 import com.charan.unloop.presentation.routine.UnlockChallengeType
-import com.charan.unloop.core.utils.DateUtils.toDisplayString
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 

@@ -5,7 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.charan.unloop.core.utils.DateUtils
+import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.datetime.DateTimeUnit
@@ -19,10 +19,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RoutineScheduler @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val alarmManager: AlarmManager
+class RoutineSessionController @Inject constructor(
+    @ApplicationContext private val context: Context
 ) {
+
+    private val alarmManager =
+        context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     fun scheduleRoutine(
         routineId: String,
@@ -32,7 +34,7 @@ class RoutineScheduler @Inject constructor(
     ) {
         if (startTime == null || frequency.isEmpty()) return
 
-        val now = DateUtils.getCurrentDateTime()
+        val now = DateTimeUtils.getCurrentDateTime()
         val pendingIntent = createPendingIntent(routineId)
 
         var date = now.date
@@ -77,7 +79,7 @@ class RoutineScheduler @Inject constructor(
     ) {
         if (sessionId.isBlank()) return
 
-        val now = DateUtils.getCurrentDateTime()
+        val now = DateTimeUtils.getCurrentDateTime()
         if (endTime <= now) {
             val stopIntent = Intent(context, RoutineForegroundService::class.java).apply {
                 action = RoutineForegroundService.ACTION_STOP_ROUTINE

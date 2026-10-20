@@ -47,9 +47,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.charan.unloop.core.utils.DateUtils
-import com.charan.unloop.core.utils.DateUtils.toDisplayString
-import com.charan.unloop.core.utils.DateUtils.toLocale
+import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
+import com.charan.unloop.core.utils.DateTimeUtils.toLocale
 import com.swmansion.kmpwheelpicker.rememberWheelPickerState
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
@@ -63,7 +63,7 @@ fun ScheduleRoutinePage(
     showIntervalDialog: Boolean,
     onEvent: (RoutineEvent) -> Unit,
     modifier: Modifier = Modifier,
-    dayInitials: List<DayOfWeek> = DateUtils.getDaysOfWeek(),
+    dayInitials: List<DayOfWeek> = DateTimeUtils.getDaysOfWeek(),
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
 ) {
 

@@ -3,9 +3,9 @@ package com.charan.unloop.core.overlay
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import com.charan.unloop.core.utils.DateUtils
-import com.charan.unloop.core.utils.DateUtils.toDisplayString
-import com.charan.unloop.core.utils.DateUtils.toLocalDateTime
+import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
+import com.charan.unloop.core.utils.DateTimeUtils.toLocalDateTime
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
@@ -50,7 +50,7 @@ class RoutineForegroundService : Service() {
     lateinit var notificationHelper: NotificationHelper
 
     @Inject
-    lateinit var routineScheduler: RoutineScheduler
+    lateinit var routineSessionController: RoutineSessionController
 
     private var activeSession: SessionEntity? = null
     private var monitoringJob: Job? = null
@@ -115,9 +115,9 @@ class RoutineForegroundService : Service() {
                 sessionRepository.updateSessionStatus(
                     sessionId = targetId,
                     status = SessionStatus.COMPLETED,
-                    actualEndTime = DateUtils.getCurrentDateTime()
+                    actualEndTime = DateTimeUtils.getCurrentDateTime()
                 )
-                routineScheduler.cancelStopRoutine(targetId)
+                routineSessionController.cancelStopRoutine(targetId)
             }
             stopOverlayAndSelf()
         }
@@ -126,11 +126,11 @@ class RoutineForegroundService : Service() {
     private fun pauseSession(sessionId: String) {
         monitoringJob?.cancel()
         removeOverLay()
-        routineScheduler.cancelStopRoutine(sessionId)
+        routineSessionController.cancelStopRoutine(sessionId)
         serviceScope.launch {
             try {
                 val session = sessionRepository.getSessionById(sessionId) ?: return@launch
-                val remainingSeconds = DateUtils.getRemainingDuration(session.endTime)
+                val remainingSeconds = DateTimeUtils.getRemainingDuration(session.endTime)
                 sessionRepository.updateSession(
                     session.copy(
                         sessionStatus = SessionStatus.PAUSED,
@@ -150,8 +150,8 @@ class RoutineForegroundService : Service() {
         monitoringJob = serviceScope.launch {
             val session = sessionRepository.getSessionById(sessionId) ?: return@launch
             val remainingSeconds = session.pausedRemainingSeconds ?: return@launch
-            val now = DateUtils.getCurrentDateTime()
-            val newEndTime = DateUtils.getEndTimeForDuration(remainingSeconds)
+            val now = DateTimeUtils.getCurrentDateTime()
+            val newEndTime = DateTimeUtils.getEndTimeForDuration(remainingSeconds)
 
             val originalTotalSeconds = (session.endTime.toInstant(TimeZone.currentSystemDefault()) -
                 session.startTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds
@@ -167,7 +167,7 @@ class RoutineForegroundService : Service() {
             sessionRepository.updateSession(updatedSession)
             activeSession = updatedSession
 
-            routineScheduler.scheduleStopRoutine(
+            routineSessionController.scheduleStopRoutine(
                 sessionId = updatedSession.id,
                 endTime = updatedSession.endTime
             )
@@ -204,7 +204,7 @@ class RoutineForegroundService : Service() {
             } ?: return@launch
             activeSession = session
 
-            routineScheduler.scheduleStopRoutine(
+            routineSessionController.scheduleStopRoutine(
                 sessionId = session.id,
                 endTime = session.endTime
             )
@@ -219,7 +219,7 @@ class RoutineForegroundService : Service() {
             while (isActive) {
                 val currentSession = sessionRepository.getSessionById(session.id)
                 val currentEndTime = currentSession?.endTime ?: session.endTime
-                val remainingSeconds = DateUtils.getRemainingDuration(
+                val remainingSeconds = DateTimeUtils.getRemainingDuration(
                     endTime = currentEndTime
                 )
 
@@ -227,9 +227,9 @@ class RoutineForegroundService : Service() {
                     sessionRepository.updateSessionStatus(
                         sessionId = session.id,
                         status = SessionStatus.COMPLETED,
-                        actualEndTime = DateUtils.getCurrentDateTime()
+                        actualEndTime = DateTimeUtils.getCurrentDateTime()
                     )
-                    routineScheduler.cancelStopRoutine(session.id)
+                    routineSessionController.cancelStopRoutine(session.id)
                     stopOverlayAndSelf()
                     break
                 }
@@ -287,7 +287,7 @@ class RoutineForegroundService : Service() {
         val routine = routineRepository.getRoutineById(routineId) ?: return null
         if (!routine.isEnabled || routine.isDeleted) return null
 
-        val nowTime = DateUtils.getCurrentDateTime()
+        val nowTime = DateTimeUtils.getCurrentDateTime()
         val routineStartTime = routine.startTime?.toLocalDateTime() ?: nowTime
         val routineEndTime = if (routine.endTime != null && routine.startTime != null && routine.endTime <= routine.startTime) {
             val nextDate = nowTime.date.plus(1, DateTimeUnit.DAY)
@@ -321,7 +321,7 @@ class RoutineForegroundService : Service() {
         sessionRepository.insertSession(newSession)
 
         if (!routine.daysOfWeek.isNullOrEmpty() && routine.startTime != null) {
-            routineScheduler.scheduleRoutine(
+            routineSessionController.scheduleRoutine(
                 routineId = routine.id,
                 startTime = routine.startTime,
                 frequency = routine.daysOfWeek,

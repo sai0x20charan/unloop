@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.charan.unloop.core.overlay.RoutineScheduler
+import com.charan.unloop.core.overlay.RoutineSessionController
 import com.charan.unloop.data.repository.RoutineRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +21,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     lateinit var routineRepository: RoutineRepository
 
     @Inject
-    lateinit var routineScheduler: RoutineScheduler
+    lateinit var routineSessionController: RoutineSessionController
 
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent == null) return
@@ -40,7 +40,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
 
                     for (routine in activeRoutines) {
                         if (!routine.daysOfWeek.isNullOrEmpty() && routine.startTime != null) {
-                            routineScheduler.scheduleRoutine(
+                            routineSessionController.scheduleRoutine(
                                 routineId = routine.id,
                                 startTime = routine.startTime,
                                 frequency = routine.daysOfWeek,

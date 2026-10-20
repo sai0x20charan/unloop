@@ -1,7 +1,7 @@
 package com.charan.unloop.presentation.common
 
-import com.charan.unloop.core.utils.DateUtils
-import com.charan.unloop.core.utils.DateUtils.toDisplayString
+import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.data.local.entity.RoutineEntity
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
@@ -27,8 +27,8 @@ fun RoutineUiModel.toRoutineEntity(id : String? = null, createdAt : LocalDateTim
         isIntervalBlocking = false,
         unlockChallengeType = unlockChallengeType,
         waitDurationSeconds = waitDurationSeconds,
-        createdAt = createdAt ?: DateUtils.getCurrentDateTime(),
-        updatedAt = DateUtils.getCurrentDateTime(),
+        createdAt = createdAt ?: DateTimeUtils.getCurrentDateTime(),
+        updatedAt = DateTimeUtils.getCurrentDateTime(),
         disableAppPackages = blockedApps,
         isAllDay = false,
         isDeleted = false,
@@ -55,7 +55,7 @@ fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
     val remaining = if (sessionStatus == SessionStatus.PAUSED && pausedRemainingSeconds != null) {
         pausedRemainingSeconds.toInt()
     } else {
-        DateUtils.getRemainingDuration(endTime).toInt()
+        DateTimeUtils.getRemainingDuration(endTime).toInt()
     }
 
     val total = (endTime.toInstant(TimeZone.currentSystemDefault()) -

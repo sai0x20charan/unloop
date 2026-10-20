@@ -1,6 +1,6 @@
 package com.charan.unloop.presentation.home
 
-import com.charan.unloop.core.utils.DateUtils
+import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 
@@ -54,7 +54,7 @@ data class CurrentSessionUiModel(
         get() = if (totalSeconds > 0) (totalSeconds - remainingSeconds).toFloat() / totalSeconds else 0f
     val remainingTimeFormatted: String
         get() {
-            return DateUtils.formatDuration(remainingSeconds)
+            return DateTimeUtils.formatDuration(remainingSeconds)
         }
     val isRunning: Boolean
         get() = sessionStatus == SessionStatus.RUNNING
