@@ -26,6 +26,7 @@ class InstalledAppsDataSource @Inject constructor(
 
         launcherApps
             .distinctBy { it.activityInfo.packageName }
+            .filter { it.activityInfo.packageName != context.packageName }
             .map { resolveInfo ->
                 val appInfo = resolveInfo.activityInfo.applicationInfo
 
