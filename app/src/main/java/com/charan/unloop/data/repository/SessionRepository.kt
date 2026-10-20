@@ -3,7 +3,7 @@ package com.charan.unloop.data.repository
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.LocalTime
+import kotlinx.datetime.LocalDateTime
 
 interface SessionRepository {
 
@@ -14,7 +14,7 @@ interface SessionRepository {
     suspend fun updateSessionStatus(
         sessionId: String,
         status: SessionStatus,
-        actualEndTime: LocalTime? = null
+        actualEndTime: LocalDateTime? = null
     )
 
     fun getActiveSession(): Flow<SessionEntity?>
@@ -22,5 +22,7 @@ interface SessionRepository {
     suspend fun getActiveSessionOnce(): SessionEntity?
 
     suspend fun getSessionById(sessionId: String): SessionEntity?
+
+    suspend fun getLastInstantSession() : SessionEntity?
 
 }

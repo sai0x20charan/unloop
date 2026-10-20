@@ -7,8 +7,9 @@ import androidx.room.Query
 import androidx.room.Update
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
+import com.charan.unloop.data.local.model.enums.SessionType
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.LocalTime
+import kotlinx.datetime.LocalDateTime
 
 @Dao
 interface SessionDao {
@@ -53,6 +54,10 @@ interface SessionDao {
     suspend fun updateSessionStatus(
         sessionId: String,
         status: SessionStatus,
-        actualEndTime: LocalTime?
+        actualEndTime: LocalDateTime?
     )
+
+    @Query("SELECT * from sessions WHERE sessionType = :sessionType ORDER BY createdAt DESC LIMIT 1")
+    suspend fun getLastInstantSession(sessionType: SessionType = SessionType.INSTANT): SessionEntity?
+
 }

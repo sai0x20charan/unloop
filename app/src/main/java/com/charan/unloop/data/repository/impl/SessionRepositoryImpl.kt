@@ -5,7 +5,7 @@ import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.LocalTime
+import kotlinx.datetime.LocalDateTime
 import javax.inject.Inject
 
 class SessionRepositoryImpl @Inject constructor(
@@ -20,7 +20,7 @@ class SessionRepositoryImpl @Inject constructor(
     override suspend fun updateSessionStatus(
         sessionId: String,
         status: SessionStatus,
-        actualEndTime: LocalTime?
+        actualEndTime: LocalDateTime?
     ) = sessionDao.updateSessionStatus(sessionId, status, actualEndTime)
 
     override fun getActiveSession(): Flow<SessionEntity?> =
@@ -31,4 +31,7 @@ class SessionRepositoryImpl @Inject constructor(
 
     override suspend fun getSessionById(sessionId: String): SessionEntity? =
         sessionDao.getSessionById(sessionId)
+
+    override suspend fun getLastInstantSession(): SessionEntity? =
+        sessionDao.getLastInstantSession()
 }

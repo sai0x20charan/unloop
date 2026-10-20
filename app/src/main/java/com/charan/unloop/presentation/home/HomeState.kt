@@ -1,10 +1,12 @@
 package com.charan.unloop.presentation.home
 
+import com.charan.unloop.core.utils.DateUtils
+import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 
 data class HomeState(
     val instantSessionUiModel: InstantSessionUiModel = InstantSessionUiModel(),
-    val startSessionState: StartSessionState = StartSessionState(),
+    val currentSessionUiModel: CurrentSessionUiModel = CurrentSessionUiModel(),
 )
 
 data class InstantSessionUiModel(
@@ -35,28 +37,28 @@ data class InstantSessionUiModel(
         get() = totalSeconds > 0 && hasSelectedApps
 }
 
-data class StartSessionState(
-    val isRunning: Boolean = false,
+data class CurrentSessionUiModel(
+    val sessionId : String = "",
+    val routineId : String? = null,
     val sessionName: String = "",
-    val endTimeFormatted: String = "",
+    val endTime: String = "",
     val blockedPackages: List<String> = emptyList(),
     val remainingSeconds: Int = 0,
     val totalSeconds: Int = 0,
-    val isPaused: Boolean = false,
-    val sessionId : String = ""
+    val sessionStatus : SessionStatus = SessionStatus.STOPPED
+
+
 ) {
 
     val progress : Float
         get() = if (totalSeconds > 0) (totalSeconds - remainingSeconds).toFloat() / totalSeconds else 0f
     val remainingTimeFormatted: String
         get() {
-            val hours = remainingSeconds / 3600
-            val minutes = (remainingSeconds % 3600) / 60
-            val seconds = remainingSeconds % 60
-            return if (hours > 0) {
-                String.format("%02d:%02d:%02d", hours, minutes, seconds)
-            } else {
-                String.format("%02d:%02d", minutes, seconds)
-            }
+            return DateUtils.formatDuration(remainingSeconds)
         }
+    val isRunning: Boolean
+        get() = sessionStatus == SessionStatus.RUNNING
+
+    val isPaused: Boolean
+        get() = sessionStatus == SessionStatus.PAUSED
 }

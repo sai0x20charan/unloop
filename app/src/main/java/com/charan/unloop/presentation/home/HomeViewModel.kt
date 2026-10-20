@@ -13,6 +13,7 @@ import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
+import com.charan.unloop.presentation.common.toCurrentSessionUiModel
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -38,11 +39,31 @@ class HomeViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        initInstantSession()
+        loadInstalledApps()
         observeActiveSession()
+        loadLastInstantSession()
     }
 
-    private fun initInstantSession() = viewModelScope.launch {
+    private fun loadLastInstantSession() = viewModelScope.launch {
+        val lastInstantSession = sessionRepository.getLastInstantSession()
+        if (lastInstantSession != null) {
+            _state.update {
+                it.copy(
+                    instantSessionUiModel = it.instantSessionUiModel.copy(
+                        sessionTitle = lastInstantSession.sessionName,
+                        installedApps = it.instantSessionUiModel.installedApps.map { app ->
+                            app.copy(
+                                isSelected = lastInstantSession.blockedApps?.contains(app.packageName)
+                                    ?: false
+                            )
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    private fun loadInstalledApps() = viewModelScope.launch {
         val installedApps = installedAppsRepository.getInstalledApps()
         _state.update {
             it.copy(
@@ -57,54 +78,23 @@ class HomeViewModel @Inject constructor(
         sessionRepository.getActiveSession().collectLatest { sessionEntity ->
             if (sessionEntity == null) {
                 _state.update {
-                    it.copy(startSessionState = StartSessionState())
+                    it.copy(currentSessionUiModel = CurrentSessionUiModel())
                 }
                 return@collectLatest
             }
-
             val isRunning = sessionEntity.sessionStatus == SessionStatus.RUNNING
-            val isPaused = sessionEntity.sessionStatus == SessionStatus.PAUSED
-
-            val startSec = sessionEntity.startTime.toSecondOfDay()
-            val endSec = sessionEntity.endTime.toSecondOfDay()
-            val totalSeconds = if (endSec >= startSec) {
-                endSec - startSec
-            } else {
-                (86400 - startSec) + endSec
-            }
-
-            val remainingSeconds = if (isPaused && sessionEntity.remainingSeconds != null) {
-                sessionEntity.remainingSeconds
-            } else {
-                DateUtils.getRemainingDuration(
-                    startTime = sessionEntity.startTime,
-                    endTime = sessionEntity.endTime
-                ).toInt().coerceAtLeast(0)
-            }
-
             _state.update {
                 it.copy(
-                    startSessionState = it.startSessionState.copy(
-                        isRunning = isRunning,
-                        isPaused = isPaused,
-                        sessionName = sessionEntity.sessionName,
-                        endTimeFormatted = sessionEntity.endTime.toDisplayString(),
-                        blockedPackages = sessionEntity.blockedApps.orEmpty(),
-                        totalSeconds = totalSeconds,
-                        remainingSeconds = remainingSeconds,
-                        sessionId = sessionEntity.id
-                    )
+                    currentSessionUiModel = sessionEntity.toCurrentSessionUiModel()
                 )
             }
-
             while (isRunning && isActive) {
                 val remaining = DateUtils.getRemainingDuration(
-                    startTime = sessionEntity.startTime,
                     endTime = sessionEntity.endTime
                 ).toInt().coerceAtLeast(0)
                 _state.update {
                     it.copy(
-                        startSessionState = it.startSessionState.copy(
+                        currentSessionUiModel = it.currentSessionUiModel.copy(
                             remainingSeconds = remaining
                         )
                     )
@@ -119,64 +109,55 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is HomeEvent.OnAppClicked -> handleAppClick(event.packageName)
             is HomeEvent.OnHourChange -> handleHourChange(event.hour)
-            is HomeEvent.OnPresetDurationSelect -> handlePresetDurationSelect(event.preset)
             is HomeEvent.OnMinuteChange -> handleMinuteChange(event.minute)
-            HomeEvent.OnInstantSessionCustomizeToggle -> handleSessionCustomizeToggle()
+            is HomeEvent.OnPresetDurationSelect -> handlePresetDurationSelect(event.preset)
             HomeEvent.OnSelectAllApps -> handleSelectAllApps()
-            HomeEvent.OnEditSessionTime -> handleEditSessionTime()
-            HomeEvent.OnStartSessionClick -> handleStartSessionClick()
-            HomeEvent.OnEndSessionClick -> handleEndSessionClick()
-            is HomeEvent.OnSessionTitleChange -> handleSessionTitleChange(event.title)
+            HomeEvent.OnInstantSessionCustomizeToggle -> handleSessionCustomizeToggle()
             HomeEvent.OnAppsSheetDismiss -> _state.update {
                 it.copy(instantSessionUiModel = it.instantSessionUiModel.copy(showBottomSheet = false))
             }
-
-            is HomeEvent.OnPauseSessionClick -> {
-                handlePauseSessionClick()
-            }
+            HomeEvent.OnStartSessionClick -> handleStartSessionClick()
+            HomeEvent.OnEditSessionTime -> handleEditSessionTime()
+            is HomeEvent.OnSessionTitleChange -> handleSessionTitleChange(event.title)
+            HomeEvent.OnPauseSessionClick -> handlePauseSessionClick()
+            HomeEvent.OnEndSessionClick -> handleEndSessionClick()
         }
     }
 
     private fun handlePauseSessionClick() = viewModelScope.launch {
-        if (_state.value.startSessionState.isRunning) {
+        if (_state.value.currentSessionUiModel.isRunning) {
             routineScheduler.pauseRoutine(
-                sessionId = state.value.startSessionState.sessionId,
-                remainingSeconds = state.value.startSessionState.remainingSeconds
+                sessionId = state.value.currentSessionUiModel.sessionId,
             )
-        } else if (_state.value.startSessionState.isPaused) {
-            val remainingSeconds = state.value.startSessionState.remainingSeconds
-            val newEndTime = DateUtils.getEndTimeForDuration(remainingSeconds)
-            _state.update {
-                it.copy(
-                    startSessionState = it.startSessionState.copy(
-                        endTimeFormatted = newEndTime.toDisplayString()
-                    )
-                )
-            }
-            routineScheduler.resumeRoutine(state.value.startSessionState.sessionId)
+        } else if (_state.value.currentSessionUiModel.isPaused) {
+            routineScheduler.resumeRoutine(state.value.currentSessionUiModel.sessionId)
         }
     }
 
     private fun handleSessionTitleChange(title: String) {
-        if (title.length > MAX_TITLE_LENGTH) return
-        _state.update {
-            it.copy(
-                instantSessionUiModel = it.instantSessionUiModel.copy(sessionTitle = title)
-            )
+        if (title.length <= MAX_TITLE_LENGTH) {
+            _state.update {
+                it.copy(
+                    instantSessionUiModel = it.instantSessionUiModel.copy(
+                        sessionTitle = title
+                    )
+                )
+            }
         }
     }
 
     @OptIn(ExperimentalUuidApi::class)
     private fun handleStartSessionClick() = viewModelScope.launch {
-        val uiModel = state.value.instantSessionUiModel
+        val uiModel = _state.value.instantSessionUiModel
         if (!uiModel.canStart) return@launch
-        val totalSeconds = uiModel.totalSeconds
+        val totalSeconds = uiModel.totalSeconds.toLong()
 
-        val startTime = DateUtils.getCurrentTime()
+        val startTime = DateUtils.getCurrentDateTime()
         val endTime = DateUtils.getEndTimeForDuration(totalSeconds)
         val blockedApps = uiModel.installedApps
             .filter { it.isSelected }
             .map { it.packageName }
+
         val id = Uuid.generateV4().toString()
         sessionRepository.insertSession(
             SessionEntity(
@@ -188,7 +169,8 @@ class HomeViewModel @Inject constructor(
                 sessionStatus = SessionStatus.RUNNING,
                 sessionType = SessionType.INSTANT,
                 sessionName = uiModel.sessionTitle.trim().ifBlank { DEFAULT_SESSION_TITLE },
-                unlockChallengeType = UnlockChallengeType.STRICT_MODE
+                unlockChallengeType = UnlockChallengeType.STRICT_MODE,
+                createdAt = startTime
             )
         )
         routineScheduler.startSession(id)
@@ -199,7 +181,7 @@ class HomeViewModel @Inject constructor(
         sessionRepository.updateSessionStatus(
             sessionId = activeSession.id,
             status = SessionStatus.STOPPED,
-            actualEndTime = DateUtils.getCurrentTime()
+            actualEndTime = DateUtils.getCurrentDateTime()
         )
         routineScheduler.stopSession(activeSession.id)
     }

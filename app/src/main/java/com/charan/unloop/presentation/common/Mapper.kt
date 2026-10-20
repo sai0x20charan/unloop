@@ -1,9 +1,15 @@
 package com.charan.unloop.presentation.common
 
 import com.charan.unloop.core.utils.DateUtils
+import com.charan.unloop.core.utils.DateUtils.toDisplayString
 import com.charan.unloop.data.local.entity.RoutineEntity
+import com.charan.unloop.data.local.entity.SessionEntity
+import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.presentation.common.models.RoutineUiModel
+import com.charan.unloop.presentation.home.CurrentSessionUiModel
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -21,8 +27,8 @@ fun RoutineUiModel.toRoutineEntity(id : String? = null, createdAt : LocalDateTim
         isIntervalBlocking = false,
         unlockChallengeType = unlockChallengeType,
         waitDurationSeconds = waitDurationSeconds,
-        createdAt = createdAt ?: DateUtils.currentDateTime(),
-        updatedAt = DateUtils.currentDateTime(),
+        createdAt = createdAt ?: DateUtils.getCurrentDateTime(),
+        updatedAt = DateUtils.getCurrentDateTime(),
         disableAppPackages = blockedApps,
         isAllDay = false,
         isDeleted = false,
@@ -42,5 +48,27 @@ fun RoutineEntity.toRoutineUiModel(): RoutineUiModel {
         isEnabled = isEnabled,
         unlockChallengeType = unlockChallengeType,
         waitDurationSeconds = waitDurationSeconds
+    )
+}
+
+fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
+    val remaining = if (sessionStatus == SessionStatus.PAUSED && pausedRemainingSeconds != null) {
+        pausedRemainingSeconds.toInt()
+    } else {
+        DateUtils.getRemainingDuration(endTime).toInt()
+    }
+
+    val total = (endTime.toInstant(TimeZone.currentSystemDefault()) -
+        startTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds.toInt().coerceAtLeast(1)
+
+    return CurrentSessionUiModel(
+        sessionId = id,
+        routineId = routineId,
+        sessionName = sessionName,
+        sessionStatus = sessionStatus,
+        endTime = endTime.toDisplayString(),
+        remainingSeconds = remaining,
+        totalSeconds = total,
+        blockedPackages = blockedApps.orEmpty()
     )
 }

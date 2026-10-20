@@ -5,14 +5,18 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toJavaDayOfWeek
 import kotlinx.datetime.toJavaMonth
 import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
+
 
 object DateUtils {
+
     fun getDaysOfWeek() : List<DayOfWeek> {
         return listOf(
             DayOfWeek.SUNDAY,
@@ -27,7 +31,7 @@ object DateUtils {
 
     fun Month.toLocale() : String{
         return this.toJavaMonth().getDisplayName(
-            java.time.format.TextStyle.FULL,
+            TextStyle.FULL,
             Locale.getDefault()
         )
     }
@@ -44,48 +48,63 @@ object DateUtils {
         val minute = this.minute
         val amPm = if (hour < 12) "AM" else "PM"
         val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
-        return String.format("%02d:%02d %s", displayHour, minute, amPm)
-
+        return String.format(locale = Locale.getDefault(),"%02d:%02d %s", displayHour, minute, amPm)
     }
 
-    fun currentDateTime() : LocalDateTime {
+    fun LocalDateTime.toDisplayString() : String {
+        val hour = this.hour
+        val minute = this.minute
+        val amPm = if (hour < 12) "AM" else "PM"
+        val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
+        return String.format(locale = Locale.getDefault(),"%02d:%02d %s", displayHour, minute, amPm)
+    }
+
+    fun getCurrentDateTime() : LocalDateTime {
         return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     }
 
     fun getCurrentTime (): LocalTime {
-        return currentDateTime().time
+        return getCurrentDateTime().time
     }
 
-    fun getEndTimeForDuration(seconds : Int) : LocalTime{
-        val currentTime = getCurrentTime()
-        val endMillis = (currentTime.toMillisecondOfDay().toLong() + seconds * 1000L).mod(86_400_000L).toInt()
-        return LocalTime.fromMillisecondOfDay(endMillis)
+    fun getEndTimeForDuration(seconds: Long): LocalDateTime {
+        val endInstant = Clock.System.now() + seconds.seconds
+        return endInstant.toLocalDateTime(TimeZone.currentSystemDefault())
     }
 
-    fun getRemainingDuration(startTime: LocalTime, endTime: LocalTime): Long {
-        val currentSeconds = getCurrentTime().toSecondOfDay()
-        val startSeconds = startTime.toSecondOfDay()
-        val endSeconds = endTime.toSecondOfDay()
+    fun getEndTimeForDuration(seconds: Int): LocalDateTime = getEndTimeForDuration(seconds.toLong())
 
-        return if (endSeconds >= startSeconds) {
-            (endSeconds - currentSeconds).coerceAtLeast(0).toLong()
+    fun getRemainingDuration(endTime: LocalDateTime): Long {
+        val endInstant = endTime.toInstant(TimeZone.currentSystemDefault())
+        val currentInstant = Clock.System.now()
+
+        return (endInstant - currentInstant)
+            .inWholeSeconds
+            .coerceAtLeast(0L)
+    }
+
+    fun LocalTime.toLocalDateTime() : LocalDateTime {
+        val currentDate = getCurrentDateTime().date
+        return LocalDateTime(
+            year = currentDate.year,
+            month = currentDate.month,
+            day = currentDate.day,
+            hour = this.hour,
+            minute = this.minute,
+            second = this.second,
+            nanosecond = 0
+        )
+    }
+
+    fun formatDuration(seconds: Int): String {
+        val hours = seconds / 3600
+        val minutes = (seconds % 3600) / 60
+        val remainingSeconds = seconds % 60
+
+        return if (hours > 0) {
+            String.format(Locale.getDefault(),"%02d:%02d:%02d", hours, minutes, remainingSeconds)
         } else {
-            // Session crosses midnight (e.g. starts 23:45, ends 00:15)
-            when {
-                currentSeconds >= startSeconds -> ((86400 - currentSeconds) + endSeconds).toLong()
-                currentSeconds <= endSeconds -> (endSeconds - currentSeconds).toLong()
-                else -> 0L
-            }
-        }
-    }
-
-    fun getRemainingDuration(endTime: LocalTime): Long {
-        val currentSeconds = getCurrentTime().toSecondOfDay()
-        val endSeconds = endTime.toSecondOfDay()
-        return if (endSeconds >= currentSeconds) {
-            (endSeconds - currentSeconds).toLong()
-        } else {
-            ((86400 - currentSeconds) + endSeconds).toLong()
+            String.format(Locale.getDefault(),"%02d:%02d", minutes, remainingSeconds)
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.charan.unloop.presentation.home
 
-import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -54,7 +53,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,7 +62,6 @@ import com.charan.unloop.presentation.home.components.DurationInputField
 import com.charan.unloop.presentation.home.components.PresetDurationSelector
 import com.charan.unloop.presentation.home.components.SelectAppsSheet
 import com.charan.unloop.presentation.home.components.SelectedBlockedAppsCard
-import com.charan.unloop.ui.theme.UnloopTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -76,8 +73,8 @@ fun HomeScreen(
     val viewModel = hiltViewModel<HomeViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
-    val isSessionRunning = state.startSessionState.isRunning
-    val isSessionPaused = state.startSessionState.isPaused
+    val isSessionRunning = state.currentSessionUiModel.isRunning
+    val isSessionPaused = state.currentSessionUiModel.isPaused
     val isSessionActive = isSessionRunning || isSessionPaused
     val mediumButtonSize = ButtonDefaults.MediumContainerHeight
     val mediumButtonIconSize = ButtonDefaults.iconSizeFor(mediumButtonSize)
@@ -93,13 +90,13 @@ fun HomeScreen(
             item {
 
                 TimerRing(
-                    progress = if (isSessionActive && state.startSessionState.totalSeconds > 0) {
-                        state.startSessionState.progress
+                    progress = if (isSessionActive && state.currentSessionUiModel.totalSeconds > 0) {
+                        state.currentSessionUiModel.progress
                     } else {
                         1f
                     },
-                    text = if (isSessionActive) state.startSessionState.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
-                    endTimeText = state.startSessionState.endTimeFormatted,
+                    text = if (isSessionActive) state.currentSessionUiModel.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
+                    endTimeText = state.currentSessionUiModel.endTime,
                     onTimeChangeClick = {
                         focusManager.clearFocus()
                         viewModel.onEvent(HomeEvent.OnEditSessionTime)
