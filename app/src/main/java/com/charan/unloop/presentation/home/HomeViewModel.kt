@@ -73,6 +73,15 @@ class HomeViewModel @Inject constructor(
                 (86400 - startSec) + endSec
             }
 
+            val remainingSeconds = if (isPaused && sessionEntity.remainingSeconds != null) {
+                sessionEntity.remainingSeconds
+            } else {
+                DateUtils.getRemainingDuration(
+                    startTime = sessionEntity.startTime,
+                    endTime = sessionEntity.endTime
+                ).toInt().coerceAtLeast(0)
+            }
+
             _state.update {
                 it.copy(
                     startSessionState = it.startSessionState.copy(
@@ -82,10 +91,7 @@ class HomeViewModel @Inject constructor(
                         endTimeFormatted = sessionEntity.endTime.toDisplayString(),
                         blockedPackages = sessionEntity.blockedApps.orEmpty(),
                         totalSeconds = totalSeconds,
-                        remainingSeconds = DateUtils.getRemainingDuration(
-                            startTime = sessionEntity.startTime,
-                            endTime = sessionEntity.endTime
-                        ).toInt().coerceAtLeast(0),
+                        remainingSeconds = remainingSeconds,
                         sessionId = sessionEntity.id
                     )
                 )
@@ -127,18 +133,28 @@ class HomeViewModel @Inject constructor(
 
             is HomeEvent.OnPauseSessionClick -> {
                 handlePauseSessionClick()
-
             }
         }
     }
 
     private fun handlePauseSessionClick() = viewModelScope.launch {
-        if(_state.value.startSessionState.isRunning) {
-            routineScheduler.pauseRoutine(state.value.startSessionState.sessionId)
-        } else if(_state.value.startSessionState.isPaused){
+        if (_state.value.startSessionState.isRunning) {
+            routineScheduler.pauseRoutine(
+                sessionId = state.value.startSessionState.sessionId,
+                remainingSeconds = state.value.startSessionState.remainingSeconds
+            )
+        } else if (_state.value.startSessionState.isPaused) {
+            val remainingSeconds = state.value.startSessionState.remainingSeconds
+            val newEndTime = DateUtils.getEndTimeForDuration(remainingSeconds)
+            _state.update {
+                it.copy(
+                    startSessionState = it.startSessionState.copy(
+                        endTimeFormatted = newEndTime.toDisplayString()
+                    )
+                )
+            }
             routineScheduler.resumeRoutine(state.value.startSessionState.sessionId)
         }
-
     }
 
     private fun handleSessionTitleChange(title: String) {

@@ -21,5 +21,6 @@ data class SessionEntity(
     val blockedApps : List<String>? = null,
     val unlockChallengeType: UnlockChallengeType,
     val sessionName : String,
-    val waitDurationSeconds : Int? = null
+    val waitDurationSeconds : Int? = null,
+    val remainingSeconds : Int? = null
 )

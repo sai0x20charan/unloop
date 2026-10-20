@@ -48,12 +48,11 @@ class RoutineForegroundService : Service() {
 
     companion object {
         const val ACTION_STOP_ROUTINE = "com.charan.unloop.ACTION_STOP_ROUTINE"
-
         const val ACTION_PAUSE_ROUTINE = "com.charan.unloop.ACTION_PAUSE_ROUTINE"
-
         const val ACTION_RESUME_ROUTINE = "com.charan.unloop.ACTION_RESUME_ROUTINE"
         const val EXTRA_SESSION_ID = "sessionId"
         const val EXTRA_ROUTINE_ID = "routineId"
+        const val EXTRA_REMAINING_SECONDS = "remainingSeconds"
     }
 
     private val serviceScope = CoroutineScope(
@@ -70,10 +69,12 @@ class RoutineForegroundService : Service() {
         val sessionId = intent?.getStringExtra(EXTRA_SESSION_ID)
         val routineId = intent?.getStringExtra(EXTRA_ROUTINE_ID)
         val action = intent?.action
-        if(action == ACTION_PAUSE_ROUTINE){
-            monitoringJob?.cancel()
-            removeOverLay()
-            updateSessionStatus(sessionId ?: activeSession?.id ?: return START_NOT_STICKY, SessionStatus.PAUSED)
+
+        if (action == ACTION_PAUSE_ROUTINE) {
+            val remainingExtra = if (intent.hasExtra(EXTRA_REMAINING_SECONDS)) {
+                intent.getIntExtra(EXTRA_REMAINING_SECONDS, 0)
+            } else null
+            pauseSession(sessionId ?: activeSession?.id ?: return START_NOT_STICKY, remainingExtra)
             return START_NOT_STICKY
         }
 
@@ -87,7 +88,10 @@ class RoutineForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-
+        if (action == ACTION_RESUME_ROUTINE) {
+            resumeSession(sessionId ?: activeSession?.id)
+            return START_REDELIVER_INTENT
+        }
 
         startMonitoring(sessionId = sessionId, routineId = routineId)
 
@@ -113,7 +117,78 @@ class RoutineForegroundService : Service() {
         }
     }
 
-    private fun updateSessionStatus(sessionId : String, sessionStatus: SessionStatus) = serviceScope.launch{
+    private fun pauseSession(sessionId: String, remainingSeconds: Int?) {
+        monitoringJob?.cancel()
+        removeOverLay()
+        routineScheduler.cancelStopRoutine(sessionId)
+        serviceScope.launch {
+            val session = sessionRepository.getSessionById(sessionId) ?: return@launch
+            val remaining = remainingSeconds ?: DateUtils.getRemainingDuration(
+                startTime = session.startTime,
+                endTime = session.endTime
+            ).toInt().coerceAtLeast(0)
+
+            sessionRepository.updateSession(
+                session.copy(
+                    sessionStatus = SessionStatus.PAUSED,
+                    remainingSeconds = remaining
+                )
+            )
+        }
+    }
+
+    private fun resumeSession(sessionId: String?) {
+        monitoringJob?.cancel()
+        monitoringJob = serviceScope.launch {
+            val session = if (!sessionId.isNullOrBlank()) {
+                sessionRepository.getSessionById(sessionId)
+            } else {
+                sessionRepository.getActiveSessionOnce()
+            } ?: return@launch
+
+            resumeSessionInternal(session)
+        }
+    }
+
+    private suspend fun resumeSessionInternal(session: SessionEntity) {
+        val remainingSeconds = session.remainingSeconds ?: DateUtils.getRemainingDuration(
+            startTime = session.startTime,
+            endTime = session.endTime
+        ).toInt().coerceAtLeast(0)
+
+        val now = DateUtils.getCurrentTime()
+        val newEndTime = DateUtils.getEndTimeForDuration(remainingSeconds)
+
+        val originalStartSec = session.startTime.toSecondOfDay()
+        val originalEndSec = session.endTime.toSecondOfDay()
+        val totalSeconds = if (originalEndSec >= originalStartSec) {
+            originalEndSec - originalStartSec
+        } else {
+            (86400 - originalStartSec) + originalEndSec
+        }
+
+        val elapsedSeconds = (totalSeconds - remainingSeconds).coerceAtLeast(0)
+        val newStartMillis = (now.toMillisecondOfDay().toLong() - elapsedSeconds * 1000L).mod(86_400_000L).toInt()
+        val newStartTime = LocalTime.fromMillisecondOfDay(newStartMillis)
+
+        val updatedSession = session.copy(
+            sessionStatus = SessionStatus.RUNNING,
+            startTime = newStartTime,
+            endTime = newEndTime,
+            remainingSeconds = null
+        )
+        sessionRepository.updateSession(updatedSession)
+        activeSession = updatedSession
+
+        routineScheduler.scheduleStopRoutine(
+            sessionId = updatedSession.id,
+            endTime = updatedSession.endTime
+        )
+
+        startMonitoringLoop(updatedSession)
+    }
+
+    private fun updateSessionStatus(sessionId: String, sessionStatus: SessionStatus) = serviceScope.launch {
         sessionRepository.updateSessionStatus(
             sessionId = sessionId,
             status = sessionStatus,
@@ -138,9 +213,14 @@ class RoutineForegroundService : Service() {
                 !sessionId.isNullOrBlank() -> sessionRepository.getSessionById(sessionId)
                 !routineId.isNullOrBlank() -> createOrGetScheduledSession(routineId)
                 else -> sessionRepository.getActiveSessionOnce()
-            }
-            updateSessionStatus(sessionId = session?.id ?: return@launch, sessionStatus = SessionStatus.RUNNING)
+            } ?: return@launch
 
+            if (session.sessionStatus == SessionStatus.PAUSED) {
+                resumeSessionInternal(session)
+                return@launch
+            }
+
+            updateSessionStatus(sessionId = session.id, sessionStatus = SessionStatus.RUNNING)
             activeSession = session
 
             routineScheduler.scheduleStopRoutine(
@@ -148,15 +228,24 @@ class RoutineForegroundService : Service() {
                 endTime = session.endTime
             )
 
+            startMonitoringLoop(session)
+        }
+    }
+
+    private fun startMonitoringLoop(session: SessionEntity) {
+        monitoringJob?.cancel()
+        monitoringJob = serviceScope.launch {
             while (isActive) {
-                val sessionStatus = sessionRepository.getSessionById(session.id)?.sessionStatus
-                if(sessionStatus == SessionStatus.PAUSED){
+                val currentSession = sessionRepository.getSessionById(session.id)
+                if (currentSession?.sessionStatus == SessionStatus.PAUSED) {
                     removeOverLay()
-                    continue
+                    break
                 }
+                val currentEndTime = currentSession?.endTime ?: session.endTime
+                val currentStartTime = currentSession?.startTime ?: session.startTime
                 val remainingSeconds = DateUtils.getRemainingDuration(
-                    startTime = session.startTime,
-                    endTime = session.endTime
+                    startTime = currentStartTime,
+                    endTime = currentEndTime
                 )
 
                 if (remainingSeconds <= 0L) {
@@ -199,7 +288,7 @@ class RoutineForegroundService : Service() {
                             )
                             putExtra(
                                 FullScreenOverlayService.EXTRA_END_TIME_SECOND_OF_DAY,
-                                session.endTime.toSecondOfDay()
+                                currentEndTime.toSecondOfDay()
                             )
                         }
                         startService(overlayIntent)

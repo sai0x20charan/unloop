@@ -11,7 +11,7 @@ import com.charan.unloop.data.local.entity.SessionEntity
 
 @Database(
     entities = [RoutineEntity::class, SessionEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

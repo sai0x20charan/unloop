@@ -98,7 +98,9 @@ fun OverLayScreen(
     UnloopTheme {
         val colors = MaterialTheme.colorScheme
 
-        Surface(modifier = Modifier.fillMaxSize(), color = colors.surface) {
+        Surface(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            color = colors.surface) {
             Box(
                 modifier = Modifier
                     .fillMaxSize(),
@@ -120,7 +122,7 @@ fun OverLayScreen(
                             modifier = Modifier.fillMaxSize(),
                             color = colors.primary,
                             trackColor = colors.primary.copy(alpha = 0.12f),
-                            strokeWidth = 4.dp,
+                            strokeWidth = 3.dp,
                             strokeCap = StrokeCap.Round
                         )
 
@@ -128,7 +130,7 @@ fun OverLayScreen(
                             modifier = Modifier
                                 .size(126.dp)
                                 .border(
-                                    1.dp,
+                                    3.dp,
                                     colors.primary.copy(alpha = 0.1f),
                                     CircleShape
                                 ),
@@ -169,6 +171,7 @@ fun OverLayScreen(
                         modifier = Modifier.fillMaxWidth(),
                         timeLabel = if (strict) "Blocked" else "Unlock delay"
                     )
+                    Spacer(Modifier.height(28.dp))
 
                     if (!strict) {
                         Button(
@@ -247,4 +250,16 @@ fun RoutineDetailCard(
 
         }
     }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun OverlayScreenPreview() {
+    OverLayScreen(
+        unlockType = UnlockChallengeType.WAIT_TIME,
+        routineName = "Morning Routine",
+        appName = "YouTube",
+        endTime = LocalTime(10, 30),
+        waitTimeSeconds = 5
+    )
 }

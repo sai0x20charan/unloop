@@ -124,14 +124,16 @@ class RoutineScheduler @Inject constructor(
         }
     }
 
-
-    fun pauseRoutine(sessionId: String) {
+    fun pauseRoutine(sessionId: String, remainingSeconds: Int? = null) {
         val intent = Intent(
             context,
             RoutineForegroundService::class.java
         ).apply {
             action = RoutineForegroundService.ACTION_PAUSE_ROUTINE
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+            if (remainingSeconds != null) {
+                putExtra(RoutineForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
+            }
         }
 
         context.startService(intent)
@@ -142,12 +144,12 @@ class RoutineScheduler @Inject constructor(
             context,
             RoutineForegroundService::class.java
         ).apply {
+            action = RoutineForegroundService.ACTION_RESUME_ROUTINE
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
         }
 
         context.startForegroundService(intent)
     }
-
 
     fun cancelStopRoutine(sessionId: String) {
         if (sessionId.isBlank()) return
