@@ -10,8 +10,8 @@ data class RoutineUiModel(
     val name: String = "",
     val description: String = "",
     val selectedDays: List<DayOfWeek> = emptyList(),
-    val startTime: LocalTime? = null,
-    val endTime: LocalTime? = null,
+    val startTime: LocalTime = LocalTime(0, 0),
+    val endTime: LocalTime = LocalTime(0, 0),
     val blockedApps: List<String> = emptyList(),
     val isEnabled: Boolean = true,
 

@@ -1,10 +1,12 @@
 package com.charan.unloop.core.utils
 
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toJavaDayOfWeek
 import kotlinx.datetime.toJavaMonth
@@ -106,5 +108,24 @@ object DateTimeUtils {
         } else {
             String.format(Locale.getDefault(),"%02d:%02d", minutes, remainingSeconds)
         }
+    }
+
+    fun getNextScheduledTime(
+        scheduledTime: LocalTime,
+        frequency: List<DayOfWeek>,
+        currentDateTime: LocalDateTime = getCurrentDateTime()
+    ): LocalDateTime {
+        require(frequency.isNotEmpty()) { "Frequency cannot be empty" }
+
+        for (daysToAdd in 0..7) {
+            val date = currentDateTime.date.plus(daysToAdd, DateTimeUnit.DAY)
+            val candidate = LocalDateTime(date, scheduledTime)
+
+            if (date.dayOfWeek in frequency && candidate > currentDateTime) {
+                return candidate
+            }
+        }
+
+        error("No scheduled time found within the next week")
     }
 }

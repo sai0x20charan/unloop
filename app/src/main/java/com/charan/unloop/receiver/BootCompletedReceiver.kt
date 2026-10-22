@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.charan.unloop.core.overlay.RoutineSessionController
+import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +21,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     lateinit var routineRepository: RoutineRepository
 
     @Inject
-    lateinit var routineSessionController: RoutineSessionController
+    lateinit var sessionManager: SessionManagerRepository
 
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent == null) return
@@ -39,14 +39,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     val activeRoutines = routines.filter { it.isEnabled && !it.isDeleted }
 
                     for (routine in activeRoutines) {
-                        if (!routine.daysOfWeek.isNullOrEmpty() && routine.startTime != null) {
-                            routineSessionController.scheduleRoutine(
-                                routineId = routine.id,
-                                startTime = routine.startTime,
-                                frequency = routine.daysOfWeek,
-                                isAllDay = routine.isAllDay
-                            )
-                        }
+                        sessionManager.scheduleSession(routine.id)
                     }
                     Log.d(TAG, "Successfully rescheduled ${activeRoutines.size} routines after reboot")
                 } catch (e: Exception) {

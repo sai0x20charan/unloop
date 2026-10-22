@@ -1,6 +1,8 @@
 package com.charan.unloop.data.local
 
 import androidx.room.TypeConverter
+import com.charan.unloop.data.local.model.enums.ScheduleType
+import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
 import com.charan.unloop.presentation.routine.UnlockChallengeType
@@ -106,5 +108,25 @@ object Converters {
     @TypeConverter
     fun stringToSessionType(value: String): SessionType {
         return SessionType.valueOf(value)
+    }
+
+    @TypeConverter
+    fun sessionEventsToString(value: SessionEvents): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun stringToSessionEvents(value: String): SessionEvents {
+        return SessionEvents.valueOf(value)
+    }
+
+    @TypeConverter
+    fun scheduleTypeToString(value: ScheduleType): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun stringToScheduleType(value: String): ScheduleType {
+        return ScheduleType.valueOf(value)
     }
 }

@@ -1,16 +1,27 @@
 package com.charan.unloop.data.repository.impl
 
+import com.charan.unloop.core.di.ApplicationScope
 import com.charan.unloop.data.local.dao.SessionDao
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.repository.SessionRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.datetime.LocalDateTime
 import javax.inject.Inject
 
 class SessionRepositoryImpl @Inject constructor(
-    private val sessionDao: SessionDao
+    private val sessionDao: SessionDao,
+    @ApplicationScope applicationScope: CoroutineScope
 ) : SessionRepository {
+    override val activeSession = sessionDao.getActiveSession()
+        .distinctUntilChanged()
+        .shareIn(applicationScope, SharingStarted.Lazily, replay = 1)
+
     override suspend fun insertSession(session: SessionEntity) =
         sessionDao.insertSession(session)
 
@@ -24,13 +35,14 @@ class SessionRepositoryImpl @Inject constructor(
     ) = sessionDao.updateSessionStatus(sessionId, status, actualEndTime)
 
     override fun getActiveSession(): Flow<SessionEntity?> =
-        sessionDao.getActiveSession()
+        activeSession
 
     override suspend fun getActiveSessionOnce(): SessionEntity? =
-        sessionDao.getActiveSessionOnce()
+        activeSession.first()
 
     override suspend fun getSessionById(sessionId: String): SessionEntity? =
-        sessionDao.getSessionById(sessionId)
+        getActiveSessionOnce()?.takeIf { it.id == sessionId }
+            ?: sessionDao.getSessionById(sessionId)
 
     override suspend fun getLastInstantSession(): SessionEntity? =
         sessionDao.getLastInstantSession()

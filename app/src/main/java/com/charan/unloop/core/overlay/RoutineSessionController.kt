@@ -5,15 +5,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.charan.unloop.core.utils.DateTimeUtils
-import com.charan.unloop.data.local.model.enums.SessionStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,72 +22,41 @@ class RoutineSessionController @Inject constructor(
 
     fun scheduleRoutine(
         routineId: String,
-        startTime: LocalTime?,
-        frequency: List<DayOfWeek>,
-        isAllDay: Boolean = false
+        scheduleTime: LocalDateTime,
     ) {
-        if (startTime == null || frequency.isEmpty()) return
 
-        val now = DateTimeUtils.getCurrentDateTime()
-        val pendingIntent = createPendingIntent(routineId)
-
-        var date = now.date
-
-        for (i in 0..7) {
-            val dateTime = LocalDateTime(
-                year = date.year,
-                month = date.month,
-                day = date.day,
-                hour = startTime.hour,
-                minute = startTime.minute,
-                second = startTime.second,
-                nanosecond = 0
-            )
-
-            if (frequency.contains(dateTime.dayOfWeek) && (isAllDay || dateTime > now)) {
-                val millis = dateTime
-                    .toInstant(TimeZone.currentSystemDefault())
-                    .toEpochMilliseconds()
-
-                setExactAlarmSafe(millis, pendingIntent)
-                return
-            }
-
-            date = date.plus(1, DateTimeUnit.DAY)
+        val pendingIntent = createRoutinePendingIntent(routineId) {
+            putExtra(RoutineForegroundService.EXTRA_ROUTINE_ID, routineId)
+            action = RoutineForegroundService.ACTION_REQUEST_START_ROUTINE
         }
+        setExactAlarmSafe(
+            scheduleTime.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds(),
+            pendingIntent
+        )
+
     }
 
-    fun cancelRoutine(routineId: String) {
-        val pendingIntent = createPendingIntent(routineId)
-        alarmManager.cancel(pendingIntent)
-        pendingIntent.cancel()
-
-        cancelStopRoutine(routineId)
-
-        context.stopService(Intent(context, RoutineForegroundService::class.java))
-    }
-
-    fun scheduleStopRoutine(
+    fun scheduleStopSession(
         sessionId: String,
         endTime: LocalDateTime
     ) {
         if (sessionId.isBlank()) return
-
-        val now = DateTimeUtils.getCurrentDateTime()
-        if (endTime <= now) {
-            val stopIntent = Intent(context, RoutineForegroundService::class.java).apply {
-                action = RoutineForegroundService.ACTION_STOP_ROUTINE
-                putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-            }
-            context.startForegroundService(stopIntent)
-            return
+        val pendingIntent = createSessionPendingIntent(sessionId){
+            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+            action = RoutineForegroundService.ACTION_REQUEST_STOP_SESSION
         }
+        setExactAlarmSafe(
+            endTime.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds(),
+            pendingIntent
+        )
+    }
 
-        val millis = endTime
-            .toInstant(TimeZone.currentSystemDefault())
-            .toEpochMilliseconds()
-
-        setExactAlarmSafe(millis, createStopPendingIntent(sessionId))
+    fun cancelRoutine(routineId: String) {
+        val pendingIntent = createRoutinePendingIntent(routineId){
+            putExtra(RoutineForegroundService.EXTRA_ROUTINE_ID, routineId)
+        }
+        alarmManager.cancel(pendingIntent)
+        pendingIntent.cancel()
     }
 
     private fun setExactAlarmSafe(triggerAtMillis: Long, pendingIntent: PendingIntent) {
@@ -112,41 +75,39 @@ class RoutineSessionController @Inject constructor(
         }
     }
 
-    fun pauseRoutine(sessionId: String) {
+    fun pauseSession(sessionId: String) {
         val intent = Intent(
             context,
             RoutineForegroundService::class.java
         ).apply {
-            action = RoutineForegroundService.ACTION_PAUSE_ROUTINE
+            action = RoutineForegroundService.ACTION_PAUSE_SESSION
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
         }
-
-        context.startService(intent)
+        context.startForegroundService(intent)
     }
+
+    fun pauseRoutine(sessionId: String) = pauseSession(sessionId)
 
     fun resumeRoutine(sessionId: String) {
         val intent = Intent(
             context,
             RoutineForegroundService::class.java
         ).apply {
-            action = RoutineForegroundService.ACTION_RESUME_ROUTINE
+            action = RoutineForegroundService.ACTION_RESUME_SESSION
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
         }
 
         context.startForegroundService(intent)
     }
 
-    fun cancelStopRoutine(sessionId: String) {
-        if (sessionId.isBlank()) return
-        val pendingIntent = createStopPendingIntent(sessionId)
-        alarmManager.cancel(pendingIntent)
-        pendingIntent.cancel()
-    }
-
-    private fun createPendingIntent(routineId: String): PendingIntent {
-        val intent = Intent(context, RoutineForegroundService::class.java).apply {
-            putExtra(RoutineForegroundService.EXTRA_ROUTINE_ID, routineId)
-        }
+    private fun createRoutinePendingIntent(
+        routineId: String,
+        configure: Intent.() -> Unit
+    ): PendingIntent {
+        val intent = Intent(
+            context,
+            RoutineForegroundService::class.java
+        ).apply(configure)
 
         return PendingIntent.getForegroundService(
             context,
@@ -156,31 +117,35 @@ class RoutineSessionController @Inject constructor(
         )
     }
 
-    private fun createStopPendingIntent(sessionId: String): PendingIntent {
-        val intent = Intent(context, RoutineForegroundService::class.java).apply {
-            action = RoutineForegroundService.ACTION_STOP_ROUTINE
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-        }
+    private fun createSessionPendingIntent(
+        sessionId : String,
+        configure: Intent.() -> Unit
+    ) : PendingIntent{
+        val intent = Intent(
+            context,
+            RoutineForegroundService::class.java
+        ).apply(configure)
 
         return PendingIntent.getForegroundService(
             context,
-            (sessionId + "_stop").hashCode(),
+            sessionId.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 
+
     fun startSession(sessionId: String) {
         val intent = Intent(context, RoutineForegroundService::class.java).apply {
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+            action = RoutineForegroundService.ACTION_START_SESSION
         }
         context.startForegroundService(intent)
     }
 
     fun stopSession(sessionId: String) {
-        cancelStopRoutine(sessionId)
         val intent = Intent(context, RoutineForegroundService::class.java).apply {
-            action = RoutineForegroundService.ACTION_STOP_ROUTINE
+            action = RoutineForegroundService.ACTION_STOP_SESSION
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
         }
         context.startForegroundService(intent)

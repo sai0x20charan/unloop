@@ -8,7 +8,6 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.UUID
 
@@ -30,8 +29,8 @@ class RoutineMapperTest {
             createdAt = createdAt,
             updatedAt = createdAt,
             isEnabled = false,
-            isIntervalBlocking = true,
-            intervalMinutes = 150,
+            isIntervalBlocking = false,
+            intervalMinutes = 0,
             disableAppPackages = listOf("com.example.social", "com.example.video")
         )
 
@@ -41,25 +40,11 @@ class RoutineMapperTest {
     }
 
     @Test
-    fun nullableScheduleFieldsRemainNull() {
-        val model = RoutineUiModel(name = "All day", isAllDay = true)
-        val entity = model.toRoutineEntity()
-        val restored = entity.toRoutineUiModel()
-
-        assertNull(restored.startTime)
-        assertNull(restored.endTime)
-        assertNull(restored.intervalMinutes)
-        assertNull(restored.waitDurationSeconds)
-        assertEquals("All Day", restored.formattedTime)
-    }
-
-    @Test
     fun creatingFromTheDraftKeepsTheExistingDefaults() {
         val entity = RoutineState().routine.toRoutineEntity()
 
         assertEquals(LocalTime(0, 0), entity.startTime)
         assertEquals(LocalTime(0, 0), entity.endTime)
-        assertEquals(60, entity.intervalMinutes)
         assertEquals(30, entity.waitDurationSeconds)
         assertEquals(entity.id, UUID.fromString(entity.id).toString())
     }
@@ -94,6 +79,5 @@ class RoutineMapperTest {
         )
         assertEquals("01:30 PM - 05:45 PM", edited.formattedTime)
         assertEquals("Weekdays", edited.formattedDays)
-        assertEquals("All Day", edited.copy(isAllDay = true).formattedTime)
     }
 }

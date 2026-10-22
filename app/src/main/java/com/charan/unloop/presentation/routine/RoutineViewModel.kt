@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.overlay.RoutineSessionController
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
+import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
@@ -28,7 +29,7 @@ class RoutineViewModel @AssistedInject constructor(
     @Assisted("routineId") private val routineId: String?,
     private val installedAppsRepository: InstalledAppsRepository,
     private val routineRepository: RoutineRepository,
-    private val routineSessionController: RoutineSessionController
+    private val sessionManagerRepository: SessionManagerRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -156,12 +157,7 @@ class RoutineViewModel @AssistedInject constructor(
 
         val daysOfWeek = routineEntity.daysOfWeek
         if (!daysOfWeek.isNullOrEmpty()) {
-            routineSessionController.scheduleRoutine(
-                routineId = routineEntity.id,
-                startTime = routineEntity.startTime,
-                frequency = daysOfWeek,
-                isAllDay = routineEntity.isAllDay
-            )
+            sessionManagerRepository.scheduleSession(routineEntity.id)
         }
 
         _effect.send(RoutineEffect.OnBack)

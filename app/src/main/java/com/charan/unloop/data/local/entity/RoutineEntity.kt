@@ -20,11 +20,11 @@ data class RoutineEntity(
 
     val isAllDay : Boolean ,
 
-    val startTime: LocalTime?,
+    val startTime: LocalTime,
 
-    val endTime: LocalTime?,
+    val endTime: LocalTime,
 
-    val daysOfWeek: List<DayOfWeek>?,
+    val daysOfWeek: List<DayOfWeek>,
 
     val unlockChallengeType: UnlockChallengeType,
 

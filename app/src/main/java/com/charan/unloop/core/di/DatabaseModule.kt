@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.charan.unloop.data.local.AppDatabase
 import com.charan.unloop.data.local.dao.RoutineDao
 import com.charan.unloop.data.local.dao.SessionDao
+import com.charan.unloop.data.local.dao.SessionEventDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,4 +41,11 @@ object DatabaseModule {
     fun provideSessionDao(database: AppDatabase): SessionDao {
         return database.sessionDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideSessionEventDao(database: AppDatabase): SessionEventDao {
+        return database.sessionEventDao()
+    }
+
 }

@@ -3,9 +3,13 @@ package com.charan.unloop.data.repository
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.datetime.LocalDateTime
 
 interface SessionRepository {
+
+    /** Shared Room state. Replays the latest running or paused session after loading. */
+    val activeSession: SharedFlow<SessionEntity?>
 
     suspend fun insertSession(session: SessionEntity)
 

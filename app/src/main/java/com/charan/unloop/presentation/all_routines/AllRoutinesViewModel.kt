@@ -2,7 +2,7 @@ package com.charan.unloop.presentation.all_routines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.charan.unloop.core.overlay.RoutineSessionController
+import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.common.toRoutineUiModel
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AllRoutinesViewModel @Inject constructor(
     private val routineRepository: RoutineRepository,
-    private val routineSessionController: RoutineSessionController
+    private val sessionManager: SessionManagerRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AllRoutinesState())
@@ -61,17 +61,10 @@ class AllRoutinesViewModel @Inject constructor(
         val routine = routineRepository.getRoutineById(routineId)
         if (routine != null) {
             if (isEnabled) {
-                if (!routine.daysOfWeek.isNullOrEmpty() && routine.startTime != null) {
-                    routineSessionController.scheduleRoutine(
-                        routineId = routine.id,
-                        startTime = routine.startTime,
-                        frequency = routine.daysOfWeek,
-                        isAllDay = routine.isAllDay
-                    )
-                }
+                sessionManager.scheduleSession(routine.id)
                 _effect.send(AllRoutineEffect.ShowToast("${routine.name} enabled"))
             } else {
-                routineSessionController.cancelRoutine(routineId)
+                sessionManager.cancelScheduledSession(routine.id)
                 _effect.send(AllRoutineEffect.ShowToast("${routine.name} disabled"))
             }
         }
