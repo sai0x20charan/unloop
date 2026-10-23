@@ -84,16 +84,6 @@ class HomeViewModel @Inject constructor(
                 return@collectLatest
             }
 
-            if (DateTimeUtils.getRemainingDuration(sessionEntity.endTime) <= 0L) {
-                sessionRepository.updateSessionStatus(
-                    sessionId = sessionEntity.id,
-                    status = SessionStatus.COMPLETED,
-                    actualEndTime = DateTimeUtils.getCurrentDateTime()
-                )
-                sessionManagerRepository.stopSession(sessionEntity.id)
-                return@collectLatest
-            }
-
             val isRunning = sessionEntity.sessionStatus == SessionStatus.RUNNING
             _state.update {
                 it.copy(

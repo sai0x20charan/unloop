@@ -86,7 +86,6 @@ class RoutineSessionController @Inject constructor(
         context.startForegroundService(intent)
     }
 
-    fun pauseRoutine(sessionId: String) = pauseSession(sessionId)
 
     fun resumeRoutine(sessionId: String) {
         val intent = Intent(
@@ -149,5 +148,14 @@ class RoutineSessionController @Inject constructor(
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
         }
         context.startForegroundService(intent)
+    }
+
+    fun cancelScheduledSession(sessionId: String) {
+        val pendingIntent = createSessionPendingIntent(sessionId){
+            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+            action = RoutineForegroundService.ACTION_REQUEST_STOP_SESSION
+        }
+        alarmManager.cancel(pendingIntent)
+        pendingIntent.cancel()
     }
 }

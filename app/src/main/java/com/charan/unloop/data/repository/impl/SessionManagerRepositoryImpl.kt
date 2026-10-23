@@ -16,8 +16,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -74,6 +78,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
                     sessionEvents = SessionEvents.PAUSE_SESSION,
                     appPackage = null
                 )
+                cancelScheduledSession(sessionId)
             }
             routineSessionController.pauseSession(sessionId)
         }
@@ -83,10 +88,20 @@ class SessionManagerRepositoryImpl @Inject constructor(
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
             if (session != null) {
-                val newEndTime = DateTimeUtils.getEndTimeForDuration(session.pausedRemainingSeconds ?: 0)
+                val remainingSeconds = session.pausedRemainingSeconds ?: 0L
+
+                val originalTotalSeconds = (session.endTime.toInstant(TimeZone.currentSystemDefault()) -
+                        session.startTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds
+
+                val newEndTime = DateTimeUtils.getEndTimeForDuration(remainingSeconds)
+
+                val newStartTime = (newEndTime.toInstant(TimeZone.currentSystemDefault()) - originalTotalSeconds.seconds)
+                    .toLocalDateTime(TimeZone.currentSystemDefault())
+
                 sessionRepository.updateSession(
                     session.copy(
                         pausedRemainingSeconds = null,
+                        startTime = newStartTime,
                         endTime = newEndTime,
                         sessionStatus = SessionStatus.RUNNING
                     )
@@ -101,6 +116,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
             }
         }
     }
+
 
     override suspend fun logSessionEvent(
         sessionId: String,
@@ -182,14 +198,19 @@ class SessionManagerRepositoryImpl @Inject constructor(
             sessionName = routine?.name ?: "",
             unlockChallengeType = routine?.unlockChallengeType ?: UnlockChallengeType.STRICT_MODE,
             waitDurationSeconds = routine?.waitDurationSeconds ?: 0,
-            blockedApps = routine?.disableAppPackages
+            blockedApps = routine?.disableAppPackages,
+            actualStartTime = currentDateTime,
         )
         sessionRepository.insertSession(sessionEntity)
         startSession(sessionId)
         return sessionId
     }
 
-    override suspend fun cancelScheduledSession(routineId: String) {
+    override suspend fun cancelScheduledRoutine(routineId: String) {
         routineSessionController.cancelRoutine(routineId)
+    }
+
+    override suspend fun cancelScheduledSession(sessionId: String) {
+        routineSessionController.cancelScheduledSession(sessionId)
     }
 }

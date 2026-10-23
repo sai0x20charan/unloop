@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.RoutineRepository
-import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.common.toRoutineUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -64,7 +63,7 @@ class AllRoutinesViewModel @Inject constructor(
                 sessionManager.scheduleSession(routine.id)
                 _effect.send(AllRoutineEffect.ShowToast("${routine.name} enabled"))
             } else {
-                sessionManager.cancelScheduledSession(routine.id)
+                sessionManager.cancelScheduledRoutine(routine.id)
                 _effect.send(AllRoutineEffect.ShowToast("${routine.name} disabled"))
             }
         }

@@ -1,7 +1,6 @@
 package com.charan.unloop.data.repository
 
 import com.charan.unloop.data.local.model.enums.SessionEvents
-import kotlinx.datetime.LocalTime
 
 interface SessionManagerRepository  {
 
@@ -19,10 +18,12 @@ interface SessionManagerRepository  {
 
     suspend fun scheduleEnd(sessionId : String)
 
+    suspend fun cancelScheduledSession(sessionId : String)
+
     suspend fun createSession(routineId: String,
 
     ): String?
 
-    suspend fun cancelScheduledSession(routineId: String)
+    suspend fun cancelScheduledRoutine(routineId: String)
 
 }
