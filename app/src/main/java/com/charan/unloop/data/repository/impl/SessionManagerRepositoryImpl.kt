@@ -51,6 +51,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
 
     override suspend fun stopSession(sessionId: String) {
         mutex.withLock {
+            val routineId = sessionRepository.getSessionById(sessionId)?.routineId
             sessionEventRepository.recordSessionEvent(
                 sessionId = sessionId,
                 sessionEvents = SessionEvents.COMPLETE_SESSION,
@@ -61,6 +62,9 @@ class SessionManagerRepositoryImpl @Inject constructor(
                 status = SessionStatus.COMPLETED,
                 actualEndTime = DateTimeUtils.getCurrentDateTime()
             )
+            if (routineId != null) {
+                scheduleSession(routineId)
+            }
             routineSessionController.stopSession(sessionId)
         }
     }
@@ -139,7 +143,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
 
     override suspend fun scheduleSession(routineId: String) {
         val routine = routineRepository.getRoutineById(routineId)
-        if (routine != null) {
+        if (routine != null && routine.isEnabled && !routine.isDeleted && routine.daysOfWeek.isNotEmpty()) {
             val startTime = routine.startTime
             val scheduleTime = DateTimeUtils.getNextScheduledTime(startTime, routine.daysOfWeek)
             routineSessionController.scheduleRoutine(routineId, scheduleTime)
@@ -206,6 +210,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
             actualStartTime = currentDateTime,
         )
         sessionRepository.insertSession(sessionEntity)
+        scheduleSession(routineId)
         startSession(sessionId)
         return sessionId
     }
