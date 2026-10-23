@@ -36,12 +36,15 @@ class SessionManagerRepositoryImpl @Inject constructor(
 
     override suspend fun startSession(sessionId: String) {
         mutex.withLock {
+            val session = sessionRepository.getSessionById(sessionId) ?: return@withLock
             sessionEventRepository.recordSessionEvent(
                 sessionId = sessionId,
                 sessionEvents = SessionEvents.START_SESSION,
                 appPackage = null
             )
-            routineSessionController.startSession(sessionId)
+            val remainingSeconds = getRemainingSeconds(session)
+            val totalSeconds = getTotalSeconds(session)
+            routineSessionController.startSession(sessionId, remainingSeconds, totalSeconds)
             scheduleEnd(sessionId)
         }
     }
@@ -66,10 +69,10 @@ class SessionManagerRepositoryImpl @Inject constructor(
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
             if (session != null) {
-                val pausedRemainingSeconds = DateTimeUtils.getRemainingDuration(session.endTime)
+                val remaining = DateTimeUtils.getRemainingDuration(session.endTime)
                 sessionRepository.updateSession(
                     session.copy(
-                        pausedRemainingSeconds = pausedRemainingSeconds,
+                        pausedRemainingSeconds = remaining,
                         sessionStatus = SessionStatus.PAUSED
                     )
                 )
@@ -79,8 +82,9 @@ class SessionManagerRepositoryImpl @Inject constructor(
                     appPackage = null
                 )
                 cancelScheduledSession(sessionId)
+                val totalSeconds = getTotalSeconds(session)
+                routineSessionController.pauseSession(sessionId, remaining, totalSeconds)
             }
-            routineSessionController.pauseSession(sessionId)
         }
     }
 
@@ -112,7 +116,8 @@ class SessionManagerRepositoryImpl @Inject constructor(
                     sessionEvents = SessionEvents.RESUME_SESSION,
                     appPackage = null
                 )
-                routineSessionController.resumeRoutine(sessionId)
+                val totalSeconds = originalTotalSeconds.coerceAtLeast(1L)
+                routineSessionController.resumeRoutine(sessionId, remainingSeconds, totalSeconds)
             }
         }
     }
@@ -146,7 +151,6 @@ class SessionManagerRepositoryImpl @Inject constructor(
         if (session != null) {
             val endTime = session.endTime
             routineSessionController.scheduleStopSession(sessionId, endTime)
-
         }
     }
 
@@ -215,7 +219,23 @@ class SessionManagerRepositoryImpl @Inject constructor(
     }
 
     override suspend fun replaceSession(sessionId: String) {
-        routineSessionController.startSession(sessionId)
+        val session = sessionRepository.getSessionById(sessionId) ?: return
+        val remainingSeconds = getRemainingSeconds(session)
+        val totalSeconds = getTotalSeconds(session)
+        routineSessionController.startSession(sessionId, remainingSeconds, totalSeconds)
         scheduleEnd(sessionId)
+    }
+
+    private fun getRemainingSeconds(session: SessionEntity): Long {
+        return if (session.sessionStatus == SessionStatus.PAUSED && session.pausedRemainingSeconds != null) {
+            session.pausedRemainingSeconds
+        } else {
+            DateTimeUtils.getRemainingDuration(session.endTime)
+        }
+    }
+
+    private fun getTotalSeconds(session: SessionEntity): Long {
+        return (session.endTime.toInstant(TimeZone.currentSystemDefault()) -
+                session.startTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds.coerceAtLeast(1L)
     }
 }

@@ -1,10 +1,12 @@
 package com.charan.unloop.core.overlay
 
+import android.app.Notification
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.SystemClock
 import androidx.core.app.ServiceCompat
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
@@ -70,6 +72,8 @@ class RoutineForegroundService : Service() {
 
     private var sessionId : String? = null
     private var monitoringJob: Job? = null
+    private var notificationJob: Job? = null
+    private var currentNotification: Notification? = null
 
     companion object {
 
@@ -85,6 +89,7 @@ class RoutineForegroundService : Service() {
         const val EXTRA_SESSION_ID = "sessionId"
         const val EXTRA_ROUTINE_ID = "routineId"
         const val EXTRA_REMAINING_SECONDS = "remainingSeconds"
+        const val EXTRA_TOTAL_SECONDS = "totalSeconds"
     }
 
     private val serviceScope = CoroutineScope(
@@ -98,7 +103,27 @@ class RoutineForegroundService : Service() {
         flags: Int,
         startId: Int
     ): Int {
-        val notification = notificationHelper.buildForegroundNotification()
+        sessionId = intent?.getStringExtra(EXTRA_SESSION_ID) ?: sessionId
+        val action = intent?.action
+        val remainingSeconds = intent?.takeIf { it.hasExtra(EXTRA_REMAINING_SECONDS) }
+            ?.getLongExtra(EXTRA_REMAINING_SECONDS, 0L)
+        val totalSeconds = intent?.takeIf { it.hasExtra(EXTRA_TOTAL_SECONDS) }
+            ?.getLongExtra(EXTRA_TOTAL_SECONDS, 0L)
+        val notification = if (currentNotification == null ||
+            action == ACTION_START_SESSION ||
+            action == ACTION_PAUSE_SESSION ||
+            action == ACTION_RESUME_SESSION
+        ) {
+            notificationHelper.buildForegroundNotification(
+                sessionId = sessionId,
+                remainingSeconds = remainingSeconds,
+                totalTime = totalSeconds,
+                isPaused = action == ACTION_PAUSE_SESSION
+            )
+        } else {
+            currentNotification!!
+        }
+        currentNotification = notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceCompat.startForeground(
                 this,
@@ -112,11 +137,7 @@ class RoutineForegroundService : Service() {
                 notification
             )
         }
-
-        sessionId = intent?.getStringExtra(EXTRA_SESSION_ID)
-
         val routineId = intent?.getStringExtra(EXTRA_ROUTINE_ID)
-        val action = intent?.action
 
         when (action) {
             ACTION_START_SESSION -> {
@@ -124,7 +145,6 @@ class RoutineForegroundService : Service() {
             }
             ACTION_PAUSE_SESSION -> {
                 pauseSession()
-                return START_REDELIVER_INTENT
             }
             ACTION_STOP_SESSION -> {
                 stopOverlayAndSelf()
@@ -132,7 +152,6 @@ class RoutineForegroundService : Service() {
             }
             ACTION_RESUME_SESSION -> {
                 resumeSession()
-                return START_REDELIVER_INTENT
             }
 
             ACTION_REQUEST_PAUSE_SESSION ->{
@@ -162,11 +181,9 @@ class RoutineForegroundService : Service() {
 
             ACTION_REQUEST_START_ROUTINE, ACTION_START_ROUTINE -> {
                 serviceScope.launch {
-                    val createdSessionId = sessionManagerRepository.createSession(
+                    sessionManagerRepository.createSession(
                         routineId = routineId ?: return@launch,
                     )
-                    sessionId = createdSessionId
-                    startMonitoringLoop()
                     return@launch
                 }
                 return START_NOT_STICKY
@@ -176,12 +193,39 @@ class RoutineForegroundService : Service() {
                 return START_NOT_STICKY
             }
         }
-
+        if (action == ACTION_START_SESSION || action == ACTION_RESUME_SESSION) {
+            startNotificationUpdates(remainingSeconds, totalSeconds)
+        }
         return START_REDELIVER_INTENT
+    }
+
+    private fun startNotificationUpdates(
+        remainingSeconds: Long?,
+        totalSeconds: Long?
+    ) {
+        notificationJob?.cancel()
+        val currentSessionId = sessionId ?: return
+        if (remainingSeconds == null || totalSeconds == null) return
+        val endTime = SystemClock.elapsedRealtime() + remainingSeconds * 1000L
+
+        notificationJob = serviceScope.launch(Dispatchers.Main.immediate) {
+            while (isActive) {
+                delay(1.seconds)
+                val remainingMillis = (endTime - SystemClock.elapsedRealtime()).coerceAtLeast(0L)
+                val remainingTime = (remainingMillis + 999L) / 1000L
+                currentNotification = notificationHelper.updateNotification(
+                    sessionId = currentSessionId,
+                    remainingSeconds = remainingTime,
+                    totalTime = totalSeconds
+                )
+                if (remainingTime == 0L) break
+            }
+        }
     }
 
     private fun pauseSession() {
         monitoringJob?.cancel()
+        notificationJob?.cancel()
         removeOverLay()
     }
 
@@ -196,6 +240,7 @@ class RoutineForegroundService : Service() {
     }
 
     private fun stopOverlayAndSelf() {
+        notificationJob?.cancel()
         stopService(Intent(this, FullScreenOverlayService::class.java))
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
