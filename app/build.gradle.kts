@@ -25,8 +25,8 @@ android {
         applicationId = "com.charan.unloop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = providers.environmentVariable("VERSION_CODE").map(String::toInt).getOrElse(1)
+        versionName = providers.environmentVariable("VERSION_NAME").getOrElse("0.0.1")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -88,31 +88,13 @@ android {
 androidComponents {
     onVariants { variant ->
         val variantName = variant.name
-        val capitalizedVariantName = variantName.replaceFirstChar { it.uppercase() }
         variant.outputs.forEach { output ->
             if (output is VariantOutputImpl) {
                 val versionName = android.defaultConfig.versionName ?: "1.0"
                 output.outputFileName.set("$appName-$variantName-$versionName.apk")
             }
         }
-        tasks.register("renameAab$capitalizedVariantName") {
-            doLast {
-                val versionName = android.defaultConfig.versionName ?: "1.0"
-                val bundleDir = layout.buildDirectory.dir("outputs/bundle/$variantName").get().asFile
 
-                bundleDir.listFiles()
-                    ?.filter { it.extension == "aab" }
-                    ?.forEach { aab ->
-                        val newName = "$appName-$variantName-$versionName.aab"
-                        aab.renameTo(File(bundleDir, newName))
-                        println("Renamed AAB to: $newName")
-                    }
-            }
-        }
-        afterEvaluate {
-            val bundleTaskName = "bundle$capitalizedVariantName"
-            tasks.findByName(bundleTaskName)?.finalizedBy("renameAab$capitalizedVariantName")
-        }
     }
 }
 

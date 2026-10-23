@@ -1,0 +1,153 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore keystore and google services
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          python3 - <<'PYTHON'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+
+          release_dir = Path("app/src/release")
+          release_dir.mkdir(parents=True, exist_ok=True)
+          for name, filename in (
+              ("KEYSTORE_BASE64", "unloop_release.jks"),
+              ("GOOGLE_SERVICES_JSON_BASE64", "google-services.json"),
+          ):
+              value = os.environ[name]
+              if not value:
+                  raise SystemExit(f"Missing GitHub secret: {name}")
+              path = release_dir / filename
+              path.write_bytes(base64.b64decode(value, validate=True))
+              path.chmod(0o600)
+
+          firebase = json.loads((release_dir / "google-services.json").read_text())
+          assert any(
+              client["client_info"]["android_client_info"]["package_name"] == "com.charan.unloop"
+              for client in firebase["client"]
+          ), "Firebase configuration must include com.charan.unloop"
+
+          properties = {"storeFile": "src/release/unloop_release.jks"}
+          for key, name in (
+              ("storePassword", "KEYSTORE_PASSWORD"),
+              ("keyAlias", "KEY_ALIAS"),
+              ("keyPassword", "KEY_PASSWORD"),
+          ):
+              if not os.environ[name]:
+                  raise SystemExit(f"Missing GitHub secret: {name}")
+              properties[key] = os.environ[name]
+
+          def escape(value):
+              return value.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace(" ", "\\ ")
+
+          path = Path("keystore.properties")
+          path.write_text("".join(f"{key}={escape(value)}\n" for key, value in properties.items()))
+          path.chmod(0o600)
+          PYTHON
+
+      - name: Determine release version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a release tag such as v0.0.1" >&2
+            exit 1
+          fi
+          echo "VERSION_NAME=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$((GITHUB_RUN_NUMBER + 1))" >> "$GITHUB_ENV"
+
+      - name: Build Release
+        run: ./gradlew assembleRelease bundleRelease --console=plain
+
+      - name: Name release bundle
+        run: mv app/build/outputs/bundle/release/app-release.aab "app/build/outputs/bundle/release/Unloop-release-$VERSION_NAME.aab"
+
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+      - name: Prepare Release Notes
+        run: |
+          RELEASE_DATE=$(date +'%Y-%m-%d')
+          CHANGELOG_PATH="app/src/main/assets/CHANGELOG.md"
+
+          printf '# Version %s\n\nReleased: %s\n\n' "$VERSION_NAME" "$RELEASE_DATE" > release_notes.md
+
+          if [ -f "$CHANGELOG_PATH" ]; then
+            cat "$CHANGELOG_PATH" >> release_notes.md
+          else
+            echo "No changelog found." >> release_notes.md
+          fi
+
+          mkdir -p whatsnew
+          if [ -f "$CHANGELOG_PATH" ]; then
+            # Remove '## ' headers for Google Play release notes (plain text)
+            sed 's/^## //' "$CHANGELOG_PATH" | head -c 500 > whatsnew/whatsnew-en-US
+          else
+            echo "Released on $RELEASE_DATE" > whatsnew/whatsnew-en-US
+          fi
+
+      - name: Upload To Play Store
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: com.charan.unloop
+          releaseFile: app/build/outputs/bundle/release/*.aab
+          track: production
+          inAppUpdatePriority: 5
+          whatsNewDirectory: whatsnew
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          prerelease: false
+          body_path: release_notes.md
+          fail_on_unmatched_files: true
+          files: app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Remove signing files
+        if: always()
+        run: rm -f keystore.properties app/src/release/unloop_release.jks app/src/release/google-services.json
