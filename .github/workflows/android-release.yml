@@ -100,7 +100,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.charan.unloop
           releaseFile: app/build/outputs/bundle/release/*.aab
-          track: production
+          track: alpha
           inAppUpdatePriority: 5
           whatsNewDirectory: whatsnew
 
