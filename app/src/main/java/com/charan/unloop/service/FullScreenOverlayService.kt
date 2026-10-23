@@ -25,16 +25,32 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.charan.unloop.core.di.ApplicationScope
+import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.presentation.overlay.OverLayScreen
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 import com.charan.unloop.ui.theme.UnloopTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalTime
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+
+    @Inject
+    lateinit var sessionEventRepository: SessionEventRepository
+
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: CoroutineScope
 
     companion object {
         const val EXTRA_UNLOCK_TYPE = "unlock_type"
-        const val EXTRA_ROUTINE_ID = "routine_id"
+        const val EXTRA_SESSION_ID = "session_id"
         const val EXTRA_ROUTINE_NAME = "routine_name"
         const val EXTRA_APP_PACKAGE = "app_package"
         const val EXTRA_WAIT_SECONDS = "wait_seconds"
@@ -42,7 +58,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
     }
 
     private data class OverlayDetails(
-        val routineId: String?,
+        val sessionId: String?,
         val routineName: String,
         val appPackage: String?,
         val unlockType: UnlockChallengeType,
@@ -81,7 +97,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             LocalTime(23, 59)
         }
         val nextDetails = OverlayDetails(
-            routineId = intent.getStringExtra(EXTRA_ROUTINE_ID),
+            sessionId = intent.getStringExtra(EXTRA_SESSION_ID),
             routineName = intent.getStringExtra(EXTRA_ROUTINE_NAME).orEmpty().ifBlank { "Focus time" },
             appPackage = intent.getStringExtra(EXTRA_APP_PACKAGE),
             unlockType = UnlockChallengeType.entries.firstOrNull { it.name == unlockTypeName }
@@ -128,12 +144,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
                                 waitTimeSeconds = current.waitSeconds,
                                 endTime = current.endTime,
                                 onKeepFocusing = ::returnHome,
-                                onUnlock = {
-                                    if (details?.unlockType == UnlockChallengeType.WAIT_TIME) {
-                                        unlockedForCurrentVisit = true
-                                        removeOverlay()
-                                    }
-                                }
+                                onUnlock = { unlockApp(current) }
                             )
                         }
                     }
@@ -155,6 +166,32 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         } catch (e: Exception) {
             Log.e("FullScreenOverlayService", "Failed to add overlay window", e)
             stopSelf()
+        }
+    }
+
+    private fun unlockApp(current: OverlayDetails) {
+        if (current != details || current.unlockType != UnlockChallengeType.WAIT_TIME ||
+            unlockedForCurrentVisit
+        ) return
+
+        unlockedForCurrentVisit = true
+        removeOverlay()
+
+        val sessionId = current.sessionId?.takeIf { it.isNotBlank() } ?: return
+        val appPackage = current.appPackage?.takeIf { it.isNotBlank() } ?: return
+        // Keep the write alive if the monitor destroys this service as the user switches apps.
+        applicationScope.launch {
+            try {
+                sessionEventRepository.recordSessionEvent(
+                    sessionId = sessionId,
+                    sessionEvents = SessionEvents.APP_ACCESS_GRANTED,
+                    appPackage = appPackage
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("FullScreenOverlayService", "Failed to record app access grant", e)
+            }
         }
     }
 

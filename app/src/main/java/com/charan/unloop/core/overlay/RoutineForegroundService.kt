@@ -279,7 +279,7 @@ class RoutineForegroundService : Service() {
                             currentSession.unlockChallengeType.name
                         )
                         putExtra(
-                            FullScreenOverlayService.EXTRA_ROUTINE_ID,
+                            FullScreenOverlayService.EXTRA_SESSION_ID,
                             currentSession.id
                         )
                         putExtra(
