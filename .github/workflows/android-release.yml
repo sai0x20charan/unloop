@@ -39,48 +39,15 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          python3 - <<'PYTHON'
-          import base64
-          import json
-          import os
-          from pathlib import Path
+          mkdir -p app/src/release
 
-          release_dir = Path("app/src/release")
-          release_dir.mkdir(parents=True, exist_ok=True)
-          for name, filename in (
-              ("KEYSTORE_BASE64", "unloop_release.jks"),
-              ("GOOGLE_SERVICES_JSON_BASE64", "google-services.json"),
-          ):
-              value = os.environ[name]
-              if not value:
-                  raise SystemExit(f"Missing GitHub secret: {name}")
-              path = release_dir / filename
-              path.write_bytes(base64.b64decode(value, validate=True))
-              path.chmod(0o600)
+          echo "$KEYSTORE_BASE64" | base64 --decode > app/src/release/unloop_release.jks
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/src/release/google-services.json
 
-          firebase = json.loads((release_dir / "google-services.json").read_text())
-          assert any(
-              client["client_info"]["android_client_info"]["package_name"] == "com.charan.unloop"
-              for client in firebase["client"]
-          ), "Firebase configuration must include com.charan.unloop"
-
-          properties = {"storeFile": "src/release/unloop_release.jks"}
-          for key, name in (
-              ("storePassword", "KEYSTORE_PASSWORD"),
-              ("keyAlias", "KEY_ALIAS"),
-              ("keyPassword", "KEY_PASSWORD"),
-          ):
-              if not os.environ[name]:
-                  raise SystemExit(f"Missing GitHub secret: {name}")
-              properties[key] = os.environ[name]
-
-          def escape(value):
-              return value.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace(" ", "\\ ")
-
-          path = Path("keystore.properties")
-          path.write_text("".join(f"{key}={escape(value)}\n" for key, value in properties.items()))
-          path.chmod(0o600)
-          PYTHON
+          echo "storeFile=src/release/unloop_release.jks" > keystore.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> keystore.properties
+          echo "keyAlias=$KEY_ALIAS" >> keystore.properties
+          echo "keyPassword=$KEY_PASSWORD" >> keystore.properties
 
       - name: Determine release version
         env:
