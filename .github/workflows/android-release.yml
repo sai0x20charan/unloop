@@ -32,7 +32,7 @@ jobs:
         run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Restore keystore and google services
         env:
@@ -70,7 +70,7 @@ jobs:
         run: mv app/build/outputs/bundle/release/app-release.aab "app/build/outputs/bundle/release/Unloop-release-$VERSION_NAME.aab"
 
       - name: Upload AAB Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: signed-aab
           path: app/build/outputs/bundle/release/*.aab
@@ -102,8 +102,9 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.charan.unloop
-          releaseFile: app/build/outputs/bundle/release/*.aab
-          track: alpha
+          releaseFiles: app/build/outputs/bundle/release/*.aab
+          tracks: alpha
+          status: draft # Use completed after the first rollout in Play Console.
           inAppUpdatePriority: 5
           whatsNewDirectory: whatsnew
 
