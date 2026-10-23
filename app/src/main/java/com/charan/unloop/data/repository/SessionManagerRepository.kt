@@ -26,4 +26,6 @@ interface SessionManagerRepository  {
 
     suspend fun cancelScheduledRoutine(routineId: String)
 
+    suspend fun replaceSession(sessionId : String)
+
 }

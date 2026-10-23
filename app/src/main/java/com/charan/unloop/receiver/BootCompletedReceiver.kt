@@ -4,8 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.RoutineRepository
+import com.charan.unloop.data.repository.SessionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,18 +25,27 @@ class BootCompletedReceiver : BroadcastReceiver() {
     @Inject
     lateinit var sessionManager: SessionManagerRepository
 
+    @Inject
+    lateinit var sessionRepository: SessionRepository
+
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent == null) return
+        Log.d("TAG", "onReceive: Boot completed or package replaced event received: ${intent.action}")
 
         if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
             intent.action == "android.intent.action.QUICKBOOT_POWERON" ||
-            intent.action == "com.htc.intent.action.QUICKBOOT_POWERON"
+            intent.action == "com.htc.intent.action.QUICKBOOT_POWERON" ||
+            intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
         ) {
             val pendingResult = goAsync()
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
             scope.launch {
                 try {
+                    val runningSession = sessionRepository.getActiveSessionOnce()
+                    if(runningSession !=null && runningSession.sessionStatus == SessionStatus.RUNNING){
+                        sessionManager.replaceSession(runningSession.id)
+                    }
                     val routines = routineRepository.getAllRoutines().firstOrNull().orEmpty()
                     val activeRoutines = routines.filter { it.isEnabled && !it.isDeleted }
 

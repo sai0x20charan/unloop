@@ -213,4 +213,9 @@ class SessionManagerRepositoryImpl @Inject constructor(
     override suspend fun cancelScheduledSession(sessionId: String) {
         routineSessionController.cancelScheduledSession(sessionId)
     }
+
+    override suspend fun replaceSession(sessionId: String) {
+        routineSessionController.startSession(sessionId)
+        scheduleEnd(sessionId)
+    }
 }

@@ -35,7 +35,7 @@ class NotificationHelper @Inject constructor(
 
     fun buildForegroundNotification(
         title: String = "Routine Active",
-        message: String = "Monitoring app usage for routine"
+        message: String = "Monitoring app usage for routine",
     ): Notification {
         return Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
