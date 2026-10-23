@@ -24,7 +24,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
@@ -196,54 +200,64 @@ class RoutineForegroundService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
+    private fun observeForegroundApp(): Flow<String?> = flow {
+        while (currentCoroutineContext().isActive) {
+            emit(appUsageChecker.getForegroundApp())
+            delay(1.seconds)
+        }
+    }.distinctUntilChanged()
 
     private fun startMonitoringLoop() {
         monitoringJob?.cancel()
+
         monitoringJob = serviceScope.launch {
-            while (isActive) {
-                val currentSession = sessionRepository.getSessionById(sessionId ?: return@launch) ?: return@launch
+            observeForegroundApp().collect { foregroundPackage ->
+                if (foregroundPackage.isNullOrBlank()) return@collect
+                val currentSession = sessionRepository
+                    .getSessionById(sessionId ?: return@collect)
+                    ?: return@collect
 
-                val blockedApps = currentSession.blockedApps ?: emptyList()
+                val blockedApps = currentSession.blockedApps.orEmpty()
 
-                val foregroundPackage = appUsageChecker.getForegroundApp()
-                if (foregroundPackage != null) {
-                    if (blockedApps.contains(foregroundPackage)) {
-                        val overlayIntent = Intent(
-                            this@RoutineForegroundService,
-                            FullScreenOverlayService::class.java
-                        ).apply {
-                            putExtra(
-                                FullScreenOverlayService.EXTRA_UNLOCK_TYPE,
-                                currentSession.unlockChallengeType.name
-                            )
-                            putExtra(
-                                FullScreenOverlayService.EXTRA_ROUTINE_ID,
-                                currentSession.id
-                            )
-                            putExtra(
-                                FullScreenOverlayService.EXTRA_ROUTINE_NAME,
-                                currentSession.sessionName
-                            )
-                            putExtra(
-                                FullScreenOverlayService.EXTRA_APP_PACKAGE,
-                                foregroundPackage
-                            )
-                            putExtra(
-                                FullScreenOverlayService.EXTRA_WAIT_SECONDS,
-                                currentSession.waitDurationSeconds ?: 30
-                            )
-                            putExtra(
-                                FullScreenOverlayService.EXTRA_END_TIME_SECOND_OF_DAY,
-                                currentSession.endTime.toString()
-                            )
-                        }
-                        startService(overlayIntent)
-                    } else {
-                        removeOverLay()
+                if (foregroundPackage in blockedApps) {
+                    sessionManagerRepository.logSessionEvent(
+                        sessionId = currentSession.id,
+                        eventName = SessionEvents.APP_BLOCKED,
+                        appPackage = foregroundPackage
+                    )
+                    val overlayIntent = Intent(
+                        this@RoutineForegroundService,
+                        FullScreenOverlayService::class.java
+                    ).apply {
+                        putExtra(
+                            FullScreenOverlayService.EXTRA_UNLOCK_TYPE,
+                            currentSession.unlockChallengeType.name
+                        )
+                        putExtra(
+                            FullScreenOverlayService.EXTRA_ROUTINE_ID,
+                            currentSession.id
+                        )
+                        putExtra(
+                            FullScreenOverlayService.EXTRA_ROUTINE_NAME,
+                            currentSession.sessionName
+                        )
+                        putExtra(
+                            FullScreenOverlayService.EXTRA_APP_PACKAGE,
+                            foregroundPackage
+                        )
+                        putExtra(
+                            FullScreenOverlayService.EXTRA_WAIT_SECONDS,
+                            currentSession.waitDurationSeconds ?: 30
+                        )
+                        putExtra(
+                            FullScreenOverlayService.EXTRA_END_TIME_SECOND_OF_DAY,
+                            currentSession.endTime.toString()
+                        )
                     }
+                    startService(overlayIntent)
+                } else {
+                    removeOverLay()
                 }
-
-                delay(1000.milliseconds)
             }
         }
     }
