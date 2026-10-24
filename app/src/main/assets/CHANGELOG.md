@@ -1,6 +1,8 @@
-## First release
+## New Features
 
-- Start focus sessions and choose apps to block.
-- Schedule recurring focus routines.
-- Pause, resume, or end a session.
-- Choose strict blocking or hold-to-unlock challenges for routines.
+- Added open source libraries and license details to Settings.
+- Added the app version to Settings.
+
+## Improvements
+
+- Improved the blocking overlay to cover the full screen without outer margins.
