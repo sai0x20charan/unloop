@@ -56,6 +56,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.charan.unloop.R
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.home.components.DurationInputField
@@ -78,6 +80,10 @@ fun HomeScreen(
     val isSessionActive = isSessionRunning || isSessionPaused
     val mediumButtonSize = ButtonDefaults.MediumContainerHeight
     val mediumButtonIconSize = ButtonDefaults.iconSizeFor(mediumButtonSize)
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onEvent(HomeEvent.OnCheckPermissions)
+    }
 
     Scaffold(modifier = modifier) { innerPadding ->
         LazyColumn(
@@ -143,6 +149,14 @@ fun HomeScreen(
                 }
 
                 Spacer(Modifier.height(32.dp))
+
+                if (!state.hasExactAlarmPermission) {
+                    Text(
+                        text = stringResource(R.string.alarms_permission_required),
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
 
                 AnimatedContent(
                     targetState = isSessionActive,
@@ -212,7 +226,7 @@ fun HomeScreen(
                                 onClick = {
                                     viewModel.onEvent(HomeEvent.OnStartSessionClick)
                                 },
-                                enabled = state.instantSessionUiModel.canStart,
+                                enabled = state.instantSessionUiModel.canStart || !state.hasExactAlarmPermission,
                                 shapes = ButtonDefaults.shapes(),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -225,7 +239,10 @@ fun HomeScreen(
                                 )
                                 Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                                 Text(
-                                    text = stringResource(R.string.home_start_session),
+                                    text = stringResource(
+                                        if (state.hasExactAlarmPermission) R.string.home_start_session
+                                        else R.string.alarms_permission_allow
+                                    ),
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                             }

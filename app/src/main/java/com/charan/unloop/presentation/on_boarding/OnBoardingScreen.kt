@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material.icons.rounded.QueryStats
+import androidx.compose.material.icons.rounded.Alarm
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -179,6 +180,15 @@ fun OnBoardingScreen(
                 viewModel.onEvent(OnBoardingEvent.OnRequestUsageStatsPermission)
             },
             isGranted = state.isUsageStatsPermissionGranted
+        ),
+        OnBoardingPermissionItem(
+            title = stringResource(R.string.alarms_permission_title),
+            description = stringResource(R.string.alarms_permission_description),
+            icon = Icons.Rounded.Alarm,
+            onRequest = {
+                viewModel.onEvent(OnBoardingEvent.OnRequestExactAlarmPermission)
+            },
+            isGranted = state.isExactAlarmPermissionGranted
         )
     )
 

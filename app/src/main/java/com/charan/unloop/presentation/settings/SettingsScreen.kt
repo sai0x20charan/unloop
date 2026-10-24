@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.Alarm
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +25,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.charan.unloop.R
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
@@ -41,6 +44,10 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onEvent(SettingsEvent.OnCheckPermissions)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -107,6 +114,20 @@ fun SettingsScreen(
                         viewModel.onEvent(SettingsEvent.OnDynamicColorsChange(it))
                     },
                     leadingIcon = Icons.Rounded.ColorLens
+                )
+
+                SectionHeader(title = stringResource(R.string.permissions_section))
+                CustomSegmentedListItem(
+                    indexItem = IndexItem.FIRST_AND_LAST,
+                    headLineContent = { Text(stringResource(R.string.alarms_permission_title)) },
+                    supportingContent = {
+                        Text(stringResource(
+                            if (state.hasExactAlarmPermission) R.string.alarms_permission_allowed
+                            else R.string.alarms_permission_required
+                        ))
+                    },
+                    leadingContent = { Icon(Icons.Rounded.Alarm, contentDescription = null) },
+                    onClick = { viewModel.onEvent(SettingsEvent.OnRequestExactAlarmPermission) }
                 )
             }
         }

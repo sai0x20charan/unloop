@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.overlay.RoutineSessionController
 import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.core.utils.PermissionManager
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
@@ -33,7 +34,8 @@ import kotlin.uuid.Uuid
 class HomeViewModel @Inject constructor(
     private val installedAppsRepository: InstalledAppsRepository,
     private val sessionRepository: SessionRepository,
-    private val sessionManagerRepository: SessionManagerRepository
+    private val sessionManagerRepository: SessionManagerRepository,
+    private val permissionManager: PermissionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -117,6 +119,9 @@ class HomeViewModel @Inject constructor(
 
     fun onEvent(event: HomeEvent) {
         when (event) {
+            HomeEvent.OnCheckPermissions -> _state.update {
+                it.copy(hasExactAlarmPermission = permissionManager.hasExactAlarmPermission())
+            }
             is HomeEvent.OnAppClicked -> handleAppClick(event.packageName)
             is HomeEvent.OnHourChange -> handleHourChange(event.hour)
             is HomeEvent.OnMinuteChange -> handleMinuteChange(event.minute)
@@ -140,6 +145,10 @@ class HomeViewModel @Inject constructor(
                 sessionId = state.value.currentSessionUiModel.sessionId,
             )
         } else if (_state.value.currentSessionUiModel.isPaused) {
+            if (!permissionManager.hasExactAlarmPermission()) {
+                permissionManager.requestExactAlarmPermission()
+                return@launch
+            }
             sessionManagerRepository.resumeSession(state.value.currentSessionUiModel.sessionId)
         }
     }
@@ -158,6 +167,10 @@ class HomeViewModel @Inject constructor(
 
     @OptIn(ExperimentalUuidApi::class)
     private fun handleStartSessionClick() = viewModelScope.launch {
+        if (!permissionManager.hasExactAlarmPermission()) {
+            permissionManager.requestExactAlarmPermission()
+            return@launch
+        }
         val uiModel = _state.value.instantSessionUiModel
         if (!uiModel.canStart) return@launch
         val totalSeconds = uiModel.totalSeconds.toLong()

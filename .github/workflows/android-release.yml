@@ -61,7 +61,8 @@ jobs:
             exit 1
           fi
           echo "VERSION_NAME=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
-          echo "VERSION_CODE=$((GITHUB_RUN_NUMBER + 1))" >> "$GITHUB_ENV"
+          # Version code 6 is reserved for the local Play permission update.
+          echo "VERSION_CODE=$((GITHUB_RUN_NUMBER + 2))" >> "$GITHUB_ENV"
 
       - name: Build Release
         run: ./gradlew assembleRelease bundleRelease --console=plain
