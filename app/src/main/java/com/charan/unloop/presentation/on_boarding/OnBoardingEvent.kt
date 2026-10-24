@@ -4,7 +4,6 @@ sealed class OnBoardingEvent {
     data class OnRequestNotificationPermission(val showRationale: Boolean) : OnBoardingEvent()
     object OnRequestDisplayOverAppsPermission : OnBoardingEvent()
     object OnRequestUsageStatsPermission : OnBoardingEvent()
-    data object OnRequestExactAlarmPermission : OnBoardingEvent()
     object OnCheckAllPermissionStatus : OnBoardingEvent()
     object OnComplete : OnBoardingEvent()
 

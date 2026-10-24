@@ -36,7 +36,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.charan.unloop.R
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.routine.pages.BlockAppsPage
@@ -80,9 +79,6 @@ fun RoutineScreen(
                 }
                 is RoutineEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
-                }
-                RoutineEffect.ExactAlarmPermissionRequired -> {
-                    Toast.makeText(context, R.string.alarms_permission_required, Toast.LENGTH_LONG).show()
                 }
             }
         }

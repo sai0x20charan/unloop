@@ -41,23 +41,23 @@ If you describe scheduled routines in the declaration, also show creating or ena
 
 ## Exact alarms
 
-The originally uploaded **version code 5** contains both `USE_EXACT_ALARM` and `SCHEDULE_EXACT_ALARM`. Do not claim it has no exact-alarm permissions.
+**Does your app use exact alarm permissions?** Yes.
 
-The replacement **version 0.0.1, version code 6** removes `USE_EXACT_ALARM` and retains `SCHEDULE_EXACT_ALARM`. It asks the user for Alarms & reminders access so routines and sessions can start and end at their chosen times. Build it with:
+**Permissions:** `USE_EXACT_ALARM` and `SCHEDULE_EXACT_ALARM`.
 
-```sh
-VERSION_NAME=0.0.1 VERSION_CODE=6 ./gradlew bundleRelease
-```
+**Core functionality:** Select Timer, or the combined alarm/timer option if the form uses that wording. Unloop's relevant functionality is its focus timer. Do not select Calendar.
 
-Before answering a `USE_EXACT_ALARM` declaration, upload the replacement AAB to the closed-testing draft and remove version code 5 from that draft. Check any other active or pending releases that still contain the old permission.
+**Describe the functionality:**
 
-- If the question specifically asks whether the app uses **`USE_EXACT_ALARM`**, answer **No** for the replacement bundle. Do not select an alarm-clock or calendar eligibility category to bypass the declaration.
-- If it asks whether the app uses **any exact alarm permissions**, answer **Yes**, because `SCHEDULE_EXACT_ALARM` remains. Select that permission if the form lists it.
-- If asked for an explanation, paste:
+> Unloop's core functionality includes a focus timer. The user chooses a session duration and the apps to block, then starts the timer. The app blocks those selected apps during the focus period and ends blocking when the timer expires. The user can pause, resume or stop the timer. Users can also create and enable routines with chosen start and end times. Exact alarms keep these focus periods aligned with the user's selected times while Unloop is in the background or the device is idle.
 
-> Unloop uses SCHEDULE_EXACT_ALARM, with the user's Alarms & reminders approval, to start scheduled focus routines and end focus sessions at the times the user selects. Precise timing keeps app blocking aligned with the user's chosen focus period. The app checks access before scheduling a session and reschedules enabled routines when access is granted. The replacement bundle does not request USE_EXACT_ALARM.
+**Why is precise timing needed?**
 
-Google may still show a declaration requirement while an older artifact containing `USE_EXACT_ALARM` remains in scope. Check the affected version codes rather than answering No for an artifact that still requests it.
+> If a focus timer's end alarm is delayed, apps can remain blocked after the duration the user selected. If a routine's start alarm is delayed, selected apps remain accessible after the chosen start time. Precise alarms keep the start and end of the user's focus period aligned with their timer or schedule.
+
+`USE_EXACT_ALARM` is automatically granted on Android 13 and later, so the restored implementation has no added Alarms & reminders request screen. Google reviews whether the core timer functionality qualifies for this restricted permission. This declaration describes the implemented timer; it does not guarantee approval.
+
+The existing closed-testing draft **version 0.0.1, version code 5** already uses these permissions and matches the restored implementation. You can keep that bundle and complete its declarations. The previously prepared **version code 6** with the mandatory permission-request flow was not uploaded to Play and is superseded. Do not upload that earlier replacement bundle.
 
 ## Official references
 

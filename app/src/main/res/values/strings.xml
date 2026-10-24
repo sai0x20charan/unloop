@@ -1,10 +1,4 @@
 <resources>
-    <string name="alarms_permission_title">Alarms &amp; reminders</string>
-    <string name="alarms_permission_description">Allow Unloop to start routines and end focus sessions at the times you choose.</string>
-    <string name="alarms_permission_required">Allow Alarms &amp; reminders so routines and focus sessions can start and end on time.</string>
-    <string name="alarms_permission_allow">Allow alarms &amp; reminders</string>
-    <string name="alarms_permission_allowed">Allowed. Routines and sessions can start and end on time.</string>
-    <string name="permissions_section">Permissions</string>
     <string name="app_name">Unloop</string>
     <string name="onboarding_notification_dialog_title">Enable notifications</string>
     <string name="onboarding_notification_settings_description">Notifications are turned off. Enable them for Unloop in Android Settings, then return here to continue.</string>

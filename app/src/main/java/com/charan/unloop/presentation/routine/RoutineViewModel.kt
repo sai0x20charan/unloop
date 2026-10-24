@@ -2,7 +2,7 @@ package com.charan.unloop.presentation.routine
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.charan.unloop.core.utils.PermissionManager
+import com.charan.unloop.core.overlay.RoutineSessionController
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionManagerRepository
@@ -29,8 +29,7 @@ class RoutineViewModel @AssistedInject constructor(
     @Assisted("routineId") private val routineId: String?,
     private val installedAppsRepository: InstalledAppsRepository,
     private val routineRepository: RoutineRepository,
-    private val sessionManagerRepository: SessionManagerRepository,
-    private val permissionManager: PermissionManager,
+    private val sessionManagerRepository: SessionManagerRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -145,11 +144,6 @@ class RoutineViewModel @AssistedInject constructor(
 
     private fun handleCreateRoutineClick() = viewModelScope.launch {
         if (!isDataValid()) return@launch
-        if (!permissionManager.hasExactAlarmPermission()) {
-            _effect.send(RoutineEffect.ExactAlarmPermissionRequired)
-            permissionManager.requestExactAlarmPermission()
-            return@launch
-        }
 
         _state.update {
             it.copy(

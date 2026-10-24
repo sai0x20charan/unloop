@@ -16,7 +16,6 @@ sealed class HomeEvent {
     data object OnEditSessionTime : HomeEvent()
 
     data object OnStartSessionClick : HomeEvent()
-    data object OnCheckPermissions : HomeEvent()
 
     data object OnEndSessionClick : HomeEvent()
 

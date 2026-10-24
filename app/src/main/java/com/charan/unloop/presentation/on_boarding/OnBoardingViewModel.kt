@@ -36,8 +36,7 @@ class OnBoardingViewModel @Inject constructor(
             it.copy(
                 isNotificationPermissionGranted = permissionManager.isNotificationPermissionGranted,
                 isDisplayOverAppsPermissionGranted = permissionManager.hasOverlayPermission(),
-                isUsageStatsPermissionGranted = permissionManager.hasUsageStatsPermission(),
-                isExactAlarmPermissionGranted = permissionManager.hasExactAlarmPermission()
+                isUsageStatsPermissionGranted = permissionManager.hasUsageStatsPermission()
             )
         }
     }
@@ -54,9 +53,6 @@ class OnBoardingViewModel @Inject constructor(
             }
             is OnBoardingEvent.OnRequestUsageStatsPermission -> {
                 permissionManager.requestUsageStatsPermission()
-            }
-            OnBoardingEvent.OnRequestExactAlarmPermission -> {
-                permissionManager.requestExactAlarmPermission()
             }
 
             OnBoardingEvent.OnCheckAllPermissionStatus -> {
@@ -78,8 +74,6 @@ class OnBoardingViewModel @Inject constructor(
 
     private fun handleNextPageChange() = viewModelScope.launch {
         if(_state.value.currentPageIndex == _state.value.totalPages - 1){
-            checkAllPermissionStatus()
-            if (!state.value.allPermissionsGranted) return@launch
             dataStoreRepository.setOnBoardingCompleted(true)
 
             sendEffect(OnBoardingEffect.Complete)

@@ -1,13 +1,11 @@
 package com.charan.unloop.core.utils
 
 import android.app.AppOpsManager
-import android.app.AlarmManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Process
-import android.os.Build
 import android.provider.Settings
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -35,20 +33,6 @@ class PermissionManager @Inject constructor(
     fun hasOverlayPermission(): Boolean {
         return Settings.canDrawOverlays(context)
     }
-
-    fun hasExactAlarmPermission(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
-            context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
-
-    fun requestExactAlarmPermission(): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            openSettings(
-                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, "package:${context.packageName}".toUri()),
-                appDetailsIntent(),
-            )
-        } else {
-            true
-        }
 
     fun requestOverlayPermission(): Boolean = openSettings(
         Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, "package:${context.packageName}".toUri()),

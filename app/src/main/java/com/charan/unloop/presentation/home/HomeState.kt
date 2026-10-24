@@ -7,7 +7,6 @@ import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 data class HomeState(
     val instantSessionUiModel: InstantSessionUiModel = InstantSessionUiModel(),
     val currentSessionUiModel: CurrentSessionUiModel = CurrentSessionUiModel(),
-    val hasExactAlarmPermission: Boolean = true,
 )
 
 data class InstantSessionUiModel(

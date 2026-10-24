@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.data.model.ThemeOptions
 import com.charan.unloop.data.repository.DataStoreRepository
-import com.charan.unloop.core.utils.PermissionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,8 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val dataStore: DataStoreRepository,
-    private val permissionManager: PermissionManager
+    private val dataStore: DataStoreRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -42,12 +40,6 @@ class SettingsViewModel @Inject constructor(
             }
             SettingsEvent.OnBack -> {
                 sendEffect(SettingsEffect.OnBack)
-            }
-            SettingsEvent.OnCheckPermissions -> {
-                _state.update { it.copy(hasExactAlarmPermission = permissionManager.hasExactAlarmPermission()) }
-            }
-            SettingsEvent.OnRequestExactAlarmPermission -> {
-                permissionManager.requestExactAlarmPermission()
             }
         }
     }
