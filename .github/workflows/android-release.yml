@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
@@ -44,44 +44,51 @@ jobs:
         run: |
           mkdir -p app/src/release
 
-          echo "$KEYSTORE_BASE64" | base64 --decode > app/src/release/unloop_release.jks
-          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/src/release/google-services.json
+          # Keystore
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/src/release/unloop_release.jks
 
-          echo "storeFile=src/release/unloop_release.jks" > keystore.properties
-          echo "storePassword=$KEYSTORE_PASSWORD" >> keystore.properties
-          echo "keyAlias=$KEY_ALIAS" >> keystore.properties
-          echo "keyPassword=$KEY_PASSWORD" >> keystore.properties
+          # google-services
+          printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/src/release/google-services.json
 
-      - name: Determine release version
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          # keystore.properties
+          {
+            printf 'storeFile=%s\n' 'src/release/unloop_release.jks'
+            printf 'storePassword=%s\n' "$KEYSTORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$KEY_PASSWORD"
+          } > keystore.properties
+
+      - name: Determine Version
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Expected a release tag such as v0.0.1" >&2
-            exit 1
-          fi
-          echo "VERSION_NAME=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
-          echo "VERSION_CODE=$((GITHUB_RUN_NUMBER + 1))" >> "$GITHUB_ENV"
+          # Strip 'v' from tag
+          VERSION_NAME=${GITHUB_REF_NAME#v}
+          VERSION_CODE=${GITHUB_RUN_NUMBER}
+
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+
+      - name: Create local.properties
+        run: echo "" > local.properties
 
       - name: Build Release
-        run: ./gradlew assembleRelease bundleRelease --console=plain
-
-      - name: Name release bundle
-        run: mv app/build/outputs/bundle/release/app-release.aab "app/build/outputs/bundle/release/Unloop-release-$VERSION_NAME.aab"
+        run: ./gradlew assembleRelease bundleRelease
 
       - name: Upload AAB Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: signed-aab
           path: app/build/outputs/bundle/release/*.aab
-          if-no-files-found: error
 
       - name: Prepare Release Notes
         run: |
           RELEASE_DATE=$(date +'%Y-%m-%d')
           CHANGELOG_PATH="app/src/main/assets/CHANGELOG.md"
 
-          printf '# Version %s\n\nReleased: %s\n\n' "$VERSION_NAME" "$RELEASE_DATE" > release_notes.md
+          echo "# Version $VERSION_NAME" > release_notes.md
+          echo "" >> release_notes.md
+          echo "Released: $RELEASE_DATE" >> release_notes.md
+          echo "" >> release_notes.md
 
           if [ -f "$CHANGELOG_PATH" ]; then
             cat "$CHANGELOG_PATH" >> release_notes.md
@@ -102,23 +109,17 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.charan.unloop
-          releaseFiles: app/build/outputs/bundle/release/*.aab
-          tracks: alpha
-          status: draft # Use completed after the first rollout in Play Console.
+          releaseFile: app/build/outputs/bundle/release/*.aab
+          track: alpha
           inAppUpdatePriority: 5
           whatsNewDirectory: whatsnew
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           prerelease: false
           body_path: release_notes.md
-          fail_on_unmatched_files: true
           files: app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Remove signing files
-        if: always()
-        run: rm -f keystore.properties app/src/release/unloop_release.jks app/src/release/google-services.json

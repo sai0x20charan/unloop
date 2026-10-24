@@ -1,6 +1,7 @@
 package com.charan.unloop.presentation.common.components
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +29,7 @@ fun CustomSegmentedListItem(
 ) {
     SegmentedListItem(
 
-        modifier = modifier,
+        modifier = modifier.padding(1.dp),
         content = headLineContent,
         supportingContent = supportingContent,
         trailingContent = trailingContent,

@@ -1,7 +1,9 @@
 package com.charan.unloop.presentation.settings
 
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.charan.unloop.core.utils.getAppVersionWithVersionCode
 import com.charan.unloop.data.model.ThemeOptions
 import com.charan.unloop.data.repository.DataStoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +30,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         observeSettingsDataStore()
+        init()
     }
 
     fun onEvent(event: SettingsEvent) {
@@ -41,8 +44,19 @@ class SettingsViewModel @Inject constructor(
             SettingsEvent.OnBack -> {
                 sendEffect(SettingsEffect.OnBack)
             }
+
+            SettingsEvent.OnOpenSourceLicensesClick -> sendEffect(SettingsEffect.OnNavigateToOpenSourceLicenses)
         }
     }
+
+    private fun init() {
+        _state.update {
+            it.copy(
+                appVersion = getAppVersionWithVersionCode()
+            )
+        }
+    }
+
 
     private fun observeSettingsDataStore() = viewModelScope.launch {
         combine(

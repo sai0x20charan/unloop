@@ -27,4 +27,7 @@ sealed class Destination : NavKey {
 
     @Serializable
     data object BottomBarNav : Destination()
+
+    @Serializable
+    data object AboutLibraries : Destination()
 }

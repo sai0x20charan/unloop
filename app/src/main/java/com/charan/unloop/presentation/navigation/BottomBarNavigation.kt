@@ -71,7 +71,7 @@ private enum class MainTab(
 }
 
 @Composable
-fun BottomBarNavigation(onNavigateToCreateRoutine: (String?) -> Unit) {
+fun BottomBarNavigation(onNavigateToCreateRoutine: (String?) -> Unit, onNavigateToLicense: () -> Unit) {
     val bottomBarBackStack = rememberNavBackStack(BottomBarNavDestinations.Home)
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     var previousSelectedItem by rememberSaveable { mutableIntStateOf(0) }
@@ -166,7 +166,9 @@ fun BottomBarNavigation(onNavigateToCreateRoutine: (String?) -> Unit) {
                         )
                     }
                     BottomBarNavDestinations.Settings -> NavEntry(key) {
-                        SettingsScreen()
+                        SettingsScreen(
+                            onNavigateToLicense = onNavigateToLicense
+                        )
                     }
                     else -> throw IllegalArgumentException("Unknown bottom bar destination: $key")
                 }

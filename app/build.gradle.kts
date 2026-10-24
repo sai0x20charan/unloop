@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.google.firebase.crashlytics)
+    alias(libs.plugins.aboutlibraries.plugin)
 }
 
 val appName = "Unloop"
@@ -25,8 +26,8 @@ android {
         applicationId = "com.charan.unloop"
         minSdk = 26
         targetSdk = 37
-        versionCode = providers.environmentVariable("VERSION_CODE").map(String::toInt).getOrElse(1)
-        versionName = providers.environmentVariable("VERSION_NAME").getOrElse("0.0.1")
+        versionCode = 6
+        versionName = "0.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -147,4 +148,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.datastore.preferences)
+
+    implementation(libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries.compose.m3)
 }

@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.charan.unloop.presentation.on_boarding.OnBoardingScreen
 import com.charan.unloop.presentation.routine.RoutineScreen
+import com.charan.unloop.presentation.settings.aboutlibraries.AboutLibrariesScreen
 
 private val navigationAnimationSpec = tween<IntOffset>(
     durationMillis = 300,
@@ -94,6 +95,17 @@ fun RootNavigation(
                     BottomBarNavigation(
                         onNavigateToCreateRoutine = {
                             backStack.add(Destination.Routine(it))
+                        },
+                        onNavigateToLicense = {
+                            backStack.add(Destination.AboutLibraries)
+                        }
+                    )
+                }
+
+                is Destination.AboutLibraries -> NavEntry(key){
+                    AboutLibrariesScreen(
+                        onBack = {
+                            backStack.removeLastOrNull()
                         }
                     )
                 }

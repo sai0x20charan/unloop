@@ -99,7 +99,7 @@ fun OverLayScreen(
         val colors = MaterialTheme.colorScheme
 
         Surface(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier.fillMaxSize(),
             color = colors.surface) {
             Box(
                 modifier = Modifier

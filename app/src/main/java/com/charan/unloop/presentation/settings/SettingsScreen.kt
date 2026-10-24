@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
+    onNavigateToLicense : () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -46,6 +48,7 @@ fun SettingsScreen(
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 SettingsEffect.OnBack -> onNavigateBack()
+                SettingsEffect.OnNavigateToOpenSourceLicenses -> onNavigateToLicense()
             }
         }
     }
@@ -73,7 +76,6 @@ fun SettingsScreen(
                 )
 
                 CustomSegmentedListItem(
-                    modifier = Modifier.padding(1.dp),
                     indexItem = IndexItem.FIRST,
                     headLineContent = {
                         Text(stringResource(R.string.theme))
@@ -107,6 +109,40 @@ fun SettingsScreen(
                         viewModel.onEvent(SettingsEvent.OnDynamicColorsChange(it))
                     },
                     leadingIcon = Icons.Rounded.ColorLens
+                )
+            }
+
+            item {
+                SectionHeader(
+                    title = "About"
+                )
+                CustomSegmentedListItem(
+                    headLineContent = {
+                        Text("Open Source Libraries")
+                    },
+                    indexItem = IndexItem.FIRST,
+                    onClick = {
+                        viewModel.onEvent(SettingsEvent.OnOpenSourceLicensesClick)
+                    }
+                )
+                CustomSegmentedListItem(
+                    headLineContent = {
+                        Text("App Version")
+                    },
+                    indexItem = IndexItem.LAST,
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Rounded.Code,
+                            contentDescription = "App Version"
+                        )
+                    },
+                    trailingContent = {
+                        Text(
+                            text = state.appVersion,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+
                 )
             }
         }
