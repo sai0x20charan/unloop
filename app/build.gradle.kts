@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.google.firebase.crashlytics)
     alias(libs.plugins.aboutlibraries.plugin)
+    alias(libs.plugins.plugin.room)
 }
 
 val appName = "Unloop"
@@ -84,6 +85,11 @@ android {
     }
 }
 
+room {
+    schemaDirectory("$projectDir/schemas")
+    generateKotlin = true
+}
+
 
 
 androidComponents {
@@ -132,6 +138,8 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
+    implementation(libs.androidx.sqlite.bundled)
+    androidTestImplementation(libs.room.testing)
 
     // Navigation 3
     implementation(libs.navigation3.runtime)

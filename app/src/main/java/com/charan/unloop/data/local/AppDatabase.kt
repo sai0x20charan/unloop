@@ -14,7 +14,7 @@ import com.charan.unloop.data.local.entity.SessionEventEntity
 @Database(
     entities = [RoutineEntity::class, SessionEntity::class, SessionEventEntity::class],
     version = 2,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

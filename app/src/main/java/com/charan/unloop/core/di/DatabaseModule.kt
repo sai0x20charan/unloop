@@ -2,6 +2,7 @@ package com.charan.unloop.core.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.charan.unloop.data.local.AppDatabase
 import com.charan.unloop.data.local.dao.RoutineDao
 import com.charan.unloop.data.local.dao.SessionDao
@@ -25,8 +26,9 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration(true)
+            .fallbackToDestructiveMigration(false)
             .setQueryCoroutineContext(Dispatchers.IO)
+            .setDriver(BundledSQLiteDriver())
             .build()
     }
 

@@ -27,6 +27,8 @@ firebaseCrashlytics = "21.0.0"
 googleGmsGoogleServices = "4.5.0"
 googleFirebaseCrashlytics = "3.0.8"
 aboutLibraries = "15.2.0"
+sqlite = "2.7.1"
+
 
 
 
@@ -53,6 +55,8 @@ androidx-compose-material-icons-extended = { group = "androidx.compose.material"
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 swmansion-kmpWheelPicker = { module = "com.swmansion.kmpwheelpicker:kmp-wheel-picker", version.ref = "kmpWheelPicker" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+
 
 
 
@@ -65,6 +69,8 @@ androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navig
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+
 
 # Navigation 3
 navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
@@ -86,4 +92,6 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }
 aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutLibraries" }
+plugin-room = { id = "androidx.room", version.ref = "room" }
+
 
