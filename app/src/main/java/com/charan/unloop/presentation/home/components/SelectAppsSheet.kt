@@ -82,6 +82,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
+import com.charan.unloop.presentation.common.components.AppsList
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.ui.theme.indexItemFor
@@ -98,6 +99,7 @@ fun SelectAppsSheet(
         initialValue = SheetValue.Hidden,
 
     )
+    val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
         onDismissRequest = onClose,
@@ -121,114 +123,21 @@ fun SelectAppsSheet(
             )
         }
 
-        LazyColumn(
+        AppsList(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp),
-        ) {
-            item(key = "select_all_apps") {
-                val selectedCount = apps.count { it.isSelected }
-                val selectionState = when {
-                    apps.isEmpty() || selectedCount == 0 -> ToggleableState.Off
-                    selectedCount == apps.size -> ToggleableState.On
-                    else -> ToggleableState.Indeterminate
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .triStateToggleable(
-                            state = selectionState,
-                            onClick = onAllAppsSelect,
-                            role = Role.Checkbox,
-                        ),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.home_select_all),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-
-                        TriStateCheckbox(
-                            state = selectionState,
-                            onClick = null,
-                        )
-                    }
+                .weight(1f,false),
+            apps = apps,
+            onAppSelect = onAppSelect,
+            onAllAppsSelect = onAllAppsSelect,
+            contentPaddingValues = PaddingValues(horizontal = 10.dp),
+            onStartSearching = {
+                scope.launch {
+                    sheetState.expand()
                 }
             }
 
-            itemsIndexed(
-                items = apps,
-                key = { _, app -> app.packageName },
-            ) { index, app ->
-                val appBitmap = remember(app.icon) {
-                    app.icon?.toBitmap()?.asImageBitmap()
-                }
 
-                CustomSegmentedListItem(
-                    headLineContent = {
-                        Text(
-                            text = app.appName,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    leadingContent = {
-                        if (appBitmap != null) {
-                            Image(
-                                bitmap = appBitmap,
-                                contentDescription = app.appName,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                            )
-                        } else {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                modifier = Modifier.size(36.dp),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Apps,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(20.dp),
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    trailingContent = {
-                        Checkbox(
-                            checked = app.isSelected,
-                            onCheckedChange = null,
-                        )
-                    },
-                    isSelected = app.isSelected,
-                    indexItem = apps.indexItemFor(index),
-                    onClick = {
-                        onAppSelect(app.packageName)
-                    },
-                )
-            }
-        }
+        )
 
         val selectedCount = apps.count { it.isSelected }
             Button(
