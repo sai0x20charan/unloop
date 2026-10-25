@@ -50,6 +50,10 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON_DEBUG_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_DEBUG_BASE64 }}
         run: |
+          if [ -z "$GOOGLE_SERVICES_JSON_DEBUG_BASE64" ]; then
+            echo "::error::GOOGLE_SERVICES_JSON_DEBUG_BASE64 is unavailable for this run."
+            exit 1
+          fi
           mkdir -p app/src/debug
           printf '%s' "$GOOGLE_SERVICES_JSON_DEBUG_BASE64" | base64 --decode > app/src/debug/google-services.json
 

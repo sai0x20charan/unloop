@@ -151,7 +151,7 @@ class NotificationHelper @Inject constructor(
             val max = totalTime.coerceAtLeast(1L).toInt()
             val progress = (totalTime - remainingSeconds).coerceIn(0L, totalTime).toInt()
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
                 val progressStyle = Notification.ProgressStyle()
                     .addProgressSegment(Notification.ProgressStyle.Segment(max))
                     .setProgress(progress)
@@ -161,7 +161,7 @@ class NotificationHelper @Inject constructor(
                 builder.setProgress(max, progress, false)
             }
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
                 builder.setRequestPromotedOngoing(true)
             } else {
                 builder.setProgress(0, 0, false)
