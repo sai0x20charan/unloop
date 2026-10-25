@@ -93,7 +93,7 @@ fun HomeScreen(
                     progress = if (isSessionActive && state.currentSessionUiModel.totalSeconds > 0) {
                         state.currentSessionUiModel.progress
                     } else {
-                        1f
+                        0f
                     },
                     text = if (isSessionActive) state.currentSessionUiModel.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
                     endTimeText = state.currentSessionUiModel.endTime,
