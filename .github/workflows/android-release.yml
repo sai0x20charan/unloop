@@ -9,7 +9,22 @@ permissions:
   contents: write
 
 jobs:
+  verify-build:
+    name: Verify lint and builds
+    permissions:
+      contents: read
+    uses: ./.github/workflows/android-ci.yml
+    secrets: inherit
+
+  verify-migrations:
+    name: Verify Room migrations
+    permissions:
+      contents: read
+    uses: ./.github/workflows/database-migrations.yml
+    secrets: inherit
+
   build-release:
+    needs: [verify-build, verify-migrations]
     runs-on: ubuntu-latest
 
     steps:
