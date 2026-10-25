@@ -7,6 +7,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.app.ServiceCompat
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString

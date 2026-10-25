@@ -2,12 +2,14 @@ package com.charan.unloop.service
 
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
-import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
+import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -133,6 +135,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             setViewTreeLifecycleOwner(this@FullScreenOverlayService)
             setViewTreeViewModelStoreOwner(this@FullScreenOverlayService)
             setViewTreeSavedStateRegistryOwner(this@FullScreenOverlayService)
+            fitsSystemWindows = false
             setContent {
                 UnloopTheme {
                     details?.let { current ->
@@ -152,14 +155,36 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             }
         }
         composeView = view
+
+        val windowFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN.let { flags ->
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                    flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                } else {
+                    flags
+                }
+            }
+
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            windowFlags,
             PixelFormat.TRANSLUCENT
-        )
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                setFitInsetsTypes(0)
+                setFitInsetsSides(0)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                @Suppress("DEPRECATION")
+                layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
         try {
             windowManager?.addView(view, params)
