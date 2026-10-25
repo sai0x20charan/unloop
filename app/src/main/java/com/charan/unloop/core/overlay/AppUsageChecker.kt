@@ -9,21 +9,34 @@ import javax.inject.Inject
 class AppUsageChecker @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val usageStatsManager =
-        context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+    private val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+
+    private var lastQueryTime = System.currentTimeMillis() - 10_000
+    private var currentForeground: String? = null
 
     fun getForegroundApp(): String? {
-        val endTime = System.currentTimeMillis()
-        val events = usageStatsManager.queryEvents(endTime - 5000, endTime)
+        val now = System.currentTimeMillis()
+        val events = usm.queryEvents(lastQueryTime, now)
         val event = UsageEvents.Event()
-        var foregroundApp: String? = null
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
-            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                foregroundApp = event.packageName
+            when (event.eventType) {
+                UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    if (event.packageName != context.packageName) {
+                        currentForeground = event.packageName
+                    }
+                }
+                UsageEvents.Event.ACTIVITY_PAUSED -> {
+                    if (event.packageName == currentForeground) {
+                        currentForeground = null
+                    }
+                }
+                UsageEvents.Event.SCREEN_NON_INTERACTIVE -> currentForeground = null
             }
         }
-        return foregroundApp
+        lastQueryTime = now
+        return currentForeground
     }
 }
+

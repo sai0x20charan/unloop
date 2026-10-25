@@ -9,7 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.datetime.LocalDateTime
 import javax.inject.Inject
@@ -38,11 +37,10 @@ class SessionRepositoryImpl @Inject constructor(
         activeSession
 
     override suspend fun getActiveSessionOnce(): SessionEntity? =
-        activeSession.first()
+        sessionDao.getActiveSessionOnce()
 
     override suspend fun getSessionById(sessionId: String): SessionEntity? =
-        getActiveSessionOnce()?.takeIf { it.id == sessionId }
-            ?: sessionDao.getSessionById(sessionId)
+        sessionDao.getSessionById(sessionId)
 
     override suspend fun getLastInstantSession(): SessionEntity? =
         sessionDao.getLastInstantSession()
