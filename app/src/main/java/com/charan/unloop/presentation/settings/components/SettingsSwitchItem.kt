@@ -21,7 +21,6 @@ fun SettingsSwitchItem(
     modifier: Modifier = Modifier
 ) {
     CustomSegmentedListItem(
-        modifier = modifier.padding(1.dp),
         indexItem = index,
         headLineContent = {
             Text(title)

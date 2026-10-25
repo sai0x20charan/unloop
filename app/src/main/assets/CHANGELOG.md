@@ -1,8 +1,3 @@
-## New Features
+## Bug Fixes
 
-- Added open source libraries and license details to Settings.
-- Added the app version to Settings.
-
-## Improvements
-
-- Improved the blocking overlay to cover the full screen without outer margins.
+- Fixed the blocking overlay to fill the screen while keeping its content clear of system bars and display cutouts.
