@@ -79,13 +79,6 @@ jobs:
           profile: pixel_7_pro
           # Request a small partition; the system image can still require more space.
           disk-size: 2048M
-          pre-emulator-launch-script: |
-            df -h "$HOME/.android/avd"
-            migration_free_kib=$(df -Pk "$HOME/.android/avd" | awk 'NR == 2 {print $4}')
-            if [ "$migration_free_kib" -lt 8388608 ]; then
-              echo "::error::At least 8 GiB of free disk space is needed before starting the Android emulator."
-              exit 1
-            fi
           disable-animations: true
           # This task builds and installs the APKs after the emulator has booted.
           script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.charan.unloop.DBMigrationTests --stacktrace
