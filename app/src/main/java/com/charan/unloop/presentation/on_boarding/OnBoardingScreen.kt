@@ -450,7 +450,7 @@ private fun OnBoardingBottomBar(
     val iconButtonSize = IconButtonDefaults.mediumContainerSize()
     val iconButtonIconSize = IconButtonDefaults.mediumIconSize
 
-            Column(
+    Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 16.dp)
@@ -458,48 +458,48 @@ private fun OnBoardingBottomBar(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Box(Modifier.semantics { contentDescription = pageDescription }) {
-                    PagerIndicator(currentPage = currentPage, size = pageCount)
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    AnimatedVisibility(visible = currentPage > 0) {
-                        FilledTonalIconButton(
-                            onClick = onBackClick,
-                            modifier = Modifier.size(iconButtonSize),
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                contentDescription = stringResource(R.string.onboarding_back),
-                                modifier = Modifier.size(iconButtonIconSize)
-                            )
-                        }
-                    }
-                    Button(
-                        onClick = onNextClick,
-                        enabled = !isLastPage || allGranted,
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(buttonSize),
-                        shapes = ButtonDefaults.shapes(),
-                    ) {
-                        Text(
-                            text = if (isLastPage) "Get Started" else stringResource(R.string.onboarding_next),
-                            style = MaterialTheme.typography.labelLargeEmphasized,
-                            modifier = Modifier.padding(ButtonDefaults.ButtonWithIconContentPadding)
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(iconSize),
-                        )
-                    }
-                }
-
+        Box(Modifier.semantics { contentDescription = pageDescription }) {
+            PagerIndicator(currentPage = currentPage, size = pageCount)
         }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            AnimatedVisibility(visible = currentPage > 0) {
+                FilledTonalIconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(iconButtonSize),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = stringResource(R.string.onboarding_back),
+                        modifier = Modifier.size(iconButtonIconSize)
+                    )
+                }
+            }
+            Button(
+                onClick = onNextClick,
+                enabled = !isLastPage || allGranted,
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(buttonSize),
+                shapes = ButtonDefaults.shapes(),
+            ) {
+                Text(
+                    text = if (isLastPage) "Get Started" else stringResource(R.string.onboarding_next),
+                    style = MaterialTheme.typography.labelLargeEmphasized,
+                    modifier = Modifier.padding(ButtonDefaults.ButtonWithIconContentPadding)
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize),
+                )
+            }
+        }
+
+    }
 
 }
 

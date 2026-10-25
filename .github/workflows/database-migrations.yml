@@ -73,5 +73,7 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: pixel_7_pro
+          # Keep the data partition small enough for the hosted runner after APK builds.
+          disk-size: 2048M
           disable-animations: true
           script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.charan.unloop.DBMigrationTests --stacktrace
