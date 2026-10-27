@@ -41,7 +41,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
-import com.charan.unloop.ui.theme.indexItemFor
+import com.charan.unloop.presentation.theme.indexItemFor
 import kotlinx.coroutines.launch
 
 @Composable

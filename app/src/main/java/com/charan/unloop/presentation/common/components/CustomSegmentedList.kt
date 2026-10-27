@@ -3,15 +3,14 @@ package com.charan.unloop.presentation.common.components
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.charan.unloop.ui.theme.IndexItem
-import com.charan.unloop.ui.theme.customListItemShapes
+import com.charan.unloop.presentation.theme.IndexItem
+import com.charan.unloop.presentation.theme.customListItemShapes
 
 @Composable
 fun CustomSegmentedListItem(

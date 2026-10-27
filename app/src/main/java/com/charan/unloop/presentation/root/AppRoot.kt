@@ -8,7 +8,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.data.model.ThemeOptions
 import com.charan.unloop.presentation.navigation.RootNavigation
-import com.charan.unloop.ui.theme.UnloopTheme
+import com.charan.unloop.presentation.theme.UnloopTheme
 
 @Composable
 fun AppRoot(

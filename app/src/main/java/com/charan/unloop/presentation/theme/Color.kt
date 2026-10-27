@@ -1,4 +1,4 @@
-package com.charan.unloop.ui.theme
+package com.charan.unloop.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

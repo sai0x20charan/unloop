@@ -1,15 +1,13 @@
 package com.charan.unloop.presentation.settings.components
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
-import com.charan.unloop.ui.theme.IndexItem
+import com.charan.unloop.presentation.theme.IndexItem
 
 @Composable
 fun SettingsSwitchItem(

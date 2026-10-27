@@ -46,7 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.presentation.routine.UnlockChallengeType
-import com.charan.unloop.ui.theme.UnloopTheme
+import com.charan.unloop.presentation.theme.UnloopTheme
 import kotlinx.datetime.LocalTime
 
 @Composable

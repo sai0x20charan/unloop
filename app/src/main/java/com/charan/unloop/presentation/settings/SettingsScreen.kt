@@ -32,7 +32,7 @@ import com.charan.unloop.presentation.common.components.SectionHeader
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.settings.components.SettingsSwitchItem
 import com.charan.unloop.presentation.settings.components.ThemeOptionButtonGroup
-import com.charan.unloop.ui.theme.IndexItem
+import com.charan.unloop.presentation.theme.IndexItem
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable

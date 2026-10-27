@@ -9,7 +9,6 @@ import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
-import android.view.View
 import android.view.WindowManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -32,7 +31,7 @@ import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.presentation.overlay.OverLayScreen
 import com.charan.unloop.presentation.routine.UnlockChallengeType
-import com.charan.unloop.ui.theme.UnloopTheme
+import com.charan.unloop.presentation.theme.UnloopTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
