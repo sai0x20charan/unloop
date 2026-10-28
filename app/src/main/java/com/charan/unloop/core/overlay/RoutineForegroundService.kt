@@ -258,7 +258,10 @@ class RoutineForegroundService : Service() {
 
         monitoringJob = serviceScope.launch {
             observeForegroundApp().collect { foregroundPackage ->
-                if (foregroundPackage.isNullOrBlank()) return@collect
+                if (foregroundPackage.isNullOrBlank()) {
+                    removeOverLay()
+                    return@collect
+                }
                 val currentSession = sessionRepository
                     .getSessionById(sessionId ?: return@collect)
                     ?: return@collect
