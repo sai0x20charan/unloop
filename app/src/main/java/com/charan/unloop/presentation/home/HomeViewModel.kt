@@ -187,13 +187,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun handleEndSessionClick() = viewModelScope.launch {
-        val activeSession = sessionRepository.getActiveSessionOnce() ?: return@launch
-        sessionRepository.updateSessionStatus(
-            sessionId = activeSession.id,
-            status = SessionStatus.STOPPED,
-            actualEndTime = DateTimeUtils.getCurrentDateTime()
-        )
-        sessionManagerRepository.stopSession(activeSession.id)
+        sessionManagerRepository.stopSession(_state.value.currentSessionUiModel.sessionId)
     }
 
     private fun handleEditSessionTime() {

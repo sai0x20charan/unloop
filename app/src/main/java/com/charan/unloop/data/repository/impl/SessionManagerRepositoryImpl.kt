@@ -65,7 +65,6 @@ class SessionManagerRepositoryImpl @Inject constructor(
             if (routineId != null) {
                 scheduleSession(routineId)
             }
-            stopSession(sessionId)
             routineSessionController.stopSession(sessionId)
         }
     }
