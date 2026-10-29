@@ -1,32 +1,32 @@
-package com.charan.unloop.core.overlay
+package com.charan.unloop.session.impl
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.charan.unloop.session.SessionController
+import com.charan.unloop.session.SessionForegroundService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class RoutineSessionController @Inject constructor(
+class SessionControllerImpl @Inject constructor(
     @ApplicationContext private val context: Context
-) {
+) : SessionController {
 
     private val alarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun scheduleRoutine(
+    override fun scheduleRoutine(
         routineId: String,
         scheduleTime: LocalDateTime,
     ) {
         val pendingIntent = createRoutinePendingIntent(routineId) {
-            putExtra(RoutineForegroundService.EXTRA_ROUTINE_ID, routineId)
-            action = RoutineForegroundService.ACTION_REQUEST_START_ROUTINE
+            putExtra(SessionForegroundService.EXTRA_ROUTINE_ID, routineId)
+            action = SessionForegroundService.ACTION_REQUEST_START_ROUTINE
         }
         setExactAlarmSafe(
             scheduleTime.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds(),
@@ -34,14 +34,14 @@ class RoutineSessionController @Inject constructor(
         )
     }
 
-    fun scheduleStopSession(
+    override fun scheduleStopSession(
         sessionId: String,
         endTime: LocalDateTime
     ) {
         if (sessionId.isBlank()) return
         val pendingIntent = createSessionPendingIntent(sessionId) {
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-            action = RoutineForegroundService.ACTION_REQUEST_STOP_SESSION
+            putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+            action = SessionForegroundService.ACTION_REQUEST_STOP_SESSION
         }
         setExactAlarmSafe(
             endTime.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds(),
@@ -49,10 +49,10 @@ class RoutineSessionController @Inject constructor(
         )
     }
 
-    fun cancelRoutine(routineId: String) {
+    override fun cancelRoutine(routineId: String) {
         val pendingIntent = createRoutinePendingIntent(routineId) {
-            putExtra(RoutineForegroundService.EXTRA_ROUTINE_ID, routineId)
-            action = RoutineForegroundService.ACTION_REQUEST_START_ROUTINE
+            putExtra(SessionForegroundService.EXTRA_ROUTINE_ID, routineId)
+            action = SessionForegroundService.ACTION_REQUEST_START_ROUTINE
         }
         alarmManager.cancel(pendingIntent)
         pendingIntent.cancel()
@@ -74,59 +74,59 @@ class RoutineSessionController @Inject constructor(
         }
     }
 
-    fun pauseSession(
+    override fun pauseSession(
         sessionId: String,
         sessionName: String,
-        remainingSeconds: Long? = null,
-        totalSeconds: Long? = null
+        remainingSeconds: Long?,
+        totalSeconds: Long?
     ) {
         val intent = Intent(
             context,
-            RoutineForegroundService::class.java
+            SessionForegroundService::class.java
         ).apply {
-            action = RoutineForegroundService.ACTION_PAUSE_SESSION
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-            putExtra(RoutineForegroundService.EXTRA_SESSION_NAME, sessionName)
+            action = SessionForegroundService.ACTION_PAUSE_SESSION
+            putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+            putExtra(SessionForegroundService.EXTRA_SESSION_NAME, sessionName)
             if (remainingSeconds != null) {
-                putExtra(RoutineForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
+                putExtra(SessionForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }
             if (totalSeconds != null) {
-                putExtra(RoutineForegroundService.EXTRA_TOTAL_SECONDS, totalSeconds)
+                putExtra(SessionForegroundService.EXTRA_TOTAL_SECONDS, totalSeconds)
             }
         }
         context.startForegroundService(intent)
     }
 
-    fun resumeRoutine(
+    override fun resumeSession(
         sessionId: String,
         sessionName: String,
-        remainingSeconds: Long? = null,
-        totalSeconds: Long? = null
+        remainingSeconds: Long?,
+        totalSeconds: Long?
     ) {
         val intent = Intent(
             context,
-            RoutineForegroundService::class.java
+            SessionForegroundService::class.java
         ).apply {
-            action = RoutineForegroundService.ACTION_RESUME_SESSION
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-            putExtra(RoutineForegroundService.EXTRA_SESSION_NAME, sessionName)
+            action = SessionForegroundService.ACTION_RESUME_SESSION
+            putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+            putExtra(SessionForegroundService.EXTRA_SESSION_NAME, sessionName)
             if (remainingSeconds != null) {
-                putExtra(RoutineForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
+                putExtra(SessionForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }
             if (totalSeconds != null) {
-                putExtra(RoutineForegroundService.EXTRA_TOTAL_SECONDS, totalSeconds)
+                putExtra(SessionForegroundService.EXTRA_TOTAL_SECONDS, totalSeconds)
             }
         }
         context.startForegroundService(intent)
     }
 
-    fun createRoutinePendingIntent(
+    override fun createRoutinePendingIntent(
         routineId: String,
         configure: Intent.() -> Unit
     ): PendingIntent {
         val intent = Intent(
             context,
-            RoutineForegroundService::class.java
+            SessionForegroundService::class.java
         ).apply(configure)
 
         return PendingIntent.getForegroundService(
@@ -137,13 +137,13 @@ class RoutineSessionController @Inject constructor(
         )
     }
 
-    fun createSessionPendingIntent(
+    override fun createSessionPendingIntent(
         sessionId: String,
         configure: Intent.() -> Unit
     ): PendingIntent {
         val intent = Intent(
             context,
-            RoutineForegroundService::class.java
+            SessionForegroundService::class.java
         ).apply(configure)
 
         return PendingIntent.getForegroundService(
@@ -154,38 +154,38 @@ class RoutineSessionController @Inject constructor(
         )
     }
 
-    fun startSession(
+    override fun startSession(
         sessionId: String,
         sessionName: String,
-        remainingSeconds: Long? = null,
-        totalSeconds: Long? = null
+        remainingSeconds: Long?,
+        totalSeconds: Long?
     ) {
-        val intent = Intent(context, RoutineForegroundService::class.java).apply {
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-            putExtra(RoutineForegroundService.EXTRA_SESSION_NAME, sessionName)
+        val intent = Intent(context, SessionForegroundService::class.java).apply {
+            putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+            putExtra(SessionForegroundService.EXTRA_SESSION_NAME, sessionName)
             if (remainingSeconds != null) {
-                putExtra(RoutineForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
+                putExtra(SessionForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }
             if (totalSeconds != null) {
-                putExtra(RoutineForegroundService.EXTRA_TOTAL_SECONDS, totalSeconds)
+                putExtra(SessionForegroundService.EXTRA_TOTAL_SECONDS, totalSeconds)
             }
-            action = RoutineForegroundService.ACTION_START_SESSION
+            action = SessionForegroundService.ACTION_START_SESSION
         }
         context.startForegroundService(intent)
     }
 
-    fun stopSession(sessionId: String) {
-        val intent = Intent(context, RoutineForegroundService::class.java).apply {
-            action = RoutineForegroundService.ACTION_STOP_SESSION
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+    override fun stopSession(sessionId: String) {
+        val intent = Intent(context, SessionForegroundService::class.java).apply {
+            action = SessionForegroundService.ACTION_STOP_SESSION
+            putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
         }
         context.startForegroundService(intent)
     }
 
-    fun cancelScheduledSession(sessionId: String) {
+    override fun cancelScheduledSession(sessionId: String) {
         val pendingIntent = createSessionPendingIntent(sessionId) {
-            putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-            action = RoutineForegroundService.ACTION_REQUEST_STOP_SESSION
+            putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+            action = SessionForegroundService.ACTION_REQUEST_STOP_SESSION
         }
         alarmManager.cancel(pendingIntent)
         pendingIntent.cancel()

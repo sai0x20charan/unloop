@@ -76,6 +76,29 @@ object DateTimeUtils {
 
     fun getEndTimeForDuration(seconds: Int): LocalDateTime = getEndTimeForDuration(seconds.toLong())
 
+    fun getStartTimeForDuration(endTime: LocalDateTime, seconds: Long): LocalDateTime {
+        val timeZone = TimeZone.currentSystemDefault()
+        return (endTime.toInstant(timeZone) - seconds.seconds).toLocalDateTime(timeZone)
+    }
+
+    fun getDurationSeconds(startTime: LocalDateTime, endTime: LocalDateTime): Long {
+        val timeZone = TimeZone.currentSystemDefault()
+        return (endTime.toInstant(timeZone) - startTime.toInstant(timeZone)).inWholeSeconds
+    }
+
+    fun getScheduledEndTime(
+        endTime: LocalTime,
+        startTime: LocalDateTime = getCurrentDateTime()
+    ): LocalDateTime {
+        val scheduledTime = LocalTime(endTime.hour, endTime.minute, endTime.second)
+        val candidate = LocalDateTime(startTime.date, scheduledTime)
+        return if (candidate <= startTime) {
+            LocalDateTime(startTime.date.plus(1, DateTimeUnit.DAY), scheduledTime)
+        } else {
+            candidate
+        }
+    }
+
     fun getRemainingDuration(endTime: LocalDateTime): Long {
         val endInstant = endTime.toInstant(TimeZone.currentSystemDefault())
         val currentInstant = Clock.System.now()

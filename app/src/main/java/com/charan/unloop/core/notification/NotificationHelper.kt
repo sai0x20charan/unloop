@@ -1,4 +1,4 @@
-package com.charan.unloop.core.overlay
+package com.charan.unloop.core.notification
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,12 +12,14 @@ import androidx.core.app.NotificationCompat
 import com.charan.unloop.MainActivity
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.session.SessionController
+import com.charan.unloop.session.SessionForegroundService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class NotificationHelper @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val routineSessionController: RoutineSessionController
+    private val sessionController: SessionController
 ) {
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -79,25 +81,25 @@ class NotificationHelper @Inject constructor(
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
 
         if (sessionId != null) {
-            val pauseIntent = routineSessionController.createSessionPendingIntent(
+            val pauseIntent = sessionController.createSessionPendingIntent(
                 sessionId
             ) {
-                putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-                action = RoutineForegroundService.ACTION_REQUEST_PAUSE_SESSION
+                putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+                action = SessionForegroundService.ACTION_REQUEST_PAUSE_SESSION
             }
 
-            val resumeIntent = routineSessionController.createSessionPendingIntent(
+            val resumeIntent = sessionController.createSessionPendingIntent(
                 sessionId
             ) {
-                putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-                action = RoutineForegroundService.ACTION_REQUEST_RESUME_SESSION
+                putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+                action = SessionForegroundService.ACTION_REQUEST_RESUME_SESSION
             }
 
-            val stopIntent = routineSessionController.createSessionPendingIntent(
+            val stopIntent = sessionController.createSessionPendingIntent(
                 sessionId
             ) {
-                putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
-                action = RoutineForegroundService.ACTION_REQUEST_STOP_SESSION
+                putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
+                action = SessionForegroundService.ACTION_REQUEST_STOP_SESSION
             }
 
             if (isPaused) {

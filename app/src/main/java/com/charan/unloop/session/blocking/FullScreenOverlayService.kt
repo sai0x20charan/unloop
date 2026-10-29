@@ -1,4 +1,4 @@
-package com.charan.unloop.service
+package com.charan.unloop.session.blocking
 
 import android.app.Service
 import android.content.Intent
@@ -28,10 +28,10 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.charan.unloop.core.di.ApplicationScope
 import com.charan.unloop.data.local.model.enums.SessionEvents
-import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.presentation.overlay.OverLayScreen
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 import com.charan.unloop.presentation.theme.UnloopTheme
+import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -43,7 +43,7 @@ import javax.inject.Inject
 class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
     @Inject
-    lateinit var sessionEventRepository: SessionEventRepository
+    lateinit var sessionManager: SessionManager
 
     @Inject
     @ApplicationScope
@@ -206,9 +206,9 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         // Keep the write alive if the monitor destroys this service as the user switches apps.
         applicationScope.launch {
             try {
-                sessionEventRepository.recordSessionEvent(
+                sessionManager.logSessionEvent(
                     sessionId = sessionId,
-                    sessionEvents = SessionEvents.APP_ACCESS_GRANTED,
+                    eventName = SessionEvents.APP_ACCESS_GRANTED,
                     appPackage = appPackage
                 )
             } catch (e: CancellationException) {

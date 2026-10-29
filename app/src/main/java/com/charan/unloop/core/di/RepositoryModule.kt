@@ -3,12 +3,10 @@ package com.charan.unloop.core.di
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionEventRepository
-import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.impl.DataStoreRepositoryImpl
 import com.charan.unloop.data.repository.impl.InstalledAppsRepositoryImpl
 import com.charan.unloop.data.repository.impl.RoutineRepositoryImpl
 import com.charan.unloop.data.repository.impl.SessionEventRepositoryImpl
-import com.charan.unloop.data.repository.impl.SessionManagerRepositoryImpl
 import com.charan.unloop.data.repository.impl.SessionRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -50,9 +48,4 @@ abstract class RepositoryModule {
         sessionEventRepositoryImpl: SessionEventRepositoryImpl
     ): SessionEventRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindSessionManagerRepository(
-        sessionManagerRepositoryImpl: SessionManagerRepositoryImpl
-    ): SessionManagerRepository
 }

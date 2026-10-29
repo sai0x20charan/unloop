@@ -1,13 +1,13 @@
-package com.charan.unloop.receiver
+package com.charan.unloop.core.startup
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionRepository
+import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +23,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     lateinit var routineRepository: RoutineRepository
 
     @Inject
-    lateinit var sessionManager: SessionManagerRepository
+    lateinit var sessionManager: SessionManager
 
     @Inject
     lateinit var sessionRepository: SessionRepository
@@ -44,7 +44,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                 try {
                     val runningSession = sessionRepository.getActiveSessionOnce()
                     if(runningSession !=null && runningSession.sessionStatus == SessionStatus.RUNNING){
-                        sessionManager.replaceSession(runningSession.id)
+                        sessionManager.restoreSession(runningSession.id)
                     }
                     val routines = routineRepository.getAllRoutines().firstOrNull().orEmpty()
                     val activeRoutines = routines.filter { it.isEnabled && !it.isDeleted }

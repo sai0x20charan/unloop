@@ -36,10 +36,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Unloop.SplashScreen">
         <service
-            android:name=".service.FullScreenOverlayService"
+            android:name=".session.blocking.FullScreenOverlayService"
             android:exported="false"/>
         <service
-            android:name=".core.overlay.RoutineForegroundService"
+            android:name=".session.SessionForegroundService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
@@ -47,7 +47,7 @@
                 android:value="Monitoring app usage for Unloop routines" />
         </service>
         <receiver
-            android:name=".receiver.BootCompletedReceiver"
+            android:name=".core.startup.BootCompletedReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

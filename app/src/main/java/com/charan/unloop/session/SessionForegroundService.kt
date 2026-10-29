@@ -1,4 +1,4 @@
-package com.charan.unloop.core.overlay
+package com.charan.unloop.session
 
 import android.app.Notification
 import android.app.Service
@@ -7,21 +7,13 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
-import android.util.Log
 import androidx.core.app.ServiceCompat
 import com.charan.unloop.R
-import com.charan.unloop.core.utils.DateTimeUtils
-import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
-import com.charan.unloop.core.utils.DateTimeUtils.toLocalDateTime
-import com.charan.unloop.data.local.entity.SessionEntity
+import com.charan.unloop.session.blocking.AppUsageChecker
+import com.charan.unloop.session.blocking.FullScreenOverlayService
+import com.charan.unloop.core.notification.NotificationHelper
 import com.charan.unloop.data.local.model.enums.SessionEvents
-import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.data.local.model.enums.SessionType
-import com.charan.unloop.data.repository.RoutineRepository
-import com.charan.unloop.data.repository.SessionEventRepository
-import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.SessionRepository
-import com.charan.unloop.service.FullScreenOverlayService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,21 +27,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @AndroidEntryPoint
-class RoutineForegroundService : Service() {
+class SessionForegroundService : Service() {
 
     @Inject
     lateinit var appUsageChecker: AppUsageChecker
@@ -58,19 +40,10 @@ class RoutineForegroundService : Service() {
     lateinit var sessionRepository: SessionRepository
 
     @Inject
-    lateinit var sessionManagerRepository: SessionManagerRepository
-
-    @Inject
-    lateinit var routineRepository: RoutineRepository
+    lateinit var sessionManager: SessionManager
 
     @Inject
     lateinit var notificationHelper: NotificationHelper
-
-    @Inject
-    lateinit var routineSessionController: RoutineSessionController
-
-    @Inject
-    lateinit var sessionEventRepository: SessionEventRepository
 
     private var sessionId : String? = null
     private var sessionName: String? = null
@@ -162,7 +135,7 @@ class RoutineForegroundService : Service() {
 
             ACTION_REQUEST_PAUSE_SESSION ->{
                 serviceScope.launch {
-                    sessionManagerRepository.pauseSession(sessionId ?: return@launch)
+                    sessionManager.pauseSession(sessionId ?: return@launch)
                     return@launch
                 }
                 return START_NOT_STICKY
@@ -170,7 +143,7 @@ class RoutineForegroundService : Service() {
 
             ACTION_REQUEST_STOP_SESSION ->{
                 serviceScope.launch {
-                    sessionManagerRepository.stopSession(sessionId ?: return@launch)
+                    sessionManager.stopSession(sessionId ?: return@launch)
                     return@launch
                 }
                 return START_NOT_STICKY
@@ -179,7 +152,7 @@ class RoutineForegroundService : Service() {
 
             ACTION_REQUEST_RESUME_SESSION ->{
                 serviceScope.launch {
-                    sessionManagerRepository.resumeSession(sessionId ?: return@launch)
+                    sessionManager.resumeSession(sessionId ?: return@launch)
                     return@launch
                 }
                 return START_NOT_STICKY
@@ -187,7 +160,7 @@ class RoutineForegroundService : Service() {
 
             ACTION_REQUEST_START_ROUTINE, ACTION_START_ROUTINE -> {
                 serviceScope.launch {
-                    sessionManagerRepository.createSession(
+                    sessionManager.startScheduledSession(
                         routineId = routineId ?: return@launch,
                     )
                     return@launch
@@ -275,13 +248,13 @@ class RoutineForegroundService : Service() {
                 val blockedApps = currentSession.blockedApps.orEmpty()
 
                 if (foregroundPackage in blockedApps) {
-                    sessionManagerRepository.logSessionEvent(
+                    sessionManager.logSessionEvent(
                         sessionId = currentSession.id,
                         eventName = SessionEvents.APP_BLOCKED,
                         appPackage = foregroundPackage
                     )
                     val overlayIntent = Intent(
-                        this@RoutineForegroundService,
+                        this@SessionForegroundService,
                         FullScreenOverlayService::class.java
                     ).apply {
                         putExtra(

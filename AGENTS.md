@@ -20,9 +20,19 @@ The application has a single `app` module. Kotlin source files live under `app/s
 
 ### Core
 
-- `core/di`: Hilt modules for database access, repository bindings, and the application coroutine scope.
-- `core/overlay`: Usage monitoring, routine and session alarm scheduling, foreground service execution, and notifications.
+- `core/di`: Hilt modules for database access, repository and session bindings, and the application coroutine scope.
+- `core/notification`: Notification creation and updates through `NotificationHelper`.
+- `core/startup`: Reboot and app-update recovery through `BootCompletedReceiver`.
 - `core/utils`: Permission handling, date and time helpers, and application utilities.
+
+### Session
+
+- `session`: Session coordination and Android control contracts through the `SessionManager` and `SessionController` interfaces, and foreground execution through `SessionForegroundService`.
+- `session/impl`: Session coordination through `SessionManagerImpl` and alarm scheduling and service commands through `SessionControllerImpl`. Both implementations are bound as singletons in `SessionModule`.
+
+### Blocking
+
+- `session/blocking`: Foreground app detection through `AppUsageChecker` and blocking overlay execution through `FullScreenOverlayService`.
 
 ### Data
 
@@ -38,9 +48,6 @@ The application has a single `app` module. Kotlin source files live under `app/s
 - `/common`: Shared and reusable UI components, and presentation-specific UI models.
 - `/root`: Global application state and core navigation definitions.
 - `/theme`: Material 3 design system configuration (colors, shapes, typography, theme definition).
-
-### Service
-- `service`: Foreground services.
 
 ## Development rules and conventions
 
@@ -72,9 +79,12 @@ The application has a single `app` module. Kotlin source files live under `app/s
 
 ### Sessions, scheduling, and app blocking
 
-- Route all session events and scheduling operations through `SessionManagerRepository` so instant sessions, scheduled sessions, and notification actions follow the same logic.
-- Scheduled alarms and notification actions send request intents to `RoutineForegroundService`, which delegates them to `SessionManagerRepository`. The repository updates session data and sends command intents through `RoutineSessionController`; the service executes those commands.
-- Use `RoutineSessionController` to send session control intents, such as start, pause, resume, and stop, and to schedule or cancel alarms through `AlarmManager`. Keep all related Intent and PendingIntent creation in this controller.
+- Keep session coordination and execution in the top-level `session` package. Keep `NotificationHelper` under `core/notification` for application-wide notification support.
+- Keep foreground app detection and blocking overlay execution in `session/blocking`. Keep reboot and app-update recovery in `core/startup`.
+- Route all session events and scheduling operations through `SessionManager` so instant sessions, scheduled sessions, and notification actions follow the same logic.
+- Scheduled alarms and notification actions send request intents to `SessionForegroundService`, which delegates them to `SessionManager`. The manager updates session data through repositories and sends command intents through `SessionController`; the service executes those commands.
+- Use `SessionController` to send session control intents, such as start, pause, resume, and stop, and to schedule or cancel alarms through `AlarmManager`. Keep all related Intent and PendingIntent creation in this controller.
+- Depend on the `SessionManager` and `SessionController` interfaces. Keep their implementations in `session/impl`.
 - Put all date and time calculations in `DateTimeUtils`, including durations, start and end times, and upcoming schedule times. Use kotlinx.datetime for date and time operations.
 
 ### Naming conventions
@@ -94,7 +104,7 @@ The application has a single `app` module. Kotlin source files live under `app/s
 
 ### General guidelines
 
-- Keep business logic in ViewModels and repositories. Keep composables focused on rendering state and dispatching events.
+- Keep presentation logic in ViewModels, data access logic in repositories, and session coordination in `SessionManager`. Keep composables focused on rendering state and dispatching events.
 - Avoid unnecessary comments. Explain non-obvious platform constraints or decisions when a comment helps.
 - Keep padding and spacing consistent with surrounding screens.
 - Use Material theme typography instead of hardcoded font sizes.

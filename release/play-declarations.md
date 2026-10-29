@@ -33,7 +33,7 @@ The final video is generated and ready in the repository:
 1. **0:00 – 0:03**: Title card showing app name (`Unloop`), permission (`FOREGROUND_SERVICE_SPECIAL_USE`), and FGS subtype (`Monitoring app usage for Unloop routines`).
 2. **0:03 – 0:07**: Step 1: User selects session duration (15m preset).
 3. **0:07 – 0:21**: Step 2: User selects distracting apps to block (Google Chrome).
-4. **0:21 – 0:27**: Step 3: User taps "Start session" to immediately launch `RoutineForegroundService`.
+4. **0:21 – 0:27**: Step 3: User taps "Start session" to immediately launch `SessionForegroundService`.
 5. **0:27 – 0:37**: Step 4: User inspects the persistent foreground notification in the shade, showing "Routine Active", live countdown timer, and Pause/Stop controls.
 6. **0:37 – 0:48**: Step 5: User leaves Unloop and opens Google Chrome; foreground monitoring detects it and displays the full-screen blocking overlay.
 7. **0:48 – 0:59**: Step 6: User pulls down notification shade and taps "Pause"; notification reflects paused status.

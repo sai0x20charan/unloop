@@ -1,10 +1,14 @@
-package com.charan.unloop.data.repository
+package com.charan.unloop.session
 
 import com.charan.unloop.data.local.model.enums.SessionEvents
 
-interface SessionManagerRepository  {
+interface SessionManager {
 
-    suspend fun startSession(sessionId : String)
+    suspend fun startInstantSession(
+        name: String,
+        durationSeconds: Long,
+        blockedApps: List<String>
+    ): String?
 
     suspend fun stopSession(sessionId : String)
 
@@ -20,12 +24,10 @@ interface SessionManagerRepository  {
 
     suspend fun cancelScheduledSession(sessionId : String)
 
-    suspend fun createSession(routineId: String,
-
-    ): String?
+    suspend fun startScheduledSession(routineId: String): String?
 
     suspend fun cancelScheduledRoutine(routineId: String)
 
-    suspend fun replaceSession(sessionId : String)
+    suspend fun restoreSession(sessionId : String)
 
 }

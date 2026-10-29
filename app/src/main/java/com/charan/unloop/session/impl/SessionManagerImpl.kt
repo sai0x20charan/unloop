@@ -1,62 +1,85 @@
-package com.charan.unloop.data.repository.impl
+package com.charan.unloop.session.impl
 
-import com.charan.unloop.core.overlay.RoutineSessionController
+import android.content.Context
+import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils
-import com.charan.unloop.core.utils.DateTimeUtils.toLocalDateTime
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionEventRepository
-import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.session.SessionController
+import com.charan.unloop.session.SessionManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class SessionManagerRepositoryImpl @Inject constructor(
+class SessionManagerImpl @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val sessionEventRepository: SessionEventRepository,
-    private val routineSessionController: RoutineSessionController,
-    private val routineRepository: RoutineRepository
-) : SessionManagerRepository {
+    private val sessionController: SessionController,
+    private val routineRepository: RoutineRepository,
+    @ApplicationContext private val context: Context
+) : SessionManager {
 
     private val mutex = Mutex()
 
-    override suspend fun startSession(sessionId: String) {
-        mutex.withLock {
-            val session = sessionRepository.getSessionById(sessionId) ?: return@withLock
-            sessionEventRepository.recordSessionEvent(
-                sessionId = sessionId,
-                sessionEvents = SessionEvents.START_SESSION,
-                appPackage = null
-            )
-            val remainingSeconds = getRemainingSeconds(session)
-            val totalSeconds = getTotalSeconds(session)
-            routineSessionController.startSession(
-                sessionId = sessionId,
-                sessionName = session.sessionName,
-                remainingSeconds = remainingSeconds,
-                totalSeconds = totalSeconds
-            )
-            scheduleEnd(sessionId)
-        }
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun startInstantSession(
+        name: String,
+        durationSeconds: Long,
+        blockedApps: List<String>
+    ): String? = mutex.withLock {
+        if (durationSeconds <= 0 || blockedApps.isEmpty()) return@withLock null
+
+        val startTime = DateTimeUtils.getCurrentDateTime()
+        val session = SessionEntity(
+            id = Uuid.generateV4().toString(),
+            actualStartTime = startTime,
+            startTime = startTime,
+            endTime = DateTimeUtils.getEndTimeForDuration(durationSeconds),
+            blockedApps = blockedApps,
+            sessionStatus = SessionStatus.RUNNING,
+            sessionType = SessionType.INSTANT,
+            sessionName = name.trim().ifBlank {
+                context.getString(R.string.home_session_title_default)
+            },
+            unlockChallengeType = UnlockChallengeType.STRICT_MODE,
+            createdAt = startTime
+        )
+        sessionRepository.insertSession(session)
+        startSession(session)
+        session.id
+    }
+
+    private suspend fun startSession(session: SessionEntity) {
+        sessionEventRepository.recordSessionEvent(
+            sessionId = session.id,
+            sessionEvents = SessionEvents.START_SESSION,
+            appPackage = null
+        )
+        sessionController.startSession(
+            sessionId = session.id,
+            sessionName = session.sessionName,
+            remainingSeconds = getRemainingSeconds(session),
+            totalSeconds = getTotalSeconds(session)
+        )
+        scheduleEnd(session.id)
     }
 
     override suspend fun stopSession(sessionId: String) {
         mutex.withLock {
-            val routineId = sessionRepository.getSessionById(sessionId)?.routineId
+            val session = sessionRepository.getSessionById(sessionId) ?: return@withLock
+            if (session.sessionStatus != SessionStatus.RUNNING &&
+                session.sessionStatus != SessionStatus.PAUSED
+            ) return@withLock
+
             sessionEventRepository.recordSessionEvent(
                 sessionId = sessionId,
                 sessionEvents = SessionEvents.COMPLETE_SESSION,
@@ -67,17 +90,18 @@ class SessionManagerRepositoryImpl @Inject constructor(
                 status = SessionStatus.COMPLETED,
                 actualEndTime = DateTimeUtils.getCurrentDateTime()
             )
-            if (routineId != null) {
-                scheduleSession(routineId)
+            cancelScheduledSession(sessionId)
+            if (session.routineId != null) {
+                scheduleSession(session.routineId)
             }
-            routineSessionController.stopSession(sessionId)
+            sessionController.stopSession(sessionId)
         }
     }
 
     override suspend fun pauseSession(sessionId: String) {
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
-            if (session != null) {
+            if (session != null && session.sessionStatus == SessionStatus.RUNNING) {
                 val remaining = DateTimeUtils.getRemainingDuration(session.endTime)
                 sessionRepository.updateSession(
                     session.copy(
@@ -92,7 +116,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
                 )
                 cancelScheduledSession(sessionId)
                 val totalSeconds = getTotalSeconds(session)
-                routineSessionController.pauseSession(
+                sessionController.pauseSession(
                     sessionId = sessionId,
                     sessionName = session.sessionName,
                     remainingSeconds = remaining,
@@ -105,16 +129,20 @@ class SessionManagerRepositoryImpl @Inject constructor(
     override suspend fun resumeSession(sessionId: String) {
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
-            if (session != null) {
+            if (session != null && session.sessionStatus == SessionStatus.PAUSED) {
                 val remainingSeconds = session.pausedRemainingSeconds ?: 0L
 
-                val originalTotalSeconds = (session.endTime.toInstant(TimeZone.currentSystemDefault()) -
-                        session.startTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds
+                val originalTotalSeconds = DateTimeUtils.getDurationSeconds(
+                    startTime = session.startTime,
+                    endTime = session.endTime
+                )
 
                 val newEndTime = DateTimeUtils.getEndTimeForDuration(remainingSeconds)
 
-                val newStartTime = (newEndTime.toInstant(TimeZone.currentSystemDefault()) - originalTotalSeconds.seconds)
-                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                val newStartTime = DateTimeUtils.getStartTimeForDuration(
+                    endTime = newEndTime,
+                    seconds = originalTotalSeconds
+                )
 
                 sessionRepository.updateSession(
                     session.copy(
@@ -131,7 +159,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
                     appPackage = null
                 )
                 val totalSeconds = originalTotalSeconds.coerceAtLeast(1L)
-                routineSessionController.resumeRoutine(
+                sessionController.resumeSession(
                     sessionId = sessionId,
                     sessionName = session.sessionName,
                     remainingSeconds = remainingSeconds,
@@ -161,7 +189,7 @@ class SessionManagerRepositoryImpl @Inject constructor(
         if (routine != null && routine.isEnabled && !routine.isDeleted && routine.daysOfWeek.isNotEmpty()) {
             val startTime = routine.startTime
             val scheduleTime = DateTimeUtils.getNextScheduledTime(startTime, routine.daysOfWeek)
-            routineSessionController.scheduleRoutine(routineId, scheduleTime)
+            sessionController.scheduleRoutine(routineId, scheduleTime)
         }
     }
 
@@ -169,45 +197,21 @@ class SessionManagerRepositoryImpl @Inject constructor(
         val session = sessionRepository.getSessionById(sessionId)
         if (session != null) {
             val endTime = session.endTime
-            routineSessionController.scheduleStopSession(sessionId, endTime)
+            sessionController.scheduleStopSession(sessionId, endTime)
         }
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun createSession(
+    override suspend fun startScheduledSession(
         routineId: String,
-    ): String {
-        val routine = routineRepository.getRoutineById(routineId)
+    ): String? = mutex.withLock {
+        val routine = routineRepository.getRoutineById(routineId) ?: return@withLock null
         val sessionId = Uuid.generateV4().toString()
         val currentDateTime = DateTimeUtils.getCurrentDateTime()
-        val routineEndTime = routine?.endTime
-        val calculatedEndTime = if (routineEndTime != null) {
-            val candidateDate = currentDateTime.date
-            var endDateTime = LocalDateTime(
-                year = candidateDate.year,
-                month = candidateDate.month,
-                day = candidateDate.day,
-                hour = routineEndTime.hour,
-                minute = routineEndTime.minute,
-                second = routineEndTime.second,
-                nanosecond = 0
-            )
-            if (endDateTime <= currentDateTime) {
-                val nextDay = candidateDate.plus(1, DateTimeUnit.DAY)
-                endDateTime = LocalDateTime(
-                    year = nextDay.year,
-                    month = nextDay.month,
-                    day = nextDay.day,
-                    hour = routineEndTime.hour,
-                    minute = routineEndTime.minute,
-                    second = routineEndTime.second,
-                    nanosecond = 0
-                )
-            }
-            endDateTime
-        } else {
-            currentDateTime
-        }
+        val calculatedEndTime = DateTimeUtils.getScheduledEndTime(
+            endTime = routine.endTime,
+            startTime = currentDateTime
+        )
 
         val sessionEntity = SessionEntity(
             id = sessionId,
@@ -218,31 +222,31 @@ class SessionManagerRepositoryImpl @Inject constructor(
             sessionStatus = SessionStatus.RUNNING,
             sessionType = SessionType.SCHEDULED,
             createdAt = currentDateTime,
-            sessionName = routine?.name ?: "",
-            unlockChallengeType = routine?.unlockChallengeType ?: UnlockChallengeType.STRICT_MODE,
-            waitDurationSeconds = routine?.waitDurationSeconds ?: 0,
-            blockedApps = routine?.disableAppPackages,
+            sessionName = routine.name,
+            unlockChallengeType = routine.unlockChallengeType,
+            waitDurationSeconds = routine.waitDurationSeconds ?: 0,
+            blockedApps = routine.disableAppPackages,
             actualStartTime = currentDateTime,
         )
         sessionRepository.insertSession(sessionEntity)
         scheduleSession(routineId)
-        startSession(sessionId)
-        return sessionId
+        startSession(sessionEntity)
+        sessionId
     }
 
     override suspend fun cancelScheduledRoutine(routineId: String) {
-        routineSessionController.cancelRoutine(routineId)
+        sessionController.cancelRoutine(routineId)
     }
 
     override suspend fun cancelScheduledSession(sessionId: String) {
-        routineSessionController.cancelScheduledSession(sessionId)
+        sessionController.cancelScheduledSession(sessionId)
     }
 
-    override suspend fun replaceSession(sessionId: String) {
+    override suspend fun restoreSession(sessionId: String) {
         val session = sessionRepository.getSessionById(sessionId) ?: return
         val remainingSeconds = getRemainingSeconds(session)
         val totalSeconds = getTotalSeconds(session)
-        routineSessionController.startSession(
+        sessionController.startSession(
             sessionId = sessionId,
             sessionName = session.sessionName,
             remainingSeconds = remainingSeconds,
@@ -260,7 +264,9 @@ class SessionManagerRepositoryImpl @Inject constructor(
     }
 
     private fun getTotalSeconds(session: SessionEntity): Long {
-        return (session.endTime.toInstant(TimeZone.currentSystemDefault()) -
-                session.startTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds.coerceAtLeast(1L)
+        return DateTimeUtils.getDurationSeconds(
+            startTime = session.startTime,
+            endTime = session.endTime
+        ).coerceAtLeast(1L)
     }
 }

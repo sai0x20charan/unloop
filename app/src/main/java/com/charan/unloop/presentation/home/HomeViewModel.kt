@@ -2,20 +2,15 @@ package com.charan.unloop.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.charan.unloop.core.overlay.RoutineSessionController
 import com.charan.unloop.core.utils.DateTimeUtils
-import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
-import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.data.local.model.enums.SessionType
 import com.charan.unloop.data.repository.InstalledAppsRepository
-import com.charan.unloop.data.repository.SessionManagerRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
 import com.charan.unloop.presentation.common.toCurrentSessionUiModel
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,14 +21,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val installedAppsRepository: InstalledAppsRepository,
     private val sessionRepository: SessionRepository,
-    private val sessionManagerRepository: SessionManagerRepository
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -101,15 +94,6 @@ class HomeViewModel @Inject constructor(
                         )
                     )
                 }
-                if (remaining <= 0) {
-                    sessionRepository.updateSessionStatus(
-                        sessionId = sessionEntity.id,
-                        status = SessionStatus.COMPLETED,
-                        actualEndTime = DateTimeUtils.getCurrentDateTime()
-                    )
-                    sessionManagerRepository.stopSession(sessionEntity.id)
-                    break
-                }
                 delay(1000.milliseconds)
             }
         }
@@ -136,11 +120,11 @@ class HomeViewModel @Inject constructor(
 
     private fun handlePauseSessionClick() = viewModelScope.launch {
         if (_state.value.currentSessionUiModel.isRunning) {
-            sessionManagerRepository.pauseSession(
+            sessionManager.pauseSession(
                 sessionId = state.value.currentSessionUiModel.sessionId,
             )
         } else if (_state.value.currentSessionUiModel.isPaused) {
-            sessionManagerRepository.resumeSession(state.value.currentSessionUiModel.sessionId)
+            sessionManager.resumeSession(state.value.currentSessionUiModel.sessionId)
         }
     }
 
@@ -156,38 +140,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    @OptIn(ExperimentalUuidApi::class)
     private fun handleStartSessionClick() = viewModelScope.launch {
         val uiModel = _state.value.instantSessionUiModel
         if (!uiModel.canStart) return@launch
-        val totalSeconds = uiModel.totalSeconds.toLong()
-
-        val startTime = DateTimeUtils.getCurrentDateTime()
-        val endTime = DateTimeUtils.getEndTimeForDuration(totalSeconds)
         val blockedApps = uiModel.installedApps
             .filter { it.isSelected }
             .map { it.packageName }
 
-        val id = Uuid.generateV4().toString()
-        sessionRepository.insertSession(
-            SessionEntity(
-                id = id,
-                actualStartTime = startTime,
-                startTime = startTime,
-                endTime = endTime,
-                blockedApps = blockedApps,
-                sessionStatus = SessionStatus.RUNNING,
-                sessionType = SessionType.INSTANT,
-                sessionName = uiModel.sessionTitle.trim().ifBlank { DEFAULT_SESSION_TITLE },
-                unlockChallengeType = UnlockChallengeType.STRICT_MODE,
-                createdAt = startTime
-            )
+        sessionManager.startInstantSession(
+            name = uiModel.sessionTitle,
+            durationSeconds = uiModel.totalSeconds.toLong(),
+            blockedApps = blockedApps
         )
-        sessionManagerRepository.startSession(id)
     }
 
     private fun handleEndSessionClick() = viewModelScope.launch {
-        sessionManagerRepository.stopSession(_state.value.currentSessionUiModel.sessionId)
+        sessionManager.stopSession(_state.value.currentSessionUiModel.sessionId)
     }
 
     private fun handleEditSessionTime() {
@@ -274,7 +242,6 @@ class HomeViewModel @Inject constructor(
     }
 
     private companion object {
-        const val DEFAULT_SESSION_TITLE = "Focus session"
         const val MAX_TITLE_LENGTH = 40
     }
 }
