@@ -41,9 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.presentation.routine.RoutineEvent
 import com.charan.unloop.presentation.routine.UnlockChallengeType
-import com.charan.unloop.presentation.routine.components.NumberPicker
 import com.charan.unloop.presentation.routine.components.RoutineLazyColumn
-import com.swmansion.kmpwheelpicker.rememberWheelPickerState
 
 @Composable
 fun UnlockChallengePage(

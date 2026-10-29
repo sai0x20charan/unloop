@@ -127,7 +127,6 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.swmansion.kmpWheelPicker)
 
     // Hilt
     implementation(libs.hilt.android)

@@ -1,32 +1,30 @@
 [versions]
 accompanistPermissions = "0.37.3"
-agp = "9.4.1"
-coreKtx = "1.19.0"
+agp = "9.5.0"
+coreKtx = "1.19.1"
 coreSplashscreen = "1.2.0"
-datastorePreferences = "1.2.1"
+datastorePreferences = "1.3.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxDatetime = "0.8.0"
-kotlinxSerialization = "1.7.3"
+kotlinxSerialization = "1.12.0"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
-kotlin = "2.4.0"
-composeBom = "2026.06.01"
-constraintlayoutCompose = "1.1.1"
+kotlin = "2.4.21"
+composeBom = "2026.09.00"
 ksp = "2.3.10"
 hilt = "2.60.1"
-room = "2.8.4"
-navigation3 = "1.2.0-alpha06"
+room = "2.8.5"
+navigation3 = "1.2.0"
 hiltNavigationCompose = "1.4.0"
-material3 = "1.5.0-beta01"
-kmpWheelPicker = "0.3.0"
+material3 = "1.5.0-beta02"
 nav3Lifecycle = "2.11.0"
 foundation = "1.12.1"
-firebaseCrashlytics = "21.0.0"
+firebaseCrashlytics = "21.0.1"
 googleGmsGoogleServices = "4.5.0"
 googleFirebaseCrashlytics = "3.0.8"
-aboutLibraries = "15.2.0"
+aboutLibraries = "15.3.0"
 sqlite = "2.7.1"
 
 
@@ -54,7 +52,6 @@ androidx-compose-material3-adaptive-navigation-suite = { module = "androidx.comp
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-swmansion-kmpWheelPicker = { module = "com.swmansion.kmpwheelpicker:kmp-wheel-picker", version.ref = "kmpWheelPicker" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 
 
