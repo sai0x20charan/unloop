@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -123,6 +124,12 @@ fun SettingsScreen(
                     indexItem = IndexItem.FIRST,
                     onClick = {
                         viewModel.onEvent(SettingsEvent.OnOpenSourceLicensesClick)
+                    },
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Rounded.WorkspacePremium,
+                            contentDescription = "Open Source Libraries"
+                        )
                     }
                 )
                 CustomSegmentedListItem(

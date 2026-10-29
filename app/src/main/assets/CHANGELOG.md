@@ -1,3 +1,12 @@
+## New Features
+
+- Added app search when choosing apps to block in routines and instant focus sessions.
+
+## Improvements
+
+- Improved active app detection so the blocking screen updates when switching apps or returning to the launcher.
+- Updated the default colors for light and dark themes.
+
 ## Bug Fixes
 
-- Fixed the blocking overlay to fill the screen while keeping its content clear of system bars and display cutouts.
+- Fixed the timer ring appearing full when no focus session is active.
