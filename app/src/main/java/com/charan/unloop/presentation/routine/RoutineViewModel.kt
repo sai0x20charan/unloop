@@ -172,7 +172,6 @@ class RoutineViewModel @AssistedInject constructor(
             routine.name.isBlank() -> "Routine name cannot be empty"
             routine.selectedDays.isEmpty() -> "Please select at least one day for the routine"
             startTime == null || endTime == null -> "Please select start and end times"
-            startTime >= endTime -> "Start time must be before end time"
             else -> null
         }
 
