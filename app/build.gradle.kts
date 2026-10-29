@@ -27,8 +27,8 @@ android {
         applicationId = "com.charan.unloop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 8
-        versionName = "0.0.4"
+        versionCode = 9
+        versionName = "0.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
