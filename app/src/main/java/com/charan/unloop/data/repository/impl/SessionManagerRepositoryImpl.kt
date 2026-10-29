@@ -44,7 +44,12 @@ class SessionManagerRepositoryImpl @Inject constructor(
             )
             val remainingSeconds = getRemainingSeconds(session)
             val totalSeconds = getTotalSeconds(session)
-            routineSessionController.startSession(sessionId, remainingSeconds, totalSeconds)
+            routineSessionController.startSession(
+                sessionId = sessionId,
+                sessionName = session.sessionName,
+                remainingSeconds = remainingSeconds,
+                totalSeconds = totalSeconds
+            )
             scheduleEnd(sessionId)
         }
     }
@@ -87,7 +92,12 @@ class SessionManagerRepositoryImpl @Inject constructor(
                 )
                 cancelScheduledSession(sessionId)
                 val totalSeconds = getTotalSeconds(session)
-                routineSessionController.pauseSession(sessionId, remaining, totalSeconds)
+                routineSessionController.pauseSession(
+                    sessionId = sessionId,
+                    sessionName = session.sessionName,
+                    remainingSeconds = remaining,
+                    totalSeconds = totalSeconds
+                )
             }
         }
     }
@@ -121,7 +131,12 @@ class SessionManagerRepositoryImpl @Inject constructor(
                     appPackage = null
                 )
                 val totalSeconds = originalTotalSeconds.coerceAtLeast(1L)
-                routineSessionController.resumeRoutine(sessionId, remainingSeconds, totalSeconds)
+                routineSessionController.resumeRoutine(
+                    sessionId = sessionId,
+                    sessionName = session.sessionName,
+                    remainingSeconds = remainingSeconds,
+                    totalSeconds = totalSeconds
+                )
             }
         }
     }
@@ -227,7 +242,12 @@ class SessionManagerRepositoryImpl @Inject constructor(
         val session = sessionRepository.getSessionById(sessionId) ?: return
         val remainingSeconds = getRemainingSeconds(session)
         val totalSeconds = getTotalSeconds(session)
-        routineSessionController.startSession(sessionId, remainingSeconds, totalSeconds)
+        routineSessionController.startSession(
+            sessionId = sessionId,
+            sessionName = session.sessionName,
+            remainingSeconds = remainingSeconds,
+            totalSeconds = totalSeconds
+        )
         scheduleEnd(sessionId)
     }
 

@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.ServiceCompat
+import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.core.utils.DateTimeUtils.toLocalDateTime
@@ -72,6 +73,7 @@ class RoutineForegroundService : Service() {
     lateinit var sessionEventRepository: SessionEventRepository
 
     private var sessionId : String? = null
+    private var sessionName: String? = null
     private var monitoringJob: Job? = null
     private var notificationJob: Job? = null
     private var currentNotification: Notification? = null
@@ -88,6 +90,7 @@ class RoutineForegroundService : Service() {
         const val ACTION_REQUEST_PAUSE_SESSION = "com.charan.unloop.REQUEST_PAUSE_SESSION"
         const val ACTION_REQUEST_RESUME_SESSION = "com.charan.unloop.REQUEST_RESUME_SESSION"
         const val EXTRA_SESSION_ID = "sessionId"
+        const val EXTRA_SESSION_NAME = "sessionName"
         const val EXTRA_ROUTINE_ID = "routineId"
         const val EXTRA_REMAINING_SECONDS = "remainingSeconds"
         const val EXTRA_TOTAL_SECONDS = "totalSeconds"
@@ -105,6 +108,7 @@ class RoutineForegroundService : Service() {
         startId: Int
     ): Int {
         sessionId = intent?.getStringExtra(EXTRA_SESSION_ID) ?: sessionId
+        sessionName = intent?.getStringExtra(EXTRA_SESSION_NAME) ?: sessionName
         val action = intent?.action
         val remainingSeconds = intent?.takeIf { it.hasExtra(EXTRA_REMAINING_SECONDS) }
             ?.getLongExtra(EXTRA_REMAINING_SECONDS, 0L)
@@ -116,6 +120,7 @@ class RoutineForegroundService : Service() {
             action == ACTION_RESUME_SESSION
         ) {
             notificationHelper.buildForegroundNotification(
+                title = sessionName ?: getString(R.string.home_session_title_default),
                 sessionId = sessionId,
                 remainingSeconds = remainingSeconds,
                 totalTime = totalSeconds,
@@ -215,6 +220,7 @@ class RoutineForegroundService : Service() {
                 val remainingMillis = (endTime - SystemClock.elapsedRealtime()).coerceAtLeast(0L)
                 val remainingTime = (remainingMillis + 999L) / 1000L
                 currentNotification = notificationHelper.updateNotification(
+                    title = sessionName ?: getString(R.string.home_session_title_default),
                     sessionId = currentSessionId,
                     remainingSeconds = remainingTime,
                     totalTime = totalSeconds

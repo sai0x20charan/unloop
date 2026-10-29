@@ -76,6 +76,7 @@ class RoutineSessionController @Inject constructor(
 
     fun pauseSession(
         sessionId: String,
+        sessionName: String,
         remainingSeconds: Long? = null,
         totalSeconds: Long? = null
     ) {
@@ -85,6 +86,7 @@ class RoutineSessionController @Inject constructor(
         ).apply {
             action = RoutineForegroundService.ACTION_PAUSE_SESSION
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+            putExtra(RoutineForegroundService.EXTRA_SESSION_NAME, sessionName)
             if (remainingSeconds != null) {
                 putExtra(RoutineForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }
@@ -97,6 +99,7 @@ class RoutineSessionController @Inject constructor(
 
     fun resumeRoutine(
         sessionId: String,
+        sessionName: String,
         remainingSeconds: Long? = null,
         totalSeconds: Long? = null
     ) {
@@ -106,6 +109,7 @@ class RoutineSessionController @Inject constructor(
         ).apply {
             action = RoutineForegroundService.ACTION_RESUME_SESSION
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+            putExtra(RoutineForegroundService.EXTRA_SESSION_NAME, sessionName)
             if (remainingSeconds != null) {
                 putExtra(RoutineForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }
@@ -152,11 +156,13 @@ class RoutineSessionController @Inject constructor(
 
     fun startSession(
         sessionId: String,
+        sessionName: String,
         remainingSeconds: Long? = null,
         totalSeconds: Long? = null
     ) {
         val intent = Intent(context, RoutineForegroundService::class.java).apply {
             putExtra(RoutineForegroundService.EXTRA_SESSION_ID, sessionId)
+            putExtra(RoutineForegroundService.EXTRA_SESSION_NAME, sessionName)
             if (remainingSeconds != null) {
                 putExtra(RoutineForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }

@@ -7,8 +7,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.text.format.DateUtils
+import androidx.core.app.NotificationCompat
 import com.charan.unloop.MainActivity
 import com.charan.unloop.R
+import com.charan.unloop.core.utils.DateTimeUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -24,8 +27,8 @@ class NotificationHelper @Inject constructor(
     }
 
     companion object {
-        const val NOTIFICATION_CHANNEL_ID = "routine_channel"
-        const val NOTIFICATION_CHANNEL_NAME = "Routine Progress"
+        const val NOTIFICATION_CHANNEL_ID = "session_channel"
+        const val NOTIFICATION_CHANNEL_NAME = "Session Progress"
         const val NOTIFICATION_ID = 1
     }
 
@@ -33,19 +36,22 @@ class NotificationHelper @Inject constructor(
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
             NOTIFICATION_CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_HIGH
-        )
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            setSound(null, null)
+            enableVibration(false)
+        }
         notificationManager.createNotificationChannel(channel)
     }
 
     fun buildForegroundNotification(
-        title: String = "Routine Active",
-        message: String = "Monitoring app usage for routine",
+        title: String = context.getString(R.string.home_session_title_default),
         sessionId: String? = null,
         remainingSeconds: Long? = null,
         totalTime: Long? = null,
         isPaused: Boolean = false
     ): Notification {
+        val title = "$title${if (isPaused) " - Paused" else ""}"
         val contentIntent = PendingIntent.getActivity(
             context,
             0,
@@ -54,49 +60,23 @@ class NotificationHelper @Inject constructor(
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val displayTitle = if (isPaused && title == "Routine Active") "Routine Paused" else title
+        val formatedDuration = DateTimeUtils.formatDuration(remainingSeconds?.toInt() ?: 0)
 
         val builder = Notification.Builder(
             context,
             NOTIFICATION_CHANNEL_ID
         )
-            .setContentTitle(displayTitle)
-            .setContentText(message)
+            .setContentTitle(title)
             .setSmallIcon(R.drawable.unloop_notification_icon)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .setContentText(
+                "Remaining Time: $formatedDuration"
+            )
+            .setShowWhen(true)
             .setContentIntent(contentIntent)
-
-        if (remainingSeconds != null) {
-            if (!isPaused) {
-                builder
-                    .setWhen(
-                        System.currentTimeMillis() +
-                                remainingSeconds * 1000L
-                    )
-                    .setUsesChronometer(true)
-                    .setChronometerCountDown(true)
-            } else {
-                val hours = remainingSeconds / 3600
-                val minutes = (remainingSeconds % 3600) / 60
-                val seconds = remainingSeconds % 60
-
-                builder
-                    .setUsesChronometer(false)
-                    .setShowWhen(false)
-                    .setContentText(
-                        "Paused • %02d:%02d:%02d remaining".format(
-                            hours, minutes, seconds
-                        )
-                    )
-            }
-        } else {
-            builder.setShowWhen(false)
-            if (isPaused) {
-                builder.setContentText("Routine Paused")
-            }
-        }
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
 
         if (sessionId != null) {
             val pauseIntent = routineSessionController.createSessionPendingIntent(
@@ -155,16 +135,15 @@ class NotificationHelper @Inject constructor(
                 val progressStyle = Notification.ProgressStyle()
                     .addProgressSegment(Notification.ProgressStyle.Segment(max))
                     .setProgress(progress)
+
+
                 builder.setStyle(progressStyle)
                 builder.setRequestPromotedOngoing(true)
+                builder.setShortCriticalText(formatedDuration)
+
+
             } else {
                 builder.setProgress(max, progress, false)
-            }
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
-                builder.setRequestPromotedOngoing(true)
-            } else {
-                builder.setProgress(0, 0, false)
             }
         }
 
@@ -172,7 +151,7 @@ class NotificationHelper @Inject constructor(
     }
 
     fun updateNotification(
-        title: String = "Routine Active",
+        title: String = context.getString(R.string.home_session_title_default),
         message: String = "Monitoring app usage for routine",
         sessionId: String? = null,
         remainingSeconds: Long? = null,
@@ -181,7 +160,6 @@ class NotificationHelper @Inject constructor(
     ): Notification {
         val notification = buildForegroundNotification(
             title = title,
-            message = message,
             sessionId = sessionId,
             remainingSeconds = remainingSeconds,
             totalTime = totalTime,
