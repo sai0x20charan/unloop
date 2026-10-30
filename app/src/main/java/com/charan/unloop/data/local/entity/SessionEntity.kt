@@ -25,4 +25,5 @@ data class SessionEntity(
     val waitDurationSeconds : Int? = null,
     val createdAt : LocalDateTime,
     val pausedRemainingSeconds : Long? = null,
+    val areSessionControlsLocked: Boolean = false,
 )

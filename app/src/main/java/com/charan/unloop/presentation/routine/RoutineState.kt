@@ -1,6 +1,7 @@
 package com.charan.unloop.presentation.routine
 
-import android.graphics.drawable.Drawable
+import androidx.annotation.StringRes
+import com.charan.unloop.R
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import kotlinx.datetime.LocalTime
@@ -22,7 +23,12 @@ data class RoutineState(
     val showStartTimeDialog : Boolean = false,
     val showIntervalDialog : Boolean = false,
     val installedApps : List<InstalledAppsUiModel> = emptyList(),
-    val stepTitles: List<String> = listOf("Schedule", "Select Apps", "Unlock Challenge", "Review & Confirm"),
+    @StringRes val stepTitles: List<Int> = listOf(
+        R.string.routine_step_schedule,
+        R.string.routine_step_select_apps,
+        R.string.routine_focus_rules,
+        R.string.routine_step_review
+    ),
 )
 
 

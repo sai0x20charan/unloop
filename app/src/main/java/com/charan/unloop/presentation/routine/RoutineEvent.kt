@@ -19,4 +19,5 @@ sealed class RoutineEvent {
 
     data class OnUnlockChallengeTypeChange(val type: UnlockChallengeType) : RoutineEvent()
     data class OnWaitTimeSecondsChange(val seconds: Int) : RoutineEvent()
+    data class OnSessionControlsLockedChange(val locked: Boolean) : RoutineEvent()
 }

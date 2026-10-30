@@ -7,6 +7,7 @@ import com.charan.unloop.data.local.AppDatabase
 import com.charan.unloop.data.local.dao.RoutineDao
 import com.charan.unloop.data.local.dao.SessionDao
 import com.charan.unloop.data.local.dao.SessionEventDao
+import com.charan.unloop.data.local.migration.MIGRATION_2_3
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +27,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration(false)
+            .addMigrations(MIGRATION_2_3)
             .setQueryCoroutineContext(Dispatchers.IO)
             .setDriver(BundledSQLiteDriver())
             .build()

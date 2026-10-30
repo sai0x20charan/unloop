@@ -45,7 +45,8 @@ data class CurrentSessionUiModel(
     val blockedPackages: List<String> = emptyList(),
     val remainingSeconds: Int = 0,
     val totalSeconds: Int = 0,
-    val sessionStatus : SessionStatus = SessionStatus.STOPPED
+    val sessionStatus : SessionStatus = SessionStatus.STOPPED,
+    val areSessionControlsLocked: Boolean = false
 
 
 ) {

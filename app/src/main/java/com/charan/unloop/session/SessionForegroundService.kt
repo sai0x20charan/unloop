@@ -50,6 +50,7 @@ class SessionForegroundService : Service() {
     private var monitoringJob: Job? = null
     private var notificationJob: Job? = null
     private var currentNotification: Notification? = null
+    private var areSessionControlsLocked = true
 
     companion object {
 
@@ -67,6 +68,7 @@ class SessionForegroundService : Service() {
         const val EXTRA_ROUTINE_ID = "routineId"
         const val EXTRA_REMAINING_SECONDS = "remainingSeconds"
         const val EXTRA_TOTAL_SECONDS = "totalSeconds"
+        const val EXTRA_SESSION_CONTROLS_LOCKED = "sessionControlsLocked"
     }
 
     private val serviceScope = CoroutineScope(
@@ -83,6 +85,12 @@ class SessionForegroundService : Service() {
         sessionId = intent?.getStringExtra(EXTRA_SESSION_ID) ?: sessionId
         sessionName = intent?.getStringExtra(EXTRA_SESSION_NAME) ?: sessionName
         val action = intent?.action
+        if (action == ACTION_START_SESSION) {
+            areSessionControlsLocked = intent.getBooleanExtra(EXTRA_SESSION_CONTROLS_LOCKED, true)
+        } else if (action == ACTION_PAUSE_SESSION || action == ACTION_RESUME_SESSION) {
+            // Only unlocked sessions receive pause and resume commands from the manager.
+            areSessionControlsLocked = false
+        }
         val remainingSeconds = intent?.takeIf { it.hasExtra(EXTRA_REMAINING_SECONDS) }
             ?.getLongExtra(EXTRA_REMAINING_SECONDS, 0L)
         val totalSeconds = intent?.takeIf { it.hasExtra(EXTRA_TOTAL_SECONDS) }
@@ -97,7 +105,8 @@ class SessionForegroundService : Service() {
                 sessionId = sessionId,
                 remainingSeconds = remainingSeconds,
                 totalTime = totalSeconds,
-                isPaused = action == ACTION_PAUSE_SESSION
+                isPaused = action == ACTION_PAUSE_SESSION,
+                areSessionControlsLocked = areSessionControlsLocked
             )
         } else {
             currentNotification!!
@@ -196,7 +205,8 @@ class SessionForegroundService : Service() {
                     title = sessionName ?: getString(R.string.home_session_title_default),
                     sessionId = currentSessionId,
                     remainingSeconds = remainingTime,
-                    totalTime = totalSeconds
+                    totalTime = totalSeconds,
+                    areSessionControlsLocked = areSessionControlsLocked
                 )
                 if (remainingTime == 0L) break
             }

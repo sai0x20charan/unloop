@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -159,7 +160,7 @@ fun RoutineScreen(
                     .padding(innerPadding.toScreenContentPadding(includeBottomInset = false)),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val stepTitle = state.stepTitles.getOrNull(pagerState.currentPage) ?: ""
+                val stepTitle = state.stepTitles[pagerState.currentPage]
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -172,7 +173,7 @@ fun RoutineScreen(
                     )
 
                     Text(
-                        text = stepTitle,
+                        text = stringResource(stepTitle),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -216,6 +217,7 @@ fun RoutineScreen(
                     2 -> UnlockChallengePage(
                         unlockChallengeType = routine.unlockChallengeType,
                         waitTimeSeconds = routine.waitDurationSeconds ?: 30,
+                        areSessionControlsLocked = routine.areSessionControlsLocked,
                         onEvent = viewModel::onEvent,
                         contentPadding = innerPadding.toScreenContentPadding(includeTopInset = false, top = 10.dp)
                     )

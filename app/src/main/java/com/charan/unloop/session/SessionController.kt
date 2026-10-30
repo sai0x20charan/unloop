@@ -40,7 +40,8 @@ interface SessionController {
         sessionId: String,
         sessionName: String,
         remainingSeconds: Long? = null,
-        totalSeconds: Long? = null
+        totalSeconds: Long? = null,
+        areSessionControlsLocked: Boolean = false
     )
 
     fun stopSession(sessionId: String)

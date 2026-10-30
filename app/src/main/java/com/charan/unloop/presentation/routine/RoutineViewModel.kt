@@ -4,11 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
+import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
-import com.charan.unloop.presentation.common.toRoutineEntity
-import com.charan.unloop.presentation.common.toRoutineUiModel
+import com.charan.unloop.presentation.common.mapper.toRoutineEntity
+import com.charan.unloop.presentation.common.mapper.toRoutineUiModel
 import com.charan.unloop.session.SessionManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -76,6 +77,13 @@ class RoutineViewModel @AssistedInject constructor(
             RoutineEvent.OnSelectAllAppsClick -> handleSelectAllAppsClick()
             is RoutineEvent.OnUnlockChallengeTypeChange -> handleUnlockChallengeTypeChange(event.type)
             is RoutineEvent.OnWaitTimeSecondsChange -> handleWaitTimeSecondsChange(event.seconds)
+            is RoutineEvent.OnSessionControlsLockedChange -> handleSessionControlLockChange(event.locked)
+        }
+    }
+
+    private fun handleSessionControlLockChange(locked: Boolean) {
+        _state.update {
+            it.copy(routine = it.routine.copy(areSessionControlsLocked = locked))
         }
     }
 

@@ -149,7 +149,7 @@ fun HomeScreen(
                     label = "sessionAction",
                     modifier = Modifier.fillMaxWidth(),
                 ) { sessionActive ->
-                    if (sessionActive) {
+                     if (sessionActive && !state.currentSessionUiModel.areSessionControlsLocked) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -206,7 +206,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                    } else {
+                    } else if(!sessionActive) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Button(
                                 onClick = {

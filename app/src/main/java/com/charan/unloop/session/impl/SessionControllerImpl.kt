@@ -158,11 +158,13 @@ class SessionControllerImpl @Inject constructor(
         sessionId: String,
         sessionName: String,
         remainingSeconds: Long?,
-        totalSeconds: Long?
+        totalSeconds: Long?,
+        areSessionControlsLocked: Boolean
     ) {
         val intent = Intent(context, SessionForegroundService::class.java).apply {
             putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
             putExtra(SessionForegroundService.EXTRA_SESSION_NAME, sessionName)
+            putExtra(SessionForegroundService.EXTRA_SESSION_CONTROLS_LOCKED, areSessionControlsLocked)
             if (remainingSeconds != null) {
                 putExtra(SessionForegroundService.EXTRA_REMAINING_SECONDS, remainingSeconds)
             }

@@ -22,10 +22,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,9 +38,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.charan.unloop.R
 import com.charan.unloop.presentation.routine.RoutineEvent
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 import com.charan.unloop.presentation.routine.components.RoutineLazyColumn
@@ -47,6 +51,7 @@ import com.charan.unloop.presentation.routine.components.RoutineLazyColumn
 fun UnlockChallengePage(
     unlockChallengeType: UnlockChallengeType,
     waitTimeSeconds: Int,
+    areSessionControlsLocked: Boolean,
     onEvent: (RoutineEvent) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
@@ -144,6 +149,33 @@ fun UnlockChallengePage(
                     }
                 }
             }
+        }
+
+        item {
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+
+            Text(
+                text = "Session control"
+            )
+
+            ListItem(
+                content = {
+                    Text("Lock Session Controls")
+                },
+                supportingContent = {
+                    Text(
+                        text = "You won't be able to pause or end session"
+                    )
+                },
+                trailingContent = {
+                    Switch(
+                        checked = areSessionControlsLocked,
+                        onCheckedChange = { onEvent(RoutineEvent.OnSessionControlsLockedChange(it)) }
+                    )
+                }
+            )
         }
     }
 }

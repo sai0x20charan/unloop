@@ -68,7 +68,8 @@ class SessionManagerImpl @Inject constructor(
             sessionId = session.id,
             sessionName = session.sessionName,
             remainingSeconds = getRemainingSeconds(session),
-            totalSeconds = getTotalSeconds(session)
+            totalSeconds = getTotalSeconds(session),
+            areSessionControlsLocked = session.areSessionControlsLocked
         )
         scheduleEnd(session.id)
     }
@@ -101,7 +102,9 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun pauseSession(sessionId: String) {
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
-            if (session != null && session.sessionStatus == SessionStatus.RUNNING) {
+            if (session != null && session.sessionStatus == SessionStatus.RUNNING &&
+                !session.areSessionControlsLocked
+            ) {
                 val remaining = DateTimeUtils.getRemainingDuration(session.endTime)
                 sessionRepository.updateSession(
                     session.copy(
@@ -129,7 +132,9 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun resumeSession(sessionId: String) {
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
-            if (session != null && session.sessionStatus == SessionStatus.PAUSED) {
+            if (session != null && session.sessionStatus == SessionStatus.PAUSED &&
+                !session.areSessionControlsLocked
+            ) {
                 val remainingSeconds = session.pausedRemainingSeconds ?: 0L
 
                 val originalTotalSeconds = DateTimeUtils.getDurationSeconds(
@@ -227,6 +232,7 @@ class SessionManagerImpl @Inject constructor(
             waitDurationSeconds = routine.waitDurationSeconds ?: 0,
             blockedApps = routine.disableAppPackages,
             actualStartTime = currentDateTime,
+            areSessionControlsLocked = routine.areSessionControlsLocked,
         )
         sessionRepository.insertSession(sessionEntity)
         scheduleSession(routineId)
@@ -250,7 +256,8 @@ class SessionManagerImpl @Inject constructor(
             sessionId = sessionId,
             sessionName = session.sessionName,
             remainingSeconds = remainingSeconds,
-            totalSeconds = totalSeconds
+            totalSeconds = totalSeconds,
+            areSessionControlsLocked = session.areSessionControlsLocked
         )
         scheduleEnd(sessionId)
     }

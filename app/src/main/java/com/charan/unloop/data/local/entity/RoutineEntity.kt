@@ -40,6 +40,8 @@ data class RoutineEntity(
 
     val isIntervalBlocking: Boolean = false,
     val intervalMinutes : Int?,
-    val disableAppPackages : List<String>?
+    val disableAppPackages : List<String>?,
+
+    val areSessionControlsLocked: Boolean = false,
 
     )

@@ -1,4 +1,4 @@
-package com.charan.unloop.presentation.common
+package com.charan.unloop.presentation.common.mapper
 
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
@@ -27,6 +27,7 @@ fun RoutineUiModel.toRoutineEntity(id : String? = null, createdAt : LocalDateTim
         isIntervalBlocking = false,
         unlockChallengeType = unlockChallengeType,
         waitDurationSeconds = waitDurationSeconds,
+        areSessionControlsLocked = areSessionControlsLocked,
         createdAt = createdAt ?: DateTimeUtils.getCurrentDateTime(),
         updatedAt = DateTimeUtils.getCurrentDateTime(),
         disableAppPackages = blockedApps,
@@ -41,13 +42,14 @@ fun RoutineEntity.toRoutineUiModel(): RoutineUiModel {
         id = id,
         name = name,
         description = description ?: "",
-        selectedDays = daysOfWeek ?: emptyList(),
+        selectedDays = daysOfWeek,
         startTime = startTime,
         endTime = endTime,
         blockedApps = disableAppPackages ?: emptyList(),
         isEnabled = isEnabled,
         unlockChallengeType = unlockChallengeType,
-        waitDurationSeconds = waitDurationSeconds
+        waitDurationSeconds = waitDurationSeconds,
+        areSessionControlsLocked = areSessionControlsLocked
     )
 }
 
@@ -69,6 +71,7 @@ fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
         endTime = endTime.toDisplayString(),
         remainingSeconds = remaining,
         totalSeconds = total,
-        blockedPackages = blockedApps.orEmpty()
+        blockedPackages = blockedApps.orEmpty(),
+        areSessionControlsLocked = areSessionControlsLocked
     )
 }

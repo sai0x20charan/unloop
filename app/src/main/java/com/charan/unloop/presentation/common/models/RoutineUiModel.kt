@@ -17,6 +17,7 @@ data class RoutineUiModel(
 
     val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.WAIT_TIME,
     val waitDurationSeconds: Int? = null,
+    val areSessionControlsLocked: Boolean = false,
 ) {
     val formattedTime: String
         get() = when {

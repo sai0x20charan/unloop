@@ -3,7 +3,7 @@ package com.charan.unloop.presentation.all_routines
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.data.repository.RoutineRepository
-import com.charan.unloop.presentation.common.toRoutineUiModel
+import com.charan.unloop.presentation.common.mapper.toRoutineUiModel
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel

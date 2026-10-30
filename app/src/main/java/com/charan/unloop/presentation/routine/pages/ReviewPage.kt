@@ -26,8 +26,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import com.charan.unloop.R
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.routine.UnlockChallengeType
@@ -118,16 +121,28 @@ fun ReviewPage(
                 // Unlock Challenge Section
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "Unlock Challenge Type",
+                        text = stringResource(R.string.routine_focus_rules),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     val challengeText = when (routine.unlockChallengeType) {
-                        UnlockChallengeType.WAIT_TIME -> "Wait Time Challenge (${routine.waitDurationSeconds ?: 30} seconds delay)"
+                        UnlockChallengeType.WAIT_TIME -> stringResource(R.string.routine_wait_to_unlock) +
+                            " · " + pluralStringResource(
+                                R.plurals.routine_wait_seconds,
+                                routine.waitDurationSeconds ?: 30,
+                                routine.waitDurationSeconds ?: 30
+                            )
 
-                        UnlockChallengeType.STRICT_MODE -> "Strict Mode (No unlocks allowed)"
+                        UnlockChallengeType.STRICT_MODE -> stringResource(R.string.routine_no_unlocks)
                     }
                     Text(challengeText, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(
+                            if (routine.areSessionControlsLocked) R.string.session_controls_locked
+                            else R.string.routine_session_controls_available
+                        ),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
 
                 HorizontalDivider()

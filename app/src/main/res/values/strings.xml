@@ -1,4 +1,26 @@
 <resources>
+    <string name="routine_step_schedule">Schedule</string>
+    <string name="routine_step_select_apps">Select apps</string>
+    <string name="routine_step_review">Review &amp; confirm</string>
+    <string name="routine_focus_rules">Focus rules</string>
+    <string name="routine_focus_rules_description">Choose how you can unlock apps and control your session.</string>
+    <string name="routine_unlocking_apps">Unlocking blocked apps</string>
+    <string name="routine_wait_to_unlock">Wait before unlocking</string>
+    <string name="routine_wait_to_unlock_description">Take a moment before opening a blocked app.</string>
+    <string name="routine_wait_time">Wait time</string>
+    <plurals name="routine_wait_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <string name="routine_no_unlocks">No app unlocks</string>
+    <string name="routine_no_unlocks_description">Blocked apps stay locked during the session.</string>
+    <string name="routine_session_controls">Session controls</string>
+    <string name="routine_lock_session_controls">Lock session controls</string>
+    <string name="routine_lock_session_controls_description">You won\'t be able to pause or end the session early.</string>
+    <string name="routine_lock_session_controls_note">Applies when the session starts. You can change this setting before it begins.</string>
+    <string name="routine_lock_session_controls_active">You can change this setting after the current session ends.</string>
+    <string name="routine_session_controls_available">Pause and End session available</string>
+    <string name="session_controls_locked">Session controls locked</string>
     <string name="apps_search_hint">Search apps</string>
     <string name="apps_clear_search">Clear search</string>
     <string name="apps_no_search_results">No apps found</string>

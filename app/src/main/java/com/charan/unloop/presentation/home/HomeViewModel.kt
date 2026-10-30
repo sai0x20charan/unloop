@@ -9,7 +9,7 @@ import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
-import com.charan.unloop.presentation.common.toCurrentSessionUiModel
+import com.charan.unloop.presentation.common.mapper.toCurrentSessionUiModel
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay

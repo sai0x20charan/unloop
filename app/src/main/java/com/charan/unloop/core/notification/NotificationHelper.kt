@@ -51,7 +51,8 @@ class NotificationHelper @Inject constructor(
         sessionId: String? = null,
         remainingSeconds: Long? = null,
         totalTime: Long? = null,
-        isPaused: Boolean = false
+        isPaused: Boolean = false,
+        areSessionControlsLocked: Boolean = false
     ): Notification {
         val title = "$title${if (isPaused) " - Paused" else ""}"
         val contentIntent = PendingIntent.getActivity(
@@ -80,7 +81,7 @@ class NotificationHelper @Inject constructor(
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
 
-        if (sessionId != null) {
+        if (sessionId != null && !areSessionControlsLocked) {
             val pauseIntent = sessionController.createSessionPendingIntent(
                 sessionId
             ) {
@@ -158,14 +159,16 @@ class NotificationHelper @Inject constructor(
         sessionId: String? = null,
         remainingSeconds: Long? = null,
         totalTime: Long? = null,
-        isPaused: Boolean = false
+        isPaused: Boolean = false,
+        areSessionControlsLocked: Boolean = false
     ): Notification {
         val notification = buildForegroundNotification(
             title = title,
             sessionId = sessionId,
             remainingSeconds = remainingSeconds,
             totalTime = totalTime,
-            isPaused = isPaused
+            isPaused = isPaused,
+            areSessionControlsLocked = areSessionControlsLocked
         )
         notificationManager.notify(NOTIFICATION_ID, notification)
         return notification
