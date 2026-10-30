@@ -63,6 +63,10 @@
     <string name="dark">Dark</string>
     <string name="navigation_profile">Profile</string>
     <string name="home_instant_session">Instant session</string>
+    <string name="home_wait_enabled_description">Unlock apps after a short wait.</string>
+    <string name="home_wait_disabled_description">Blocked apps stay locked.</string>
+    <string name="home_controls_available_description">Pause or end this session at any time.</string>
+    <string name="home_controls_locked_description">Available again when this session ends.</string>
     <string name="home_session_duration">Duration</string>
     <string name="home_hours">Hours</string>
     <string name="home_minutes">Minutes</string>

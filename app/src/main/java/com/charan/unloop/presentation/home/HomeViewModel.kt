@@ -10,6 +10,7 @@ import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
 import com.charan.unloop.presentation.common.mapper.toCurrentSessionUiModel
+import com.charan.unloop.presentation.routine.UnlockChallengeType
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -80,7 +81,8 @@ class HomeViewModel @Inject constructor(
             val isRunning = sessionEntity.sessionStatus == SessionStatus.RUNNING
             _state.update {
                 it.copy(
-                    currentSessionUiModel = sessionEntity.toCurrentSessionUiModel()
+                    currentSessionUiModel = sessionEntity.toCurrentSessionUiModel(),
+                    instantSessionUiModel = it.instantSessionUiModel.copy(isTitleEditable = false),
                 )
             }
             while (isRunning && isActive) {
@@ -115,6 +117,56 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.OnSessionTitleChange -> handleSessionTitleChange(event.title)
             HomeEvent.OnPauseSessionClick -> handlePauseSessionClick()
             HomeEvent.OnEndSessionClick -> handleEndSessionClick()
+            HomeEvent.OnEditTitleClick -> handleEditTitleClick()
+            HomeEvent.OnSessionControlsLockToggle -> handleSessionControlsLockToggle()
+            HomeEvent.OnWaitTimeToggle -> handleWaitTimeToggle()
+            is HomeEvent.OnWaitTimeChange -> handleWaitTimeChange(event.time)
+        }
+    }
+
+    private fun handleWaitTimeChange(time : Int) = viewModelScope.launch {
+        _state.update {
+            it.copy(
+                instantSessionUiModel = it.instantSessionUiModel.copy(
+                    waitTime = time
+                )
+            )
+
+        }
+
+    }
+
+    private fun handleWaitTimeToggle() = viewModelScope.launch {
+        _state.update {
+            it.copy(
+                instantSessionUiModel = it.instantSessionUiModel.copy(
+                    unlockChallengeType = if (it.instantSessionUiModel.unlockChallengeType == UnlockChallengeType.STRICT_MODE) {
+                        UnlockChallengeType.WAIT_TIME
+                    } else {
+                        UnlockChallengeType.STRICT_MODE
+                    }
+                )
+            )
+        }
+    }
+
+    private fun handleSessionControlsLockToggle() = viewModelScope.launch {
+        _state.update {
+            it.copy(
+                instantSessionUiModel =  it.instantSessionUiModel.copy(
+                    areSessionControlsLocked = !it.instantSessionUiModel.areSessionControlsLocked
+                )
+            )
+        }
+    }
+
+    private fun handleEditTitleClick() = viewModelScope.launch {
+        _state.update {
+            it.copy(
+                instantSessionUiModel = it.instantSessionUiModel.copy(
+                    isTitleEditable = !it.instantSessionUiModel.isTitleEditable
+                )
+            )
         }
     }
 
@@ -150,7 +202,10 @@ class HomeViewModel @Inject constructor(
         sessionManager.startInstantSession(
             name = uiModel.sessionTitle,
             durationSeconds = uiModel.totalSeconds.toLong(),
-            blockedApps = blockedApps
+            blockedApps = blockedApps,
+            areSessionControlsLocked = uiModel.areSessionControlsLocked,
+            unlockChallengeType = uiModel.unlockChallengeType,
+            waitTime = uiModel.waitTime,
         )
     }
 

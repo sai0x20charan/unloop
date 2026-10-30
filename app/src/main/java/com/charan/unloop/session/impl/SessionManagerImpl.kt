@@ -34,7 +34,10 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun startInstantSession(
         name: String,
         durationSeconds: Long,
-        blockedApps: List<String>
+        blockedApps: List<String>,
+        areSessionControlsLocked : Boolean,
+        unlockChallengeType: UnlockChallengeType,
+        waitTime : Int,
     ): String? = mutex.withLock {
         if (durationSeconds <= 0 || blockedApps.isEmpty()) return@withLock null
 
@@ -50,8 +53,10 @@ class SessionManagerImpl @Inject constructor(
             sessionName = name.trim().ifBlank {
                 context.getString(R.string.home_session_title_default)
             },
-            unlockChallengeType = UnlockChallengeType.STRICT_MODE,
-            createdAt = startTime
+            unlockChallengeType = unlockChallengeType,
+            waitDurationSeconds = waitTime,
+            createdAt = startTime,
+            areSessionControlsLocked = areSessionControlsLocked
         )
         sessionRepository.insertSession(session)
         startSession(session)

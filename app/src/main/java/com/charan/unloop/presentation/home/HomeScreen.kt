@@ -2,6 +2,7 @@ package com.charan.unloop.presentation.home
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -22,11 +23,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.HourglassEmpty
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
@@ -35,12 +45,23 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,20 +70,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
+import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.home.components.DurationInputField
 import com.charan.unloop.presentation.home.components.PresetDurationSelector
 import com.charan.unloop.presentation.home.components.SelectAppsSheet
+import com.charan.unloop.presentation.home.components.SelectedAppsPreview
 import com.charan.unloop.presentation.home.components.SelectedBlockedAppsCard
+import com.charan.unloop.presentation.routine.RoutineEvent
+import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.presentation.theme.IndexItem
+import com.charan.unloop.presentation.theme.customListItemShapes
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -78,8 +115,109 @@ fun HomeScreen(
     val isSessionActive = isSessionRunning || isSessionPaused
     val mediumButtonSize = ButtonDefaults.MediumContainerHeight
     val mediumButtonIconSize = ButtonDefaults.iconSizeFor(mediumButtonSize)
+    val focusRequester = remember { FocusRequester() }
+    val scroll = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    LaunchedEffect(state.instantSessionUiModel.isTitleEditable) {
+        if (state.instantSessionUiModel.isTitleEditable) focusRequester.requestFocus()
+    }
 
-    Scaffold(modifier = modifier) { innerPadding ->
+    Scaffold(
+        modifier = modifier.nestedScroll(scroll.nestedScrollConnection),
+        topBar = {
+            val isEditing = state.instantSessionUiModel.isTitleEditable && !isSessionActive
+            val session = state.instantSessionUiModel
+
+            TopAppBar(
+                scrollBehavior = scroll,
+                title = {
+                    val titleStyle = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    val defaultTitle = stringResource(R.string.home_session_title_default)
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        AnimatedContent(
+                            targetState = isEditing,
+                            label = "titleEditAnimation",
+                            modifier = Modifier.weight(1f, fill = false)
+                        ) { editing ->
+                            if (editing) {
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .widthIn(min = 120.dp)
+                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        if (session.sessionTitle.isEmpty()) {
+                                            Text(
+                                                text = defaultTitle,
+                                                style = titleStyle.copy(
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                                ),
+                                                maxLines = 1
+                                            )
+                                        }
+                                        BasicTextField(
+                                            value = session.sessionTitle,
+                                            onValueChange = {
+                                                viewModel.onEvent(HomeEvent.OnSessionTitleChange(it))
+                                            },
+                                            textStyle = titleStyle,
+                                            singleLine = true,
+                                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                            keyboardActions = KeyboardActions(
+                                                onDone = { viewModel.onEvent(HomeEvent.OnEditTitleClick) }
+                                            ),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .focusRequester(focusRequester)
+                                        )
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = session.sessionTitle.ifBlank { defaultTitle },
+                                    style = titleStyle,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable { viewModel.onEvent(HomeEvent.OnEditTitleClick) }
+                                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        AnimatedVisibility(!isSessionActive) {
+                            FilledTonalIconButton(
+                                onClick = { viewModel.onEvent(HomeEvent.OnEditTitleClick) },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                AnimatedContent(targetState = isEditing, label = "iconAnimation") { editing ->
+                                    Icon(
+                                        imageVector = if (editing) Icons.Rounded.Check else Icons.Rounded.Edit,
+                                        contentDescription = if (editing) "Done editing" else "Edit title",
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+
+                        }
+
+
+                    }
+                }
+            )
+        }
+
+    ) { innerPadding ->
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -129,17 +267,148 @@ fun HomeScreen(
 
                 Spacer(Modifier.height(20.dp))
                 AnimatedVisibility(visible = !isSessionActive) {
+                    val selectedApps = state.instantSessionUiModel.installedApps.filter { it.isSelected }
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        CustomSegmentedListItem(
+                            onClick = {
+                                viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle)
+                            },
+                            headLineContent = {
+                                Text(
+                                    text = stringResource(R.string.home_apps_to_block),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            },
+                            indexItem = IndexItem.FIRST,
+                            supportingContent = {
+                                Text(
+                                    text = if (selectedApps.isEmpty()) {
+                                        stringResource(R.string.home_select_apps_hint)
+                                    } else {
+                                        pluralStringResource(
+                                            R.plurals.home_selected_apps,
+                                            selectedApps.size,
+                                            selectedApps.size,
+                                        )
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            },
+                            leadingContent = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Apps,
+                                    contentDescription = null,
+                                    tint = if (selectedApps.isNotEmpty()) {
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            },
+                            trailingContent = {
+                                SelectedAppsPreview(
+                                    selectedApps = selectedApps
+                                )
+                            }
+                        )
 
-                    SelectedBlockedAppsCard(
-                        selectedApps = state.instantSessionUiModel.installedApps.filter { it.isSelected },
-                        enabled = true,
-                        title = stringResource(
-                            R.string.home_apps_to_block
-                        ),
-                        onClick = {
-                            viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle)
-                        },
-                    )
+                        Surface(
+                            modifier = Modifier.padding(1.dp),
+                            shape = customListItemShapes(IndexItem.MIDDLE).shape,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                        ) {
+                            val isWaitEnabled = state.instantSessionUiModel.unlockChallengeType == UnlockChallengeType.WAIT_TIME
+                            Column {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .toggleable(
+                                            value = isWaitEnabled,
+                                            role = Role.Switch,
+                                            onValueChange = { viewModel.onEvent(HomeEvent.OnWaitTimeToggle) },
+                                        )
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                ) {
+                                    Icon(Icons.Rounded.HourglassEmpty, contentDescription = null)
+                                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(stringResource(R.string.routine_wait_to_unlock), style = MaterialTheme.typography.titleSmall)
+                                        Text(
+                                            text = stringResource(if (isWaitEnabled) R.string.home_wait_enabled_description else R.string.home_wait_disabled_description),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    Switch(checked = isWaitEnabled, onCheckedChange = null)
+                                }
+                                AnimatedVisibility(visible = isWaitEnabled) {
+                                    val sliderState = rememberSliderState(
+                                        value = state.instantSessionUiModel.waitTime.toFloat(),
+                                        steps = 22,
+                                        trackRange = 5f..120f,
+                                    )
+                                    sliderState.value = state.instantSessionUiModel.waitTime.toFloat()
+
+                                    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Text(
+                                                text = pluralStringResource(R.plurals.routine_wait_seconds, state.instantSessionUiModel.waitTime, state.instantSessionUiModel.waitTime),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                color = MaterialTheme.colorScheme.primary,
+                                            )
+                                        }
+                                        Slider(
+                                            state = sliderState,
+                                            onValueChange = { viewModel.onEvent(HomeEvent.OnWaitTimeChange(it.roundToInt())) },
+                                            modifier = Modifier.semantics { contentDescription = "waitTimeLabel" },
+                                        )
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text(
+                                                text = pluralStringResource(R.plurals.routine_wait_seconds, 5, 5),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                            Text(
+                                                text = pluralStringResource(R.plurals.routine_wait_seconds, 120, 120),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        CustomSegmentedListItem(
+                            headLineContent = {
+                                Text(stringResource(R.string.routine_lock_session_controls))
+                            },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Rounded.Lock,
+                                    null
+                                )
+                            },
+                            indexItem = IndexItem.LAST,
+                            trailingContent = {
+                                Switch(
+                                    checked = state.instantSessionUiModel.areSessionControlsLocked,
+                                    onCheckedChange = {
+                                        viewModel.onEvent(HomeEvent.OnSessionControlsLockToggle)
+
+                                    }
+                                )
+                            }
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(32.dp))

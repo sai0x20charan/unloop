@@ -462,3 +462,78 @@ fun DurationInputField(
         },
     )
 }
+
+@Composable
+fun SelectedAppsPreview(selectedApps : List<InstalledAppsUiModel>) {
+    val maxPreviewIcons = 3
+    val previewApps = remember(selectedApps) { selectedApps.take(maxPreviewIcons) }
+    val remainingCount = (selectedApps.size - maxPreviewIcons).coerceAtLeast(0)
+    if (previewApps.isNotEmpty()) {
+        val avatarSize = 28.dp
+        val overlap = 10.dp
+        val step = avatarSize - overlap
+        val hasRemaining = remainingCount > 0
+
+        val totalItems = previewApps.size + if (hasRemaining) 1 else 0
+        val totalWidth = avatarSize + step * (totalItems - 1)
+
+        Box(
+            modifier = Modifier
+                .width(totalWidth)
+                .height(avatarSize)
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }
+        ) {
+            previewApps.forEachIndexed { index, app ->
+                app.icon?.let { icon ->
+                    Image(
+                        bitmap = remember(icon) {
+                            icon.toBitmap().asImageBitmap()
+                        },
+                        contentDescription = app.appName,
+                        modifier = Modifier
+                            .offset(x = step * index)
+                            .size(avatarSize)
+                            .zIndex((totalItems - index).toFloat())
+                            .border(
+                                2.dp,
+                                MaterialTheme.colorScheme.surfaceContainer,
+                                CircleShape
+                            )
+                            .padding(2.dp)
+                            .clip(CircleShape)
+                    )
+                }
+            }
+
+            if (hasRemaining) {
+                Box(
+                    modifier = Modifier
+                        .offset(x = step * previewApps.size)
+                        .size(avatarSize)
+                        .zIndex(0f)
+                        .border(
+                            2.dp,
+                            MaterialTheme.colorScheme.surfaceContainer,
+                            CircleShape
+                        )
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainerHighest
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+$remainingCount",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}

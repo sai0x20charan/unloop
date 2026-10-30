@@ -3,6 +3,7 @@ package com.charan.unloop.presentation.home
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.routine.UnlockChallengeType
 
 data class HomeState(
     val instantSessionUiModel: InstantSessionUiModel = InstantSessionUiModel(),
@@ -10,15 +11,19 @@ data class HomeState(
 )
 
 data class InstantSessionUiModel(
+    val isTitleEditable : Boolean = false,
     val installedApps: List<InstalledAppsUiModel> = emptyList(),
     val showBottomSheet: Boolean = false,
-    val sessionTitle: String = "",
+    val sessionTitle: String = "Focus Session",
     val hour: Int = 0,
     val minute: Int = 0,
     val isHourValid: Boolean = true,
     val isMinutesValid: Boolean = true,
+    val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.STRICT_MODE,
     val durationPresets: List<Int> = listOf(15, 30, 45, 60, 120),
-    val isSessionTimeEditing: Boolean = false
+    val isSessionTimeEditing: Boolean = false,
+    val areSessionControlsLocked : Boolean = false,
+    val waitTime : Int = 30
 ) {
     val totalSeconds: Int
         get() = if (isHourValid && isMinutesValid) hour * 3600 + minute * 60 else 0

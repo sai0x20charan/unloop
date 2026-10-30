@@ -20,5 +20,10 @@ sealed class HomeEvent {
     data object OnEndSessionClick : HomeEvent()
 
     data object OnPauseSessionClick : HomeEvent()
+    data object OnEditTitleClick : HomeEvent()
+    data object OnSessionControlsLockToggle : HomeEvent()
+
+    data object OnWaitTimeToggle : HomeEvent()
+    data class OnWaitTimeChange(val time : Int) : HomeEvent()
 
 }
