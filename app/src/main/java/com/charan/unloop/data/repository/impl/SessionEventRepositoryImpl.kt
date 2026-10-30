@@ -3,13 +3,12 @@ package com.charan.unloop.data.repository.impl
 import android.text.format.DateUtils
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.getCurrentTime
+import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.dao.SessionEventDao
 import com.charan.unloop.data.local.entity.SessionEventEntity
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.repository.SessionEventRepository
 import javax.inject.Inject
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 class SessionEventRepositoryImpl @Inject constructor(
     private val sessionEventDao: SessionEventDao
@@ -18,7 +17,6 @@ class SessionEventRepositoryImpl @Inject constructor(
         sessionEventDao.insertSessionEvent(sessionEvents)
     }
 
-    @OptIn(ExperimentalUuidApi::class)
     override suspend fun recordSessionEvent(
         sessionId: String,
         sessionEvents: SessionEvents,
@@ -26,7 +24,7 @@ class SessionEventRepositoryImpl @Inject constructor(
     ) {
 
         val sessionEventEntity = SessionEventEntity(
-            id = Uuid.generateV4().toString(),
+            id = generateUuid(),
             sessionId = sessionId,
             eventTime = DateTimeUtils.getCurrentDateTime(),
             eventType = sessionEvents,

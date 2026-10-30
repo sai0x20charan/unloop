@@ -2,6 +2,7 @@ package com.charan.unloop.presentation.common.mapper
 
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
+import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.entity.RoutineEntity
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
@@ -10,13 +11,10 @@ import com.charan.unloop.presentation.home.CurrentSessionUiModel
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 fun RoutineUiModel.toRoutineEntity(id : String? = null, createdAt : LocalDateTime? = null) : RoutineEntity {
     return RoutineEntity(
-        id = id ?: this.id.takeIf { it.isNotBlank() } ?: Uuid.generateV4().toString(),
+        id = id ?: this.id.takeIf { it.isNotBlank() } ?: generateUuid(),
         name = name,
         description = description,
         startTime = startTime,

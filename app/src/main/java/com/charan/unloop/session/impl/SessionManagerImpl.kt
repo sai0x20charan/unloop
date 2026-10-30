@@ -3,6 +3,7 @@ package com.charan.unloop.session.impl
 import android.content.Context
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.local.model.enums.SessionStatus
@@ -17,8 +18,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 class SessionManagerImpl @Inject constructor(
     private val sessionRepository: SessionRepository,
@@ -30,7 +29,6 @@ class SessionManagerImpl @Inject constructor(
 
     private val mutex = Mutex()
 
-    @OptIn(ExperimentalUuidApi::class)
     override suspend fun startInstantSession(
         name: String,
         durationSeconds: Long,
@@ -43,7 +41,7 @@ class SessionManagerImpl @Inject constructor(
 
         val startTime = DateTimeUtils.getCurrentDateTime()
         val session = SessionEntity(
-            id = Uuid.generateV4().toString(),
+            id = generateUuid(),
             actualStartTime = startTime,
             startTime = startTime,
             endTime = DateTimeUtils.getEndTimeForDuration(durationSeconds),
@@ -211,12 +209,11 @@ class SessionManagerImpl @Inject constructor(
         }
     }
 
-    @OptIn(ExperimentalUuidApi::class)
     override suspend fun startScheduledSession(
         routineId: String,
     ): String? = mutex.withLock {
         val routine = routineRepository.getRoutineById(routineId) ?: return@withLock null
-        val sessionId = Uuid.generateV4().toString()
+        val sessionId = generateUuid()
         val currentDateTime = DateTimeUtils.getCurrentDateTime()
         val calculatedEndTime = DateTimeUtils.getScheduledEndTime(
             endTime = routine.endTime,

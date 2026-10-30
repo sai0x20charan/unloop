@@ -7,7 +7,6 @@ import com.charan.unloop.presentation.routine.UnlockChallengeType
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
-import kotlin.uuid.Uuid
 
 @Entity(tableName = "routines")
 data class RoutineEntity(
