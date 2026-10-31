@@ -56,7 +56,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         const val EXTRA_ROUTINE_NAME = "routine_name"
         const val EXTRA_APP_PACKAGE = "app_package"
         const val EXTRA_WAIT_SECONDS = "wait_seconds"
-        const val EXTRA_END_TIME_SECOND_OF_DAY = "end_time_second_of_day"
+        const val EXTRA_END_TIME = "end_time"
     }
 
     private data class OverlayDetails(
@@ -65,7 +65,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         val appPackage: String?,
         val unlockType: UnlockChallengeType,
         val waitSeconds: Int,
-        val endTime: LocalTime,
+        val endTime: String,
     )
 
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -92,12 +92,6 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             return START_NOT_STICKY
         }
         val unlockTypeName = intent.getStringExtra(EXTRA_UNLOCK_TYPE)
-        val endSecondOfDay = intent.getIntExtra(EXTRA_END_TIME_SECOND_OF_DAY, -1)
-        val endTime = if (endSecondOfDay in 0..86399) {
-            LocalTime.fromSecondOfDay(endSecondOfDay)
-        } else {
-            LocalTime(23, 59)
-        }
         val nextDetails = OverlayDetails(
             sessionId = intent.getStringExtra(EXTRA_SESSION_ID),
             routineName = intent.getStringExtra(EXTRA_ROUTINE_NAME).orEmpty().ifBlank { getString(R.string.overlay_default_routine_name) },
@@ -105,13 +99,12 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             unlockType = UnlockChallengeType.entries.firstOrNull { it.name == unlockTypeName }
                 ?: UnlockChallengeType.WAIT_TIME,
             waitSeconds = intent.getIntExtra(EXTRA_WAIT_SECONDS, 30).coerceIn(5, 120),
-            endTime = endTime
+            endTime = intent.getStringExtra(EXTRA_END_TIME) ?: "00:00"
         )
         if (details != nextDetails) {
             unlockedForCurrentVisit = false
             details = nextDetails
         }
-        Log.d("TAG", "onStartCommand: details=$details, unlockedForCurrentVisit=$unlockedForCurrentVisit")
         if (!unlockedForCurrentVisit) showOverlay()
         return START_NOT_STICKY
     }

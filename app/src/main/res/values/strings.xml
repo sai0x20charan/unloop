@@ -196,10 +196,9 @@
     <string name="overlay_app_locked">%1$s is locked</string>
     <string name="overlay_app_paused">%1$s is paused</string>
     <string name="overlay_app_blocked_description">This app is blocked while your routine is active.</string>
-    <string name="overlay_until_routine_ends">Until routine ends</string>
-    <string name="overlay_blocked">Blocked</string>
-    <string name="overlay_unlock_delay">Unlock delay</string>
-    <string name="overlay_active_routine">Active routine</string>
+    <string name="overlay_until_time">Until %1$s</string>
+    <string name="overlay_keep_focusing">Keep focusing</string>
+    <string name="overlay_strict_mode_on">Strict mode is on. Unlocks are disabled until the routine ends.</string>
     <string name="overlay_default_routine_name">Focus time</string>
     <string name="overlay_default_app_name">This app</string>
     <plurals name="overlay_hold_to_unlock">

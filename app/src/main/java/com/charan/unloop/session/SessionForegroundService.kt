@@ -12,6 +12,7 @@ import com.charan.unloop.R
 import com.charan.unloop.session.blocking.AppUsageChecker
 import com.charan.unloop.session.blocking.FullScreenOverlayService
 import com.charan.unloop.core.notification.NotificationHelper
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.repository.SessionRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -287,9 +288,10 @@ class SessionForegroundService : Service() {
                             FullScreenOverlayService.EXTRA_WAIT_SECONDS,
                             currentSession.waitDurationSeconds ?: 30
                         )
+
                         putExtra(
-                            FullScreenOverlayService.EXTRA_END_TIME_SECOND_OF_DAY,
-                            currentSession.endTime.toString()
+                            FullScreenOverlayService.EXTRA_END_TIME,
+                            currentSession.endTime.toDisplayString()
                         )
                     }
                     startService(overlayIntent)
