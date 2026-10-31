@@ -194,7 +194,9 @@ fun HomeScreen(
                                 AnimatedContent(targetState = isEditing, label = "iconAnimation") { editing ->
                                     Icon(
                                         imageVector = if (editing) Icons.Rounded.Check else Icons.Rounded.Edit,
-                                        contentDescription = if (editing) "Done editing" else "Edit title",
+                                        contentDescription = stringResource(
+                                            if (editing) R.string.home_title_done_editing else R.string.home_session_title_edit
+                                        ),
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -484,7 +486,7 @@ private fun TimerRing(
                         }
 
                         Text(
-                            text = ":",
+                            text = stringResource(R.string.duration_separator),
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

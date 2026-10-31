@@ -1,5 +1,7 @@
 package com.charan.unloop.presentation.routine.components
 
+import com.charan.unloop.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,13 +65,13 @@ fun TimePickerDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.action_cancel))
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(onClick = {
                         onConfirm(state.hour, state.minute)
                     }) {
-                        Text("OK")
+                        Text(stringResource(R.string.action_ok))
                     }
                 }
             }

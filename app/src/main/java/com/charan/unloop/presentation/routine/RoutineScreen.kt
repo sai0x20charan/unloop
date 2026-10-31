@@ -1,7 +1,5 @@
 package com.charan.unloop.presentation.routine
 
-import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
+import com.charan.unloop.presentation.common.mapper.toFormattedDays
+import com.charan.unloop.presentation.common.mapper.toFormattedTime
 import com.charan.unloop.presentation.common.components.BlockedAppsSetting
 import com.charan.unloop.presentation.common.components.CustomExpandedSegmentedListItem
 import com.charan.unloop.presentation.common.components.LockSessionControlsSetting
@@ -42,11 +42,11 @@ import com.charan.unloop.presentation.common.components.WaitTimeSetting
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.SelectAppsSheet
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
+import com.charan.unloop.presentation.common.showToast
 import com.charan.unloop.presentation.routine.components.RoutineScheduleContent
 import com.charan.unloop.presentation.routine.components.TimePickerDialog
 import com.charan.unloop.presentation.theme.IndexItem
 
-@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun RoutineScreen(
     onBackClick: () -> Unit = {},
@@ -69,7 +69,7 @@ fun RoutineScreen(
             when (effect) {
                 RoutineEffect.OnBack -> onRoutineCreated()
                 is RoutineEffect.ShowToast -> {
-                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_LONG).show()
+                    context.showToast(effect.message)
                 }
             }
         }
@@ -169,8 +169,8 @@ fun RoutineScreen(
                         Text(
                             text = stringResource(
                                 R.string.routine_list_metadata,
-                                routine.formattedDays,
-                                routine.formattedTime,
+                                routine.toFormattedDays(),
+                                routine.toFormattedTime(),
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

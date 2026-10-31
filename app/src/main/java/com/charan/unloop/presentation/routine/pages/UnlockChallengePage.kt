@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -63,7 +64,7 @@ fun UnlockChallengePage(
     ) {
         item {
             Text(
-                text = "Choose how you can temporarily unlock blocked apps if needed. Adding barrier types helps prevent impulsive use.",
+                text = stringResource(R.string.routine_unlock_challenge_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -76,8 +77,8 @@ fun UnlockChallengePage(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 ChallengeOptionCard(
-                    title = "Wait Time Challenge",
-                    description = "Requires you to wait for a set duration before the app opens. Helps break instant gratification loops.",
+                    title = stringResource(R.string.routine_wait_challenge),
+                    description = stringResource(R.string.routine_wait_challenge_description),
                     icon = Icons.Rounded.HourglassEmpty,
                     isSelected = unlockChallengeType == UnlockChallengeType.WAIT_TIME,
                     onClick = { onEvent(RoutineEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.WAIT_TIME)) }
@@ -89,11 +90,11 @@ fun UnlockChallengePage(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Wait Duration",
+                                text = stringResource(R.string.routine_wait_duration),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             Text(
-                                text = "$waitTimeSeconds seconds",
+                                text = pluralStringResource(R.plurals.routine_wait_seconds, waitTimeSeconds, waitTimeSeconds),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -109,8 +110,8 @@ fun UnlockChallengePage(
                 }
 
                 ChallengeOptionCard(
-                    title = "Strict Mode",
-                    description = "No unlocks allowed under any circumstance. Pure blocking logic.",
+                    title = stringResource(R.string.routine_strict_mode),
+                    description = stringResource(R.string.routine_strict_mode_description),
                     icon = Icons.Rounded.Lock,
                     isSelected = unlockChallengeType == UnlockChallengeType.STRICT_MODE,
                     onClick = { onEvent(RoutineEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.STRICT_MODE)) }
@@ -134,13 +135,13 @@ fun UnlockChallengePage(
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Caution: Permanent Lockout",
+                                    text = stringResource(R.string.routine_strict_mode_warning),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "You will not be able to bypass or unlock any blocked apps during the scheduled period.",
+                                    text = stringResource(R.string.routine_strict_mode_warning_description),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -157,16 +158,16 @@ fun UnlockChallengePage(
             )
 
             Text(
-                text = "Session control"
+                text = stringResource(R.string.routine_session_controls)
             )
 
             ListItem(
                 content = {
-                    Text("Lock Session Controls")
+                    Text(stringResource(R.string.routine_lock_session_controls))
                 },
                 supportingContent = {
                     Text(
-                        text = "You won't be able to pause or end session"
+                        text = stringResource(R.string.routine_lock_session_controls_description)
                     )
                 },
                 trailingContent = {

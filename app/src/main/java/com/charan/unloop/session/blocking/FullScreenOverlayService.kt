@@ -27,6 +27,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.charan.unloop.core.di.ApplicationScope
+import com.charan.unloop.R
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.presentation.overlay.OverLayScreen
 import com.charan.unloop.presentation.routine.UnlockChallengeType
@@ -99,7 +100,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         }
         val nextDetails = OverlayDetails(
             sessionId = intent.getStringExtra(EXTRA_SESSION_ID),
-            routineName = intent.getStringExtra(EXTRA_ROUTINE_NAME).orEmpty().ifBlank { "Focus time" },
+            routineName = intent.getStringExtra(EXTRA_ROUTINE_NAME).orEmpty().ifBlank { getString(R.string.overlay_default_routine_name) },
             appPackage = intent.getStringExtra(EXTRA_APP_PACKAGE),
             unlockType = UnlockChallengeType.entries.firstOrNull { it.name == unlockTypeName }
                 ?: UnlockChallengeType.WAIT_TIME,
@@ -221,7 +222,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
 
     @Suppress("DEPRECATION")
     private fun appLabel(appPackage: String?): String {
-        if (appPackage == null) return "This app"
+        if (appPackage == null) return getString(R.string.overlay_default_app_name)
         return try {
             val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 packageManager.getApplicationInfo(appPackage, PackageManager.ApplicationInfoFlags.of(0))
@@ -230,7 +231,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             }
             packageManager.getApplicationLabel(info).toString()
         } catch (_: PackageManager.NameNotFoundException) {
-            "This app"
+            getString(R.string.overlay_default_app_name)
         }
     }
 

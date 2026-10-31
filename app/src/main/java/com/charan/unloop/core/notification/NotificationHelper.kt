@@ -30,14 +30,13 @@ class NotificationHelper @Inject constructor(
 
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "session_channel"
-        const val NOTIFICATION_CHANNEL_NAME = "Session Progress"
         const val NOTIFICATION_ID = 1
     }
 
     fun createNotificationChannel() {
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            NOTIFICATION_CHANNEL_NAME,
+            context.getString(R.string.notification_channel_session_progress),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             setSound(null, null)
@@ -54,7 +53,7 @@ class NotificationHelper @Inject constructor(
         isPaused: Boolean = false,
         areSessionControlsLocked: Boolean = false
     ): Notification {
-        val title = "$title${if (isPaused) " - Paused" else ""}"
+        val notificationTitle = if (isPaused) context.getString(R.string.notification_paused_title, title) else title
         val contentIntent = PendingIntent.getActivity(
             context,
             0,
@@ -69,12 +68,12 @@ class NotificationHelper @Inject constructor(
             context,
             NOTIFICATION_CHANNEL_ID
         )
-            .setContentTitle(title)
+            .setContentTitle(notificationTitle)
             .setSmallIcon(R.drawable.unloop_notification_icon)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentText(
-                "Remaining Time: $formatedDuration"
+                context.getString(R.string.notification_remaining_time, formatedDuration)
             )
             .setShowWhen(true)
             .setContentIntent(contentIntent)
@@ -107,7 +106,7 @@ class NotificationHelper @Inject constructor(
                 builder.addAction(
                     Notification.Action.Builder(
                         null,
-                        "Resume",
+                        context.getString(R.string.home_resume_session),
                         resumeIntent
                     ).build()
                 )
@@ -115,7 +114,7 @@ class NotificationHelper @Inject constructor(
                 builder.addAction(
                     Notification.Action.Builder(
                         null,
-                        "Pause",
+                        context.getString(R.string.home_pause_session),
                         pauseIntent
                     ).build()
                 )
@@ -124,7 +123,7 @@ class NotificationHelper @Inject constructor(
             builder.addAction(
                 Notification.Action.Builder(
                     null,
-                    "Stop",
+                    context.getString(R.string.notification_stop),
                     stopIntent
                 ).build()
             )
@@ -155,7 +154,7 @@ class NotificationHelper @Inject constructor(
 
     fun updateNotification(
         title: String = context.getString(R.string.home_session_title_default),
-        message: String = "Monitoring app usage for routine",
+        message: String = context.getString(R.string.notification_monitoring_routine),
         sessionId: String? = null,
         remainingSeconds: Long? = null,
         totalTime: Long? = null,

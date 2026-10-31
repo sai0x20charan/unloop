@@ -40,6 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.charan.unloop.R
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -74,18 +76,18 @@ fun ScheduleRoutinePage(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                SectionLabel("Routine Name")
+                SectionLabel(stringResource(R.string.routine_name))
                 OutlinedTextField(
                     value = routine.name,
                     onValueChange = { onEvent(RoutineEvent.OnRoutineNameChange(it)) },
-                    label = { Text("Enter routine name") },
+                    label = { Text(stringResource(R.string.routine_name_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 HorizontalDivider()
 
-                SectionLabel("Select Days")
+                SectionLabel(stringResource(R.string.routine_select_days))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(
@@ -108,9 +110,7 @@ fun ScheduleRoutinePage(
                             modifier = Modifier
                                 .weight(1f)
                                 .semantics {
-                                    contentDescription =
-                                        day.toLocale(TextStyle.FULL_STANDALONE) +
-                                                if (isSelected) ", selected" else ", not selected"
+                                    contentDescription = day.toLocale(TextStyle.FULL_STANDALONE)
                                 },
                             contentPadding = PaddingValues(0.dp)
                         ) {
@@ -132,15 +132,15 @@ fun ScheduleRoutinePage(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             TimeCard(
-                                label = "Start Time",
-                                value = routine.startTime?.toDisplayString() ?: "Select time",
+                                label = stringResource(R.string.routine_start_time),
+                                value = routine.startTime.toDisplayString(),
                                 icon = Icons.Rounded.MoreTime,
                                 onClick = { onEvent(RoutineEvent.OnStartTimeToggle) },
                                 modifier = Modifier.weight(1f)
                             )
                             TimeCard(
-                                label = "End Time",
-                                value = routine.endTime?.toDisplayString() ?: "Select time",
+                                label = stringResource(R.string.routine_end_time),
+                                value = routine.endTime.toDisplayString(),
                                 icon = Icons.Rounded.MoreTime,
                                 onClick = { onEvent(RoutineEvent.OnEndTimeToggle) },
                                 modifier = Modifier.weight(1f)
@@ -176,10 +176,11 @@ private fun TimeCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val description = stringResource(R.string.accessibility_label_value, label, value)
     OutlinedCard(
         onClick = onClick,
         modifier = modifier.semantics {
-            contentDescription = "$label, $value"
+            contentDescription = description
         }
     ) {
         Row(

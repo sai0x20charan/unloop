@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.settings.aboutlibraries
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,7 +63,7 @@ fun AboutLibrariesScreen(
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         topBar = {
             CustomMediumTopBar(
-                title =  "Libraries",
+                title = stringResource(R.string.settings_libraries),
                 showBackButton = true,
                 onBackClick = {
                     onBack()
@@ -83,7 +84,8 @@ fun AboutLibrariesScreen(
             libraries = libraries,
             detailMode = LibraryDetailMode.Sheet,
             libraryRow = { index, library, expanded, toggle, style ->
-                val developers = library.developers.mapNotNull { it.name }.joinToString(", ")
+                val developers = library.developers.mapNotNull { it.name }
+                    .joinToString(stringResource(R.string.list_separator))
                 val version = library.artifactVersion
                 val licenses = library.licenses
 

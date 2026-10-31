@@ -94,7 +94,7 @@ fun AppsList(
                 scope.launch { searchBarState.animateToCollapsed() }
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search") },
+            placeholder = { Text(stringResource(R.string.apps_search_hint)) },
             leadingIcon = {
                 Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
             },
@@ -103,7 +103,7 @@ fun AppsList(
                     IconButton(onClick = { textFieldState.clearText() }) {
                         Icon(
                             imageVector = Icons.Rounded.Close,
-                            contentDescription = "Clear Search"
+                            contentDescription = stringResource(R.string.apps_clear_search)
                         )
                     }
                 }
@@ -189,7 +189,7 @@ fun AppsList(
         if (query.isNotEmpty() && filteredApps.isEmpty()) {
             item(key = "no_search_results") {
                 Text(
-                    text = "No Results Found",
+                    text = stringResource(R.string.apps_no_search_results),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),

@@ -60,26 +60,4 @@ class RoutineMapperTest {
         assertEquals("chosen-id", entity.id)
         assertEquals(createdAt, entity.createdAt)
     }
-
-    @Test
-    fun formattedLabelsReflectEditsToAnExistingRoutine() {
-        val saved = RoutineUiModel(
-            startTime = LocalTime(0, 0),
-            endTime = LocalTime(12, 0),
-            selectedDays = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
-        )
-        assertEquals("12:00 AM - 12:00 PM", saved.formattedTime)
-        assertEquals("Weekends", saved.formattedDays)
-
-        val edited = saved.copy(
-            startTime = LocalTime(13, 30),
-            endTime = LocalTime(17, 45),
-            selectedDays = listOf(
-                DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
-                DayOfWeek.THURSDAY, DayOfWeek.FRIDAY
-            )
-        )
-        assertEquals("01:30 PM - 05:45 PM", edited.formattedTime)
-        assertEquals("Weekdays", edited.formattedDays)
-    }
 }

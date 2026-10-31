@@ -12,6 +12,7 @@ import kotlinx.datetime.toJavaDayOfWeek
 import kotlinx.datetime.toJavaMonth
 import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle
+import java.text.DateFormatSymbols
 import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -49,18 +50,12 @@ object DateTimeUtils {
     fun LocalTime.toDisplayString() : String {
         val hour = this.hour
         val minute = this.minute
-        val amPm = if (hour < 12) "AM" else "PM"
+        val amPm = DateFormatSymbols.getInstance().amPmStrings[if (hour < 12) 0 else 1]
         val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
         return String.format(locale = Locale.getDefault(),"%02d:%02d %s", displayHour, minute, amPm)
     }
 
-    fun LocalDateTime.toDisplayString() : String {
-        val hour = this.hour
-        val minute = this.minute
-        val amPm = if (hour < 12) "AM" else "PM"
-        val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
-        return String.format(locale = Locale.getDefault(),"%02d:%02d %s", displayHour, minute, amPm)
-    }
+    fun LocalDateTime.toDisplayString(): String = time.toDisplayString()
 
     fun getCurrentDateTime() : LocalDateTime {
         return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -125,6 +120,10 @@ object DateTimeUtils {
             second = this.second,
             nanosecond = 0
         )
+    }
+
+    fun formatHoursAndMinutes(seconds: Int): String {
+        return String.format(Locale.getDefault(), "%02d:%02d", seconds / 3600, (seconds % 3600) / 60)
     }
 
     fun formatDuration(seconds: Int): String {

@@ -253,7 +253,7 @@ fun SelectedBlockedAppsCard(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "+$remainingCount",
+                                    text = stringResource(R.string.apps_more_count, remainingCount),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -277,11 +277,12 @@ fun SelectedBlockedAppsCard(
     }
 }
 
+@Composable
 private fun formatPreset(minutes: Int): String {
     return when {
-        minutes % 60 == 0 -> "${minutes / 60}h"
-        minutes < 60 -> "${minutes}m"
-        else -> "${minutes / 60}h ${minutes % 60}m"
+        minutes % 60 == 0 -> stringResource(R.string.routine_duration_hours, minutes / 60)
+        minutes < 60 -> stringResource(R.string.routine_duration_minutes, minutes)
+        else -> stringResource(R.string.routine_duration_hours_minutes, minutes / 60, minutes % 60)
     }
 }
 
@@ -364,7 +365,7 @@ fun DurationInputField(
             ) {
                 if (value == 0) {
                     Text(
-                        text = "00",
+                        text = stringResource(R.string.duration_number, 0),
                         style = MaterialTheme.typography.displayMedium.copy(
                             color = colorScheme.onSurface.copy(alpha = 0.4f),
                             textAlign = TextAlign.Center,
@@ -440,7 +441,7 @@ fun SelectedAppsPreview(selectedApps : List<Drawable>) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "+$remainingCount",
+                        text = stringResource(R.string.apps_more_count, remainingCount),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

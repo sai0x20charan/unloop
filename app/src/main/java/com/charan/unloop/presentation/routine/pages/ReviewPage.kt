@@ -31,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
+import com.charan.unloop.presentation.common.mapper.toFormattedDays
+import com.charan.unloop.presentation.common.mapper.toFormattedTime
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.routine.UnlockChallengeType
@@ -54,12 +56,12 @@ fun ReviewPage(
                 // Routine Name Section
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "ROUTINE NAME",
+                        text = stringResource(R.string.routine_name),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = routine.name.ifEmpty { "My Unloop Routine" },
+                        text = routine.name.ifEmpty { stringResource(R.string.routine_default_name) },
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -70,7 +72,7 @@ fun ReviewPage(
                 // Schedule Details Section
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Schedule Details",
+                        text = stringResource(R.string.routine_schedule_details),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -81,37 +83,33 @@ fun ReviewPage(
                     ) {
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = "ACTIVE DAYS",
+                                text = stringResource(R.string.routine_active_days),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            val daysText = if (routine.selectedDays.isEmpty()) {
-                                "Every day"
-                            } else {
-                                routine.selectedDays.joinToString(", ") { it.name.lowercase().replaceFirstChar { char -> char.titlecase() } }
-                            }
+                            val daysText = routine.toFormattedDays()
                             Text(daysText, style = MaterialTheme.typography.bodyLarge)
                         }
 
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = "TIME WINDOW",
+                                text = stringResource(R.string.routine_time_window),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            val timeText = routine.formattedTime
+                            val timeText = routine.toFormattedTime()
                             Text(timeText, style = MaterialTheme.typography.bodyLarge)
                         }
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            text = "BLOCKING FREQUENCY",
+                            text = stringResource(R.string.routine_blocking_frequency),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                            Text("Blocks throughout the scheduled window", style = MaterialTheme.typography.bodyLarge)
+                            Text(stringResource(R.string.routine_blocking_continuous), style = MaterialTheme.typography.bodyLarge)
 
                     }
                 }
@@ -126,12 +124,15 @@ fun ReviewPage(
                         color = MaterialTheme.colorScheme.primary
                     )
                     val challengeText = when (routine.unlockChallengeType) {
-                        UnlockChallengeType.WAIT_TIME -> stringResource(R.string.routine_wait_to_unlock) +
-                            " · " + pluralStringResource(
+                        UnlockChallengeType.WAIT_TIME -> stringResource(
+                            R.string.routine_list_metadata,
+                            stringResource(R.string.routine_wait_to_unlock),
+                            pluralStringResource(
                                 R.plurals.routine_wait_seconds,
                                 routine.waitDurationSeconds ?: 30,
-                                routine.waitDurationSeconds ?: 30
-                            )
+                                routine.waitDurationSeconds ?: 30,
+                            ),
+                        )
 
                         UnlockChallengeType.STRICT_MODE -> stringResource(R.string.routine_no_unlocks)
                     }
@@ -150,14 +151,14 @@ fun ReviewPage(
                 // Blocked Apps Section
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Blocked Apps (${selectedApps.size})",
+                        text = stringResource(R.string.routine_blocked_apps_count, selectedApps.size),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
 
                     if (selectedApps.isEmpty()) {
                         Text(
-                            text = "No apps selected (routine will block nothing)",
+                            text = stringResource(R.string.routine_no_apps_selected),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

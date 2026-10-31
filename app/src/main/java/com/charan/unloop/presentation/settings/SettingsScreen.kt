@@ -115,11 +115,11 @@ fun SettingsScreen(
 
             item {
                 SectionHeader(
-                    title = "About"
+                    title = stringResource(R.string.settings_about)
                 )
                 CustomSegmentedListItem(
                     headLineContent = {
-                        Text("Open Source Libraries")
+                        Text(stringResource(R.string.settings_open_source_libraries))
                     },
                     indexItem = IndexItem.FIRST,
                     onClick = {
@@ -128,19 +128,19 @@ fun SettingsScreen(
                     leadingContent = {
                         Icon(
                             imageVector = Icons.Rounded.WorkspacePremium,
-                            contentDescription = "Open Source Libraries"
+                            contentDescription = stringResource(R.string.settings_open_source_libraries)
                         )
                     }
                 )
                 CustomSegmentedListItem(
                     headLineContent = {
-                        Text("App Version")
+                        Text(stringResource(R.string.settings_app_version))
                     },
                     indexItem = IndexItem.LAST,
                     leadingContent = {
                         Icon(
                             imageVector = Icons.Rounded.Code,
-                            contentDescription = "App Version"
+                            contentDescription = stringResource(R.string.settings_app_version)
                         )
                     },
                     trailingContent = {

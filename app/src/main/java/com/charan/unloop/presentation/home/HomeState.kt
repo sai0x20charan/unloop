@@ -14,7 +14,7 @@ data class InstantSessionUiModel(
     val isTitleEditable : Boolean = false,
     val installedApps: List<InstalledAppsUiModel> = emptyList(),
     val showBottomSheet: Boolean = false,
-    val sessionTitle: String = "Focus Session",
+    val sessionTitle: String = "",
     val hour: Int = 0,
     val minute: Int = 0,
     val isHourValid: Boolean = true,
@@ -30,9 +30,7 @@ data class InstantSessionUiModel(
 
     val durationFormatted: String
         get() {
-            val hours = totalSeconds / 3600
-            val minutes = (totalSeconds % 3600) / 60
-            return String.format("%02d:%02d", hours, minutes)
+            return DateTimeUtils.formatHoursAndMinutes(totalSeconds)
         }
 
     val hasSelectedApps: Boolean

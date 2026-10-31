@@ -1,6 +1,6 @@
 package com.charan.unloop.presentation.all_routines
 
-import android.widget.Toast
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,10 +44,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
+import com.charan.unloop.presentation.common.mapper.toFormattedDays
+import com.charan.unloop.presentation.common.mapper.toFormattedTime
 import com.charan.unloop.presentation.all_routines.components.RoutineListItem
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
+import com.charan.unloop.presentation.common.showToast
 import com.charan.unloop.presentation.theme.indexItemFor
 
 @Composable
@@ -63,7 +66,7 @@ fun AllRoutinesScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is AllRoutineEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                    context.showToast(effect.message)
                 }
 
                 is AllRoutineEffect.NavigateToEditRoutine -> {
@@ -81,7 +84,7 @@ fun AllRoutinesScreen(
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         topBar = {
             CustomMediumTopBar(
-                title = "All Routines",
+                title = stringResource(R.string.routine_all),
                 showBackButton = false,
 
                 scrollBehavior = scroll
@@ -95,7 +98,7 @@ fun AllRoutinesScreen(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Add,
-                    contentDescription = "Create Routine"
+                    contentDescription = stringResource(R.string.routine_create)
                 )
             }
         }
@@ -109,9 +112,9 @@ fun AllRoutinesScreen(
                 val routine = state.allRoutines[index]
                 RoutineListItem(
                     name = routine.name,
-                    formattedTime = routine.formattedTime,
+                    formattedTime = routine.toFormattedTime(),
                     blockedAppSize = routine.blockedApps.size,
-                    formattedDays = routine.formattedDays,
+                    formattedDays = routine.toFormattedDays(),
                     isEnabled = routine.isEnabled,
                     onEnableSwitchClick = { isChecked ->
                         viewModel.onEvent(AllRoutineEvent.OnToggleRoutine(routine.id, isChecked))

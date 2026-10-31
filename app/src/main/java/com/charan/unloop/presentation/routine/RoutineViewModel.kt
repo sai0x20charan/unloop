@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.charan.unloop.R
 import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
+import com.charan.unloop.presentation.common.ToastMessage
 import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
@@ -167,7 +168,7 @@ class RoutineViewModel @AssistedInject constructor(
         } catch (exception: CancellationException) {
             throw exception
         } catch (_: Exception) {
-            _effect.send(RoutineEffect.ShowToast(R.string.routine_save_failed))
+            _effect.send(RoutineEffect.ShowToast(ToastMessage.Res(R.string.routine_save_failed)))
         } finally {
             _state.update { it.copy(isSaving = false) }
         }
@@ -191,7 +192,7 @@ class RoutineViewModel @AssistedInject constructor(
                     showAppsSheet = errorMessage == R.string.routine_apps_required,
                 )
             }
-            _effect.send(RoutineEffect.ShowToast(errorMessage))
+            _effect.send(RoutineEffect.ShowToast(ToastMessage.Res(errorMessage)))
             return false
         }
         return true

@@ -39,6 +39,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.charan.unloop.R
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -147,13 +150,13 @@ fun OverLayScreen(
                     }
                     Spacer(Modifier.height(28.dp))
                     Text(
-                        text = "$appName is ${if (strict) "locked" else "paused"}",
+                        text = stringResource(if (strict) R.string.overlay_app_locked else R.string.overlay_app_paused, appName),
                         style = MaterialTheme.typography.headlineLarge,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        text = "This app is blocked while your routine is active.",
+                        text = stringResource(R.string.overlay_app_blocked_description),
                         style = MaterialTheme.typography.bodyLarge,
                         color = colors.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -161,9 +164,9 @@ fun OverLayScreen(
                     Spacer(Modifier.height(32.dp))
                     RoutineDetailCard(
                         routineName = routineName,
-                        remainingTime = if (strict) "Until routine ends" else endTime.toDisplayString(),
+                        remainingTime = if (strict) stringResource(R.string.overlay_until_routine_ends) else endTime.toDisplayString(),
                         modifier = Modifier.fillMaxWidth(),
-                        timeLabel = if (strict) "Blocked" else "Unlock delay"
+                        timeLabel = stringResource(if (strict) R.string.overlay_blocked else R.string.overlay_unlock_delay)
                     )
                     Spacer(Modifier.height(28.dp))
 
@@ -172,7 +175,7 @@ fun OverLayScreen(
                             onClick = {},
                             interactionSource = interactionSource
                         ) {
-                            Text("Hold for $waitTimeSeconds seconds to unlock")
+                            Text(pluralStringResource(R.plurals.overlay_hold_to_unlock, waitTimeSeconds, waitTimeSeconds))
                         }
                     }
                 }
@@ -186,7 +189,7 @@ fun RoutineDetailCard(
     routineName: String,
     remainingTime: String,
     modifier: Modifier = Modifier,
-    timeLabel: String = "Unlock delay"
+    timeLabel: String = stringResource(R.string.overlay_unlock_delay)
 ) {
     val colors = MaterialTheme.colorScheme
     Card(
@@ -201,7 +204,7 @@ fun RoutineDetailCard(
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Active routine",
+                        text = stringResource(R.string.overlay_active_routine),
                         style = MaterialTheme.typography.labelMedium,
                         color = colors.onSurfaceVariant
                     )
@@ -250,8 +253,8 @@ fun RoutineDetailCard(
 fun OverlayScreenPreview() {
     OverLayScreen(
         unlockType = UnlockChallengeType.WAIT_TIME,
-        routineName = "Morning Routine",
-        appName = "YouTube",
+        routineName = stringResource(R.string.routine_example_morning),
+        appName = stringResource(R.string.home_app_youtube),
         endTime = LocalTime(10, 30),
         waitTimeSeconds = 5
     )

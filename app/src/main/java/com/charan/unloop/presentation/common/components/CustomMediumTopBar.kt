@@ -1,5 +1,7 @@
 package com.charan.unloop.presentation.common.components
 
+import com.charan.unloop.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -75,7 +77,7 @@ fun BackButton(onBackClick: () -> Unit) {
     IconButton(onClick = onBackClick) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Back"
+            contentDescription = stringResource(R.string.action_back)
         )
     }
 }

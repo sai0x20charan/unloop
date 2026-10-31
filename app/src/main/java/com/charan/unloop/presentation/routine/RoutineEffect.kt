@@ -1,8 +1,8 @@
 package com.charan.unloop.presentation.routine
 
-import androidx.annotation.StringRes
+import com.charan.unloop.presentation.common.ToastMessage
 
 sealed interface RoutineEffect {
     object OnBack : RoutineEffect
-    data class ShowToast(@param:StringRes val messageRes: Int) : RoutineEffect
+    data class ShowToast(val message: ToastMessage) : RoutineEffect
 }

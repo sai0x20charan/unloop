@@ -1,5 +1,7 @@
 package com.charan.unloop.presentation.routine.components
 
+import com.charan.unloop.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -49,11 +51,11 @@ fun RoutineBottomBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Previous",
+                        contentDescription = stringResource(R.string.action_previous),
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Previous",
+                        text = stringResource(R.string.action_previous),
                     )
                 }
             }
@@ -62,7 +64,7 @@ fun RoutineBottomBar(
                 onClick = if (isLastPage) onFinish else onNext,
             ) {
                 Text(
-                    text = if (isLastPage) "Finish" else "Next",
+                    text = stringResource(if (isLastPage) R.string.action_finish else R.string.action_next),
                 )
                 Spacer(Modifier.width(8.dp))
                 Icon(

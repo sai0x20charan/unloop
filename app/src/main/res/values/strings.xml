@@ -144,4 +144,71 @@
     <string name="home_app_reddit" translatable="false">Reddit</string>
     <string name="home_app_x" translatable="false">X</string>
     <string name="home_app_chrome" translatable="false">Chrome</string>
+    <string name="action_back">Back</string>
+    <string name="action_previous">Previous</string>
+    <string name="action_next">Next</string>
+    <string name="action_finish">Finish</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="accessibility_label_value">%1$s, %2$s</string>
+    <string name="list_separator">", "</string>
+    <string name="duration_separator">:</string>
+    <string name="duration_number">%1$02d</string>
+    <string name="apps_more_count">+%1$d</string>
+    <string name="onboarding_tagline">Spend your time where you want to.</string>
+    <string name="onboarding_permissions">Permissions</string>
+    <plurals name="onboarding_permissions_allowed">
+        <item quantity="one">%1$d of %2$d allowed</item>
+        <item quantity="other">%1$d of %2$d allowed</item>
+    </plurals>
+    <string name="onboarding_not_allowed">Not allowed</string>
+    <string name="onboarding_allow">Allow</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="home_title_done_editing">Done editing</string>
+    <string name="routine_all">All routines</string>
+    <string name="routine_name_hint">Enter routine name</string>
+    <string name="routine_select_days">Select days</string>
+    <string name="routine_default_name">My Unloop Routine</string>
+    <string name="routine_example_morning">Morning routine</string>
+    <string name="routine_schedule_details">Schedule details</string>
+    <string name="routine_active_days">Active days</string>
+    <string name="routine_time_window">Time window</string>
+    <string name="routine_blocking_frequency">Blocking frequency</string>
+    <string name="routine_blocking_continuous">Blocks throughout the scheduled window</string>
+    <string name="routine_blocked_apps_count">Blocked apps (%1$d)</string>
+    <string name="routine_no_apps_selected">No apps selected (routine will block nothing)</string>
+    <string name="routine_no_days">No days set</string>
+    <string name="routine_every_day">Every day</string>
+    <string name="routine_weekdays">Weekdays</string>
+    <string name="routine_weekends">Weekends</string>
+    <string name="routine_unlock_challenge_description">Choose how you can temporarily unlock blocked apps if needed. Adding barrier types helps prevent impulsive use.</string>
+    <string name="routine_wait_challenge">Wait time challenge</string>
+    <string name="routine_wait_challenge_description">Requires you to wait for a set duration before the app opens. Helps break instant gratification loops.</string>
+    <string name="routine_wait_duration">Wait duration</string>
+    <string name="routine_strict_mode">Strict mode</string>
+    <string name="routine_strict_mode_description">No unlocks allowed under any circumstance. Pure blocking logic.</string>
+    <string name="routine_strict_mode_warning">Caution: Permanent Lockout</string>
+    <string name="routine_strict_mode_warning_description">You will not be able to bypass or unlock any blocked apps during the scheduled period.</string>
+    <string name="settings_about">About</string>
+    <string name="settings_open_source_libraries">Open source libraries</string>
+    <string name="settings_app_version">App version</string>
+    <string name="settings_libraries">Libraries</string>
+    <string name="overlay_app_locked">%1$s is locked</string>
+    <string name="overlay_app_paused">%1$s is paused</string>
+    <string name="overlay_app_blocked_description">This app is blocked while your routine is active.</string>
+    <string name="overlay_until_routine_ends">Until routine ends</string>
+    <string name="overlay_blocked">Blocked</string>
+    <string name="overlay_unlock_delay">Unlock delay</string>
+    <string name="overlay_active_routine">Active routine</string>
+    <string name="overlay_default_routine_name">Focus time</string>
+    <string name="overlay_default_app_name">This app</string>
+    <plurals name="overlay_hold_to_unlock">
+        <item quantity="one">Hold for %d second to unlock</item>
+        <item quantity="other">Hold for %d seconds to unlock</item>
+    </plurals>
+    <string name="notification_channel_session_progress">Session progress</string>
+    <string name="notification_paused_title">%1$s - Paused</string>
+    <string name="notification_remaining_time">Remaining time: %1$s</string>
+    <string name="notification_monitoring_routine">Monitoring app usage for routine</string>
+    <string name="notification_stop">Stop</string>
 </resources>

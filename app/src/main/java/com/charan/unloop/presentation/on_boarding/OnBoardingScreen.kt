@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -237,7 +238,7 @@ private fun WelcomePage(modifier: Modifier = Modifier) {
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "Spend your time where you want to.",
+                text = stringResource(R.string.onboarding_tagline),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -296,11 +297,11 @@ private fun PermissionsHeader(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
 
         Text(
-            text = "Permissions",
+            text = stringResource(R.string.onboarding_permissions),
             style = MaterialTheme.typography.displaySmallEmphasized,
         )
         Text(
-            text = "$grantedCount of $totalCount allowed",
+            text = pluralStringResource(R.plurals.onboarding_permissions_allowed, grantedCount, grantedCount, totalCount),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -343,11 +344,14 @@ private fun PermissionItem(
         label = "iconTint"
     )
 
+    val permissionStateDescription = stringResource(
+        if (permission.isGranted) R.string.onboarding_allowed else R.string.onboarding_not_allowed
+    )
     Card(
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                stateDescription = if (permission.isGranted) "Allowed" else "Not allowed"
+                stateDescription = permissionStateDescription
             },
 
         colors = CardDefaults.cardColors(containerColor = containerColor),
@@ -396,7 +400,7 @@ private fun PermissionItem(
                     shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(
-                        text = "Allow",
+                        text = stringResource(R.string.onboarding_allow),
                         style = MaterialTheme.typography.labelLargeEmphasized,
                     )
                 }
@@ -457,7 +461,7 @@ private fun OnBoardingBottomBar(
                 shapes = ButtonDefaults.shapes(),
             ) {
                 Text(
-                    text = if (isLastPage) "Get Started" else stringResource(R.string.onboarding_next),
+                    text = stringResource(if (isLastPage) R.string.onboarding_get_started else R.string.onboarding_next),
                     style = MaterialTheme.typography.labelLargeEmphasized,
                     modifier = Modifier.padding(ButtonDefaults.ButtonWithIconContentPadding)
                 )
