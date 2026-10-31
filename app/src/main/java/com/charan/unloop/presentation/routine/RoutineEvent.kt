@@ -10,8 +10,6 @@ sealed class RoutineEvent {
 
     data class OnStartTimeChange(val hour: Int, val minute: Int) : RoutineEvent()
     data class OnEndTimeChange(val hour: Int, val minute: Int) : RoutineEvent()
-    data object OnNextClick : RoutineEvent()
-    data object OnBackClick : RoutineEvent()
     data object OnCreateRoutineClick : RoutineEvent()
 
     data class OnInstalledAppSelect(val packageName: String) : RoutineEvent()
@@ -20,4 +18,7 @@ sealed class RoutineEvent {
     data class OnUnlockChallengeTypeChange(val type: UnlockChallengeType) : RoutineEvent()
     data class OnWaitTimeSecondsChange(val seconds: Int) : RoutineEvent()
     data class OnSessionControlsLockedChange(val locked: Boolean) : RoutineEvent()
+
+    data object OnScheduleToggle : RoutineEvent()
+    data object OnAppsSheetToggle : RoutineEvent()
 }

@@ -17,7 +17,7 @@ data class RoutineUiModel(
     val blockedApps: List<String> = emptyList(),
     val isEnabled: Boolean = true,
 
-    val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.WAIT_TIME,
+    val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.STRICT_MODE,
     val waitDurationSeconds: Int? = null,
     val areSessionControlsLocked: Boolean = false,
 ) {

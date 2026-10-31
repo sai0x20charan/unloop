@@ -1,7 +1,5 @@
 package com.charan.unloop.presentation.routine
 
-import androidx.annotation.StringRes
-import com.charan.unloop.R
 import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import kotlinx.datetime.LocalTime
@@ -17,18 +15,13 @@ data class RoutineState(
         endTime = LocalTime(0, 0),
         waitDurationSeconds = 30
     ),
-    val pageState : Int = 0,
-    val totalPageState : Int = 4,
-    val showEndTimeDialog : Boolean = false,
-    val showStartTimeDialog : Boolean = false,
-    val showIntervalDialog : Boolean = false,
-    val installedApps : List<InstalledAppsUiModel> = emptyList(),
-    @StringRes val stepTitles: List<Int> = listOf(
-        R.string.routine_step_schedule,
-        R.string.routine_step_select_apps,
-        R.string.routine_focus_rules,
-        R.string.routine_step_review
-    ),
+    val showEndTimeDialog: Boolean = false,
+    val showStartTimeDialog: Boolean = false,
+    val showAppsSheet: Boolean = false,
+    val installedApps: List<InstalledAppsUiModel> = emptyList(),
+    val isScheduleExpanded: Boolean = false,
+    val isEditing: Boolean = false,
+    val isSaving: Boolean = false,
 )
 
 
