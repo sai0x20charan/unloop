@@ -1,9 +1,11 @@
 package com.charan.unloop.presentation.common.models
 
 import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
+import kotlin.time.Duration
 
 data class RoutineUiModel(
     val id: String = "",
@@ -19,6 +21,9 @@ data class RoutineUiModel(
     val waitDurationSeconds: Int? = null,
     val areSessionControlsLocked: Boolean = false,
 ) {
+    val duration: Duration
+        get() = DateTimeUtils.getRoutineDuration(startTime, endTime)
+
     val formattedTime: String
         get() = when {
             startTime != null && endTime != null -> "${startTime.toDisplayString()} - ${endTime.toDisplayString()}"

@@ -54,6 +54,20 @@
     <string name="onboarding_ready">You\'re all set. Make some time for yourself.</string>
     <string name="navigation_home">Home</string>
     <string name="navigation_routines">Routines</string>
+    <string name="routine_create">Create routine</string>
+    <string name="routine_time_range">%1$s to %2$s</string>
+    <string name="routine_duration_minutes">%1$dm</string>
+    <string name="routine_duration_hours">%1$dh</string>
+    <string name="routine_duration_hours_minutes">%1$dh %2$dm</string>
+    <string name="routine_enabled">Enabled</string>
+    <string name="routine_disabled">Off</string>
+    <string name="routine_list_time_range">%1$s – %2$s</string>
+    <string name="routine_list_metadata">%1$s · %2$s</string>
+    <string name="routine_list_metadata_with_status">%1$s · %2$s · %3$s</string>
+    <plurals name="routine_apps_blocked">
+        <item quantity="one">%d app blocked</item>
+        <item quantity="other">%d apps blocked</item>
+    </plurals>
     <string name="settings">Settings</string>
     <string name="appearance">Appearance</string>
     <string name="theme">Theme</string>

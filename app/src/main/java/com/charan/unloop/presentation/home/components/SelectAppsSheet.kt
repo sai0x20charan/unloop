@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.home.components
 
+import android.graphics.drawable.Drawable
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -464,7 +465,7 @@ fun DurationInputField(
 }
 
 @Composable
-fun SelectedAppsPreview(selectedApps : List<InstalledAppsUiModel>) {
+fun SelectedAppsPreview(selectedApps : List<Drawable>) {
     val maxPreviewIcons = 3
     val previewApps = remember(selectedApps) { selectedApps.take(maxPreviewIcons) }
     val remainingCount = (selectedApps.size - maxPreviewIcons).coerceAtLeast(0)
@@ -486,12 +487,12 @@ fun SelectedAppsPreview(selectedApps : List<InstalledAppsUiModel>) {
                 }
         ) {
             previewApps.forEachIndexed { index, app ->
-                app.icon?.let { icon ->
+                app?.let { icon ->
                     Image(
                         bitmap = remember(icon) {
                             icon.toBitmap().asImageBitmap()
                         },
-                        contentDescription = app.appName,
+                        contentDescription = app.toString(),
                         modifier = Modifier
                             .offset(x = step * index)
                             .size(avatarSize)

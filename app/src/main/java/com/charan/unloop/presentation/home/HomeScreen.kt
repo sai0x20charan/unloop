@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.home
 
+import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -84,6 +85,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toDrawable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
@@ -310,7 +312,7 @@ fun HomeScreen(
                             },
                             trailingContent = {
                                 SelectedAppsPreview(
-                                    selectedApps = selectedApps
+                                    selectedApps = selectedApps.map { it.icon ?: R.drawable.unloop_logo.toDrawable() },
                                 )
                             }
                         )

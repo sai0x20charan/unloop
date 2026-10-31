@@ -61,10 +61,8 @@ class AllRoutinesViewModel @Inject constructor(
         if (routine != null) {
             if (isEnabled) {
                 sessionManager.scheduleSession(routine.id)
-                _effect.send(AllRoutineEffect.ShowToast("${routine.name} enabled"))
             } else {
                 sessionManager.cancelScheduledRoutine(routine.id)
-                _effect.send(AllRoutineEffect.ShowToast("${routine.name} disabled"))
             }
         }
     }

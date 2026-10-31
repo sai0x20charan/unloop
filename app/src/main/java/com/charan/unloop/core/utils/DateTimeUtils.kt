@@ -14,6 +14,7 @@ import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -84,6 +85,11 @@ object DateTimeUtils {
     fun getDurationSeconds(startTime: LocalDateTime, endTime: LocalDateTime): Long {
         val timeZone = TimeZone.currentSystemDefault()
         return (endTime.toInstant(timeZone) - startTime.toInstant(timeZone)).inWholeSeconds
+    }
+
+    fun getRoutineDuration(startTime: LocalTime, endTime: LocalTime): Duration {
+        val seconds = endTime.toSecondOfDay() - startTime.toSecondOfDay()
+        return (if (seconds <= 0) seconds + 24 * 60 * 60 else seconds).seconds
     }
 
     fun getScheduledEndTime(
