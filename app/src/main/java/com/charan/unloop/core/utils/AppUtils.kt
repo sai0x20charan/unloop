@@ -1,5 +1,6 @@
 package com.charan.unloop.core.utils
 
+import android.content.Context
 import com.charan.unloop.BuildConfig
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -9,3 +10,5 @@ fun getAppVersionWithVersionCode() =
 
 @OptIn(ExperimentalUuidApi::class)
 fun generateUuid(): String = Uuid.generateV4().toString()
+
+
