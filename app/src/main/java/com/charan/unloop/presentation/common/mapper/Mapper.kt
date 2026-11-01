@@ -73,3 +73,4 @@ fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
         areSessionControlsLocked = areSessionControlsLocked
     )
 }
+

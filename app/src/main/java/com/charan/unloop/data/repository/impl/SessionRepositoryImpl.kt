@@ -3,6 +3,7 @@ package com.charan.unloop.data.repository.impl
 import com.charan.unloop.core.di.ApplicationScope
 import com.charan.unloop.data.local.dao.SessionDao
 import com.charan.unloop.data.local.entity.SessionEntity
+import com.charan.unloop.data.local.model.SessionWithSessionEvents
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.repository.SessionRepository
 import kotlinx.coroutines.CoroutineScope
@@ -44,4 +45,15 @@ class SessionRepositoryImpl @Inject constructor(
 
     override suspend fun getLastInstantSession(): SessionEntity? =
         sessionDao.getLastInstantSession()
+
+    override suspend fun getAllSessions(): List<SessionEntity> {
+        return sessionDao.getAllSessions()
+    }
+
+    override suspend fun getSessionWithSessionEventForRange(
+        startDate: LocalDateTime,
+        endTime: LocalDateTime
+    ): List<SessionWithSessionEvents>{
+        return sessionDao.getSessionForRange(startDate, endTime)
+    }
 }

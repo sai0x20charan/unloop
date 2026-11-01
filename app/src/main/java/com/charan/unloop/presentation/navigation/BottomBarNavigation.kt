@@ -12,9 +12,11 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Settings
@@ -43,6 +45,7 @@ import com.charan.unloop.R
 import com.charan.unloop.presentation.all_routines.AllRoutinesScreen
 import com.charan.unloop.presentation.home.HomeScreen
 import com.charan.unloop.presentation.settings.SettingsScreen
+import com.charan.unloop.presentation.stats.StatsScreen
 
 private enum class MainTab(
     @param:StringRes val label: Int,
@@ -61,6 +64,13 @@ private enum class MainTab(
         Icons.Rounded.Schedule,
         Icons.Outlined.Schedule,
         BottomBarNavDestinations.AllRoutines,
+    ),
+
+    Stats(
+        R.string.stats,
+        Icons.Rounded.BarChart,
+        Icons.Outlined.BarChart,
+        BottomBarNavDestinations.Stats,
     ),
     Settings(
         R.string.settings,
@@ -169,6 +179,10 @@ fun BottomBarNavigation(onNavigateToCreateRoutine: (String?) -> Unit, onNavigate
                         SettingsScreen(
                             onNavigateToLicense = onNavigateToLicense
                         )
+                    }
+
+                    BottomBarNavDestinations.Stats -> NavEntry(key) {
+                        StatsScreen()
                     }
                     else -> throw IllegalArgumentException("Unknown bottom bar destination: $key")
                 }

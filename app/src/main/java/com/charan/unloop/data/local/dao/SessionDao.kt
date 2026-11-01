@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.charan.unloop.data.local.entity.SessionEntity
+import com.charan.unloop.data.local.model.SessionWithSessionEvents
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
 import kotlinx.coroutines.flow.Flow
@@ -59,5 +61,14 @@ interface SessionDao {
 
     @Query("SELECT * from sessions WHERE sessionType = :sessionType ORDER BY createdAt DESC LIMIT 1")
     suspend fun getLastInstantSession(sessionType: SessionType = SessionType.INSTANT): SessionEntity?
+
+    @Query("SELECT * from sessions")
+    suspend fun getAllSessions(): List<SessionEntity>
+    @Transaction
+    @Query("SELECT * from sessions WHERE createdAt BETWEEN :startDate AND :endTime")
+    suspend fun getSessionForRange(
+        startDate: LocalDateTime,
+        endTime: LocalDateTime
+    ): List<SessionWithSessionEvents>
 
 }

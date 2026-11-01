@@ -33,4 +33,9 @@ class SessionEventRepositoryImpl @Inject constructor(
 
         insertSessionEvent(sessionEventEntity)
     }
+
+    override suspend fun getSessionEventById(sessionId: String): List<SessionEventEntity> {
+        return sessionEventDao.getSessionEventById(sessionId)
+
+    }
 }

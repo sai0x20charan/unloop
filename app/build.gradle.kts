@@ -145,6 +145,10 @@ dependencies {
     implementation(libs.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
+    // Vico
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -110,6 +110,7 @@
     <string name="home_select_apps_hint">Select at least one app to start</string>
     <string name="home_start_session">Start session</string>
     <string name="home_start">Start</string>
+    <string name="stats">Stats</string>
     <string name="home_pause_session">Pause</string>
     <string name="home_resume_session">Resume</string>
     <string name="home_session_paused">Paused</string>
@@ -210,4 +211,20 @@
     <string name="notification_remaining_time">Remaining time: %1$s</string>
     <string name="notification_monitoring_routine">Monitoring app usage for routine</string>
     <string name="notification_stop">Stop</string>
+    <string name="stats_duration_hours_minutes">%1$dh %2$dm</string>
+    <string name="stats_duration_hours">%1$dh</string>
+
+    <string name="stats_duration_minutes_seconds">%1$dm %2$ds</string>
+    <string name="stats_weekly">Weekly</string>
+    <string name="stats_monthly">Monthly</string>
+    <string name="stats_time_in_focus">Time in focus</string>
+    <string name="stats_sessions">Sessions</string>
+    <string name="stats_app_blocks">App blocks</string>
+    <string name="stats_app_unlocks">App unlocks</string>
+    <string name="stats_recent_sessions">Recent sessions</string>
+    <string name="stats_no_sessions">No sessions in this period</string>
+    <string name="stats_no_sessions_description">Your focus sessions will appear here. Choose another period to see earlier sessions.</string>
+    <string name="stats_date_range">%1$s – %2$s</string>
+    <string name="stats_previous_period">Previous period</string>
+    <string name="stats_next_period">Next period</string>
 </resources>

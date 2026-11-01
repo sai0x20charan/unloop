@@ -1,11 +1,16 @@
 package com.charan.unloop.core.utils
 
+import android.content.res.Resources
+import com.charan.unloop.R
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toJavaDayOfWeek
@@ -156,4 +161,133 @@ object DateTimeUtils {
 
         error("No scheduled time found within the next week")
     }
-}
+
+    fun getCurrentWeekPair() : Pair<LocalDate, LocalDate> {
+        val currentDate = getCurrentDateTime().date
+        val startOfWeek = currentDate.minus(currentDate.dayOfWeek.ordinal.toLong(), DateTimeUnit.DAY)
+        val endOfWeek = startOfWeek.plus(6, DateTimeUnit.DAY)
+        return Pair(startOfWeek, endOfWeek)
+    }
+    fun getCurrentMonthPair() : Pair<LocalDate, LocalDate> {
+        val currentDate = getCurrentDateTime().date
+        val startOfMonth = LocalDate(currentDate.year, currentDate.month, 1)
+        val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
+        return Pair(startOfMonth, endOfMonth)
+    }
+
+    fun Pair<LocalDate, LocalDate>.getPreviousWeek() : Pair<LocalDate, LocalDate>{
+        val startOfWeek = this.first.minus(7, DateTimeUnit.DAY)
+        val endOfWeek = startOfWeek.plus(6, DateTimeUnit.DAY)
+        return Pair(startOfWeek, endOfWeek)
+
+    }
+    fun Pair<LocalDate, LocalDate>.getNextWeek() : Pair<LocalDate, LocalDate>{
+        val startOfWeek = this.first.plus(7, DateTimeUnit.DAY)
+        val endOfWeek = startOfWeek.plus(6, DateTimeUnit.DAY)
+        return Pair(startOfWeek, endOfWeek)
+
+    }
+
+    fun Pair<LocalDate, LocalDate>.getPreviousMonth() : Pair<LocalDate, LocalDate>{
+        val startOfMonth = this.first.minus(1, DateTimeUnit.MONTH)
+        val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
+        return Pair(startOfMonth, endOfMonth)
+
+    }
+    fun Pair<LocalDate, LocalDate>.getNextMonth() : Pair<LocalDate, LocalDate>{
+        val startOfMonth = this.first.plus(1, DateTimeUnit.MONTH)
+        val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
+        return Pair(startOfMonth, endOfMonth)
+
+    }
+
+    fun LocalDate.atStartOfDay() : LocalDateTime {
+        return LocalDateTime(this, LocalTime(0,0,0))
+    }
+    fun LocalDate.atEndOfDay() : LocalDateTime {
+        return LocalDateTime(this, LocalTime(23,59,59))
+    }
+
+    fun getDatesInRange(range: Pair<LocalDate, LocalDate>): List<LocalDate> {
+        return generateSequence(range.first) { it.plus(1, DateTimeUnit.DAY) }
+            .takeWhile { it <= range.second }
+            .toList()
+    }
+
+    fun getIntervalDuration(
+        intervals: List<Pair<LocalDateTime, LocalDateTime>>,
+
+        ) : Duration{
+        val timeZone = TimeZone.currentSystemDefault()
+
+        var totalDuration = Duration.ZERO
+        intervals.forEach { (start, end) ->
+            totalDuration += end.toInstant(timeZone) - start.toInstant(timeZone)
+        }
+        return totalDuration
+
+    }
+
+    fun getDailyDurations(
+        intervals: List<Pair<LocalDateTime, LocalDateTime>>,
+        range: Pair<LocalDate, LocalDate>
+    ): Map<LocalDate, Int> {
+        val timeZone = TimeZone.currentSystemDefault()
+        val rangeStart = range.first.atStartOfDayIn(timeZone)
+        val rangeEnd = range.second.plus(1, DateTimeUnit.DAY).atStartOfDayIn(timeZone)
+        val durations = mutableMapOf<LocalDate, Duration>()
+
+        intervals.forEach { (start, end) ->
+            var intervalStart = maxOf(start.toInstant(timeZone), rangeStart)
+            val intervalEnd = minOf(end.toInstant(timeZone), rangeEnd)
+
+            while (intervalStart < intervalEnd) {
+                val date = intervalStart.toLocalDateTime(timeZone).date
+                val nextDayStart = date.plus(1, DateTimeUnit.DAY).atStartOfDayIn(timeZone)
+                val dayEnd = minOf(intervalEnd, nextDayStart)
+                durations[date] = (durations[date] ?: Duration.ZERO) + (dayEnd - intervalStart)
+                intervalStart = dayEnd
+            }
+        }
+
+        return durations.mapValues { (_, duration) -> duration.inWholeSeconds.toInt() }
+    }
+
+    fun LocalTime.toSeconds() : Int {
+        return this.hour * 3600 + this.minute * 60 + this.second
+    }
+    fun Pair<LocalDate, LocalDate>.toDisplayString() : String{
+        return "${this.first.month.toLocale()} ${this.first.dayOfMonth} - ${this.second.month.toLocale()} ${this.second.dayOfMonth}"
+    }
+
+    fun Int.toFocusDuration(resources: Resources): String {
+        val seconds = coerceAtLeast(0)
+        return if (seconds >= 3600) {
+            resources.getString(
+                R.string.stats_duration_hours_minutes,
+                seconds / 3600,
+                (seconds % 3600) / 60
+            )
+        } else {
+            resources.getString(
+                R.string.stats_duration_minutes_seconds,
+                seconds / 60,
+                seconds % 60
+            )
+        }
+    }
+
+    fun Int.toFocusHours(resources: Resources) : String{
+        return resources.getString(
+            R.string.stats_duration_hours,
+            coerceAtLeast(0) / 3600
+        )
+    }
+
+    fun DayOfWeek.getDisplayName(textStyle : TextStyle) : String{
+        return this.toJavaDayOfWeek().getDisplayName(textStyle, Locale.getDefault())
+    }
+
+
+    }
+

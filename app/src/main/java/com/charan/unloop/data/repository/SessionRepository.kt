@@ -1,6 +1,7 @@
 package com.charan.unloop.data.repository
 
 import com.charan.unloop.data.local.entity.SessionEntity
+import com.charan.unloop.data.local.model.SessionWithSessionEvents
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,5 +29,12 @@ interface SessionRepository {
     suspend fun getSessionById(sessionId: String): SessionEntity?
 
     suspend fun getLastInstantSession() : SessionEntity?
+
+    suspend fun getAllSessions() : List<SessionEntity>
+
+    suspend fun getSessionWithSessionEventForRange(
+        startDate: LocalDateTime,
+        endTime: LocalDateTime
+    ): List<SessionWithSessionEvents>
 
 }

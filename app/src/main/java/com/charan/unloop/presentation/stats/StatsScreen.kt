@@ -1,0 +1,329 @@
+package com.charan.unloop.presentation.stats
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.HourglassEmpty
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.charan.unloop.R
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
+import com.charan.unloop.core.utils.DateTimeUtils.toFocusDuration
+import com.charan.unloop.core.utils.DateTimeUtils.toLocale
+import com.charan.unloop.presentation.common.components.CustomMediumTopBar
+import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
+import com.charan.unloop.presentation.common.components.SectionHeader
+import com.charan.unloop.presentation.common.components.toScreenContentPadding
+import com.charan.unloop.presentation.stats.components.StatGraph
+import com.charan.unloop.presentation.stats.components.StatSummaryTile
+import com.charan.unloop.presentation.theme.indexItemFor
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun StatsScreen() {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val viewModel = hiltViewModel<StatsViewModel>()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val resources = LocalResources.current
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CustomMediumTopBar(
+                title = stringResource(R.string.stats),
+                scrollBehavior = scrollBehavior,
+                showBackButton = false
+            )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            contentPadding = innerPadding.toScreenContentPadding(bottom = 24.dp)
+        ) {
+            item {
+                StatsTypeSelector(
+                    selected = state.selectedStatsType,
+                    onSelect = { type ->
+                        if (type != state.selectedStatsType) {
+                            viewModel.onEvent(StatsEvent.OnStatTypeChange(type))
+                        }
+                    }
+                )
+            }
+
+            item {
+                Surface(
+                    modifier = Modifier.padding(top = 16.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {
+                    Column(modifier = Modifier.padding(vertical = 16.dp)) {
+                        PeriodNavigator(
+                            label = if (state.selectedStatsType == StatsType.MONTHLY) {
+                                state.graphTimePeriod.first.month.toLocale()
+                            } else {
+                                state.graphTimePeriod.toDisplayString()
+                            },
+                            onPrevious = { viewModel.onEvent(StatsEvent.OnDecrementPeriod) },
+                            onNext = { viewModel.onEvent(StatsEvent.OnIncrementPeriod) },
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.stats_time_in_focus),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = state.totalFocusTime.toFocusDuration(resources),
+                                style = MaterialTheme.typography.displayMediumEmphasized,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            StatGraph(
+                                graphData = state.graphData,
+                                statType = state.selectedStatsType
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    StatSummaryTile(
+                        icon = Icons.Rounded.Timer,
+                        value = state.totalSessions.toString(),
+                        label = stringResource(R.string.stats_sessions),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatSummaryTile(
+                        icon = Icons.Rounded.Block,
+                        value = state.totalBlockedApps.toString(),
+                        label = stringResource(R.string.stats_app_blocks),
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            item {
+                SectionHeader(
+                    title = stringResource(R.string.stats_recent_sessions),
+                    modifier = Modifier.padding(start = 4.dp, top = 12.dp)
+                )
+            }
+
+            if (state.recentSessions.isEmpty()) {
+                item { EmptySessions() }
+            } else {
+                itemsIndexed(
+                    items = state.recentSessions,
+                    key = { _, session -> session.id }
+                ) { index, session ->
+                    CustomSegmentedListItem(
+                        headLineContent = {
+                            Text(
+                                text = session.sessionName,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        },
+                        supportingContent = {
+                            Text(
+                                text = stringResource(
+                                    R.string.stats_date_range,
+                                    session.startTime.toDisplayString(),
+                                    session.endTime.toDisplayString()
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        leadingContent = {
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Timer,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        },
+                        trailingContent = {
+                            Text(
+                                text = session.totalTime.toFocusDuration(resources),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        indexItem = state.recentSessions.indexItemFor(index)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun StatsTypeSelector(
+    selected: StatsType,
+    onSelect: (StatsType) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+    ) {
+        StatsType.entries.forEachIndexed { index, type ->
+            ToggleButton(
+                checked = type == selected,
+                onCheckedChange = { onSelect(type) },
+                modifier = Modifier.weight(1f),
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    StatsType.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                }
+            ) {
+                Text(stringResource(type.toLabelRes()))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun PeriodNavigator(
+    label: String,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        FilledTonalIconButton(
+            onClick = onPrevious,
+            shapes = IconButtonDefaults.shapes()
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                contentDescription = stringResource(R.string.stats_previous_period)
+            )
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMediumEmphasized,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f)
+        )
+        FilledTonalIconButton(
+            onClick = onNext,
+            shapes = IconButtonDefaults.shapes()
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.stats_next_period)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptySessions() {
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.HourglassEmpty,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(R.string.stats_no_sessions),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = stringResource(R.string.stats_no_sessions_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+private fun StatsType.toLabelRes(): Int = when (this) {
+    StatsType.WEEKLY -> R.string.stats_weekly
+    StatsType.MONTHLY -> R.string.stats_monthly
+}

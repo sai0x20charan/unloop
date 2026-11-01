@@ -8,5 +8,7 @@ interface SessionEventRepository {
 
     suspend fun recordSessionEvent(sessionId : String, sessionEvents: SessionEvents,appPackage : String?)
 
+    suspend fun getSessionEventById(sessionId : String) : List<SessionEventEntity>
+
 
 }

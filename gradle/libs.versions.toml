@@ -26,6 +26,7 @@ googleGmsGoogleServices = "4.5.0"
 googleFirebaseCrashlytics = "3.0.8"
 aboutLibraries = "15.3.0"
 sqlite = "2.7.1"
+vico = "3.3.1"
 
 
 
@@ -79,6 +80,10 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 
+# Vico
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -90,5 +95,3 @@ google-gms-google-services = { id = "com.google.gms.google-services", version.re
 google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }
 aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutLibraries" }
 plugin-room = { id = "androidx.room", version.ref = "room" }
-
-

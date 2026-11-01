@@ -4,7 +4,9 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class BottomBarNavDestinations : NavKey {
+sealed class
+
+BottomBarNavDestinations : NavKey {
 
 
     @Serializable
@@ -15,6 +17,9 @@ sealed class BottomBarNavDestinations : NavKey {
 
     @Serializable
     data object Settings : BottomBarNavDestinations()
+
+    @Serializable
+    data object Stats : BottomBarNavDestinations()
 }
 
 @Serializable
