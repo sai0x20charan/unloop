@@ -10,6 +10,7 @@ import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
 import com.charan.unloop.presentation.common.mapper.toCurrentSessionUiModel
+import com.charan.unloop.presentation.common.mapper.toInstantSessionUiModel
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,37 +35,19 @@ class HomeViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        loadInstalledApps()
+        loadInstantSessionAndApps()
         observeActiveSession()
-        loadLastInstantSession()
     }
 
-    private fun loadLastInstantSession() = viewModelScope.launch {
+    private fun loadInstantSessionAndApps() = viewModelScope.launch {
         val lastInstantSession = sessionRepository.getLastInstantSession()
-        if (lastInstantSession != null) {
-            _state.update {
-                it.copy(
-                    instantSessionUiModel = it.instantSessionUiModel.copy(
-                        sessionTitle = lastInstantSession.sessionName,
-                        installedApps = it.instantSessionUiModel.installedApps.map { app ->
-                            app.copy(
-                                isSelected = lastInstantSession.blockedApps?.contains(app.packageName)
-                                    ?: false
-                            )
-                        }
-                    )
-                )
-            }
+        val installedApps = installedAppsRepository.getInstalledApps().map { app ->
+            app.toInstalledAppsUiModel()
         }
-    }
-
-    private fun loadInstalledApps() = viewModelScope.launch {
-        val installedApps = installedAppsRepository.getInstalledApps()
         _state.update {
             it.copy(
-                instantSessionUiModel = it.instantSessionUiModel.copy(
-                    installedApps = installedApps.map { app -> app.toInstalledAppsUiModel() }
-                )
+                instantSessionUiModel = lastInstantSession?.toInstantSessionUiModel(installedApps)
+                    ?: it.instantSessionUiModel.copy(installedApps = installedApps)
             )
         }
     }

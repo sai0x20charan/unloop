@@ -1,16 +1,21 @@
 package com.charan.unloop.presentation.common.mapper
 
 import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.core.utils.DateTimeUtils.getHour
+import com.charan.unloop.core.utils.DateTimeUtils.getMinute
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.entity.RoutineEntity
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
+import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.home.CurrentSessionUiModel
+import com.charan.unloop.presentation.home.InstantSessionUiModel
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import kotlin.time.Duration
 
 fun RoutineUiModel.toRoutineEntity(id : String? = null, createdAt : LocalDateTime? = null) : RoutineEntity {
     return RoutineEntity(
@@ -74,3 +79,20 @@ fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
     )
 }
 
+fun SessionEntity.toInstantSessionUiModel(
+    installedApps: List<InstalledAppsUiModel>
+): InstantSessionUiModel {
+    val duration = DateTimeUtils.getDuration(createdAt, endTime).coerceAtLeast(Duration.ZERO)
+    val blockedPackages = blockedApps.orEmpty().toSet()
+    return InstantSessionUiModel(
+        sessionTitle = sessionName,
+        installedApps = installedApps.map { app ->
+            app.copy(isSelected = app.packageName in blockedPackages)
+        },
+        areSessionControlsLocked = areSessionControlsLocked,
+        unlockChallengeType = unlockChallengeType,
+        waitTime = waitDurationSeconds ?: 30,
+        hour = duration.getHour(),
+        minute = duration.getMinute()
+    )
+}

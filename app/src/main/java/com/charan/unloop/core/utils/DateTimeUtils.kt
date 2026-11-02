@@ -298,6 +298,12 @@ object DateTimeUtils {
         return this.toJavaDayOfWeek().getDisplayName(textStyle, Locale.getDefault())
     }
 
-
+    fun Duration.getHour(): Int {
+        return inWholeHours.toInt()
     }
 
+    fun Duration.getMinute(): Int {
+        return (inWholeMinutes % 60).toInt()
+    }
+
+}
