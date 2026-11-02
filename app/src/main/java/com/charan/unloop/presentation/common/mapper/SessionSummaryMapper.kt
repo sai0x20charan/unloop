@@ -8,10 +8,10 @@ fun SessionWithSessionEvents.toSessionSummaryUiModel() : SessionSummaryUiModel {
     val totalFocusedTime = this.toFocusIntervals()
     return SessionSummaryUiModel(
         id = this.sessionEntity.id,
-        sessionName = this.sessionEntity.sessionName,
+        sessionName = this.sessionEntity.name,
         focusDurationSeconds = DateTimeUtils.getIntervalDuration(totalFocusedTime).inWholeSeconds.toInt(),
         startTime = this.sessionEntity.createdAt,
-        endTime = this.sessionEntity.endTime
+        endTime = this.sessionEntity.scheduledEndTime
     )
 }
 

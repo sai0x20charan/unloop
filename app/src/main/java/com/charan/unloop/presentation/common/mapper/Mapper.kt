@@ -8,8 +8,8 @@ import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.entity.RoutineEntity
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.presentation.common.models.AppInfoUiModel
-import com.charan.unloop.presentation.common.models.RoutineUiModel
+import com.charan.unloop.presentation.common.model.AppInfoUiModel
+import com.charan.unloop.presentation.common.model.RoutineUiModel
 import com.charan.unloop.presentation.home.CurrentSessionUiModel
 import com.charan.unloop.presentation.home.InstantSessionUiModel
 import kotlinx.datetime.LocalDateTime
@@ -33,7 +33,7 @@ fun RoutineUiModel.toRoutineEntity(id : String? = null, createdAt : LocalDateTim
         areSessionControlsLocked = areSessionControlsLocked,
         createdAt = createdAt ?: DateTimeUtils.getCurrentDateTime(),
         updatedAt = DateTimeUtils.getCurrentDateTime(),
-        disableAppPackages = blockedApps,
+        blockedAppPackages = blockedAppPackages,
         isAllDay = false,
         isDeleted = false,
         intervalMinutes = 0
@@ -48,7 +48,7 @@ fun RoutineEntity.toRoutineUiModel(): RoutineUiModel {
         selectedDays = daysOfWeek,
         startTime = startTime,
         endTime = endTime,
-        blockedApps = disableAppPackages ?: emptyList(),
+        blockedAppPackages = blockedAppPackages ?: emptyList(),
         isEnabled = isEnabled,
         unlockChallengeType = unlockChallengeType,
         waitDurationSeconds = waitDurationSeconds,
@@ -57,24 +57,24 @@ fun RoutineEntity.toRoutineUiModel(): RoutineUiModel {
 }
 
 fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
-    val remaining = if (sessionStatus == SessionStatus.PAUSED && pausedRemainingSeconds != null) {
+    val remaining = if (status == SessionStatus.PAUSED && pausedRemainingSeconds != null) {
         pausedRemainingSeconds.toInt()
     } else {
-        DateTimeUtils.getRemainingDuration(endTime).toInt()
+        DateTimeUtils.getRemainingSeconds(scheduledEndTime).toInt()
     }
 
-    val total = (endTime.toInstant(TimeZone.currentSystemDefault()) -
-        startTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds.toInt().coerceAtLeast(1)
+    val total = (scheduledEndTime.toInstant(TimeZone.currentSystemDefault()) -
+        scheduledStartTime.toInstant(TimeZone.currentSystemDefault())).inWholeSeconds.toInt().coerceAtLeast(1)
 
     return CurrentSessionUiModel(
         sessionId = id,
         routineId = routineId,
-        sessionName = sessionName,
-        sessionStatus = sessionStatus,
-        endTime = endTime.toDisplayString(),
+        sessionName = name,
+        sessionStatus = status,
+        endTime = scheduledEndTime.toDisplayString(),
         remainingSeconds = remaining,
         totalSeconds = total,
-        blockedPackages = blockedApps.orEmpty(),
+        blockedAppPackages = blockedAppPackages.orEmpty(),
         areSessionControlsLocked = areSessionControlsLocked
     )
 }
@@ -82,16 +82,16 @@ fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
 fun SessionEntity.toInstantSessionUiModel(
     installedApps: List<AppInfoUiModel>
 ): InstantSessionUiModel {
-    val duration = DateTimeUtils.getDuration(createdAt, endTime).coerceAtLeast(Duration.ZERO)
-    val blockedPackages = blockedApps.orEmpty().toSet()
+    val duration = DateTimeUtils.getDuration(createdAt, scheduledEndTime).coerceAtLeast(Duration.ZERO)
+    val blockedAppPackageSet = blockedAppPackages.orEmpty().toSet()
     return InstantSessionUiModel(
-        sessionTitle = sessionName,
+        sessionTitle = name,
         installedApps = installedApps.map { app ->
-            app.copy(isSelected = app.packageName in blockedPackages)
+            app.copy(isSelected = app.packageName in blockedAppPackageSet)
         },
         areSessionControlsLocked = areSessionControlsLocked,
         unlockChallengeType = unlockChallengeType,
-        waitTime = waitDurationSeconds ?: 30,
+        waitDurationSeconds = waitDurationSeconds ?: 30,
         hour = duration.getHour(),
         minute = duration.getMinute()
     )

@@ -16,7 +16,7 @@ class InstalledAppsProvider @Inject constructor(
 ) {
     private val packageManager = context.packageManager
 
-    suspend fun getInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
+    suspend fun getLaunchableApps(): List<AppInfo> = withContext(Dispatchers.IO) {
 
         val intent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)

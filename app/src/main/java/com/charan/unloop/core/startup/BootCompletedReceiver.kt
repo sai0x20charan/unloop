@@ -43,14 +43,14 @@ class BootCompletedReceiver : BroadcastReceiver() {
             scope.launch {
                 try {
                     val runningSession = sessionRepository.getActiveSessionOnce()
-                    if(runningSession !=null && runningSession.sessionStatus == SessionStatus.RUNNING){
+                    if(runningSession !=null && runningSession.status == SessionStatus.RUNNING){
                         sessionManager.restoreSession(runningSession.id)
                     }
                     val routines = routineRepository.getAllRoutines().firstOrNull().orEmpty()
                     val activeRoutines = routines.filter { it.isEnabled && !it.isDeleted }
 
                     for (routine in activeRoutines) {
-                        sessionManager.scheduleSession(routine.id)
+                        sessionManager.scheduleNextRoutineStart(routine.id)
                     }
                     Log.d(TAG, "Successfully rescheduled ${activeRoutines.size} routines after reboot")
                 } catch (e: Exception) {

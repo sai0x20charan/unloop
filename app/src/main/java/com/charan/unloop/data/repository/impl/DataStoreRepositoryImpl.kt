@@ -22,12 +22,12 @@ class DataStoreRepositoryImpl @Inject constructor(
         private val KEY_DYNAMIC_COLORS = booleanPreferencesKey("dynamic_colors")
     }
 
-    override val isOnBoardingCompleted: Flow<Boolean>
+    override val isOnboardingCompleted: Flow<Boolean>
         get() = context.dataStore.data.map { pref ->
             pref[KEY_ONBOARDING_COMPLETED] ?: false
         }
 
-    override suspend fun setOnBoardingCompleted(completed: Boolean) {
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { pref ->
             pref[KEY_ONBOARDING_COMPLETED] = completed
         }
@@ -39,19 +39,19 @@ class DataStoreRepositoryImpl @Inject constructor(
         }
     }
 
-    override val getTheme: Flow<ThemeOptions>
+    override val theme: Flow<ThemeOptions>
         get() = context.dataStore.data.map { pref ->
             val themeName = pref[KEY_THEME] ?: ThemeOptions.SYSTEM_DEFAULT.name
             runCatching { ThemeOptions.valueOf(themeName) }.getOrDefault(ThemeOptions.SYSTEM_DEFAULT)
         }
 
-    override suspend fun setDynamicColorsState(isEnabled: Boolean) {
+    override suspend fun setDynamicColorsEnabled(isEnabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[KEY_DYNAMIC_COLORS] = isEnabled
         }
     }
 
-    override val getDynamicColorsState: Flow<Boolean>
+    override val isDynamicColorsEnabled: Flow<Boolean>
         get() = context.dataStore.data.map { pref ->
             pref[KEY_DYNAMIC_COLORS] ?: true
         }

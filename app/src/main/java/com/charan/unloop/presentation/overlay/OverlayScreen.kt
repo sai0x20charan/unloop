@@ -76,23 +76,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.presentation.theme.UnloopTheme
 import kotlinx.datetime.LocalTime
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OverLayScreen(
+fun OverlayScreen(
     unlockType: UnlockChallengeType,
     routineName: String,
     appName: String,
     endTime: String,
-    waitTimeSeconds: Int,
+    waitDurationSeconds: Int,
     onKeepFocusing: () -> Unit = {},
     onUnlock: () -> Unit = {}
 ) {
     val strict = unlockType == UnlockChallengeType.STRICT_MODE
-    val interactionSource = remember(unlockType, routineName, appName, waitTimeSeconds) {
+    val interactionSource = remember(unlockType, routineName, appName, waitDurationSeconds) {
         MutableInteractionSource()
     }
     val isHolding by interactionSource.collectIsPressedAsState()
@@ -106,7 +106,7 @@ fun OverLayScreen(
             progress.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(
-                    durationMillis = waitTimeSeconds.coerceAtLeast(1) * 1000,
+                    durationMillis = waitDurationSeconds.coerceAtLeast(1) * 1000,
                     easing = LinearEasing
                 )
             )
@@ -205,8 +205,8 @@ fun OverLayScreen(
                         HoldToUnlockButton(
                             label = pluralStringResource(
                                 R.plurals.overlay_hold_to_unlock,
-                                waitTimeSeconds,
-                                waitTimeSeconds
+                                waitDurationSeconds,
+                                waitDurationSeconds
                             ),
                             progress = { shownProgress },
                             interactionSource = interactionSource,
@@ -343,23 +343,23 @@ private fun HoldToUnlockButton(
 @Preview(showSystemUi = true)
 @Composable
 fun OverlayScreenPreview() {
-    OverLayScreen(
+    OverlayScreen(
         unlockType = UnlockChallengeType.WAIT_TIME,
         routineName = stringResource(R.string.routine_example_morning),
         appName = stringResource(R.string.home_app_youtube),
         endTime = LocalTime(10, 30).toDisplayString(),
-        waitTimeSeconds = 5
+        waitDurationSeconds = 5
     )
 }
 
 @Preview(showSystemUi = true)
 @Composable
 fun OverlayScreenStrictPreview() {
-    OverLayScreen(
+    OverlayScreen(
         unlockType = UnlockChallengeType.STRICT_MODE,
         routineName = stringResource(R.string.routine_example_morning),
         appName = stringResource(R.string.home_app_youtube),
         endTime = LocalTime(10, 30).toDisplayString(),
-        waitTimeSeconds = 5
+        waitDurationSeconds = 5
     )
 }

@@ -46,5 +46,5 @@ interface SessionController {
 
     fun stopSession(sessionId: String)
 
-    fun cancelScheduledSession(sessionId: String)
+    fun cancelSessionEndAlarm(sessionId: String)
 }

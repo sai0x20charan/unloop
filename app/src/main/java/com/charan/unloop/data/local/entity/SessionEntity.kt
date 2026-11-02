@@ -4,9 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
 
 @Entity(tableName = "sessions")
 data class SessionEntity(
@@ -15,13 +14,13 @@ data class SessionEntity(
     val routineId : String? = null,
     val actualStartTime : LocalDateTime? = null,
     val actualEndTime : LocalDateTime? = null,
-    val startTime : LocalDateTime,
-    val endTime : LocalDateTime,
-    val sessionStatus : SessionStatus,
-    val sessionType : SessionType,
-    val blockedApps : List<String>? = null,
+    val scheduledStartTime : LocalDateTime,
+    val scheduledEndTime : LocalDateTime,
+    val status : SessionStatus,
+    val type : SessionType,
+    val blockedAppPackages : List<String>? = null,
     val unlockChallengeType: UnlockChallengeType,
-    val sessionName : String,
+    val name : String,
     val waitDurationSeconds : Int? = null,
     val createdAt : LocalDateTime,
     val pausedRemainingSeconds : Long? = null,

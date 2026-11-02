@@ -2,7 +2,6 @@ package com.charan.unloop.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.charan.unloop.data.local.dao.RoutineDao
 import com.charan.unloop.data.local.dao.SessionDao
@@ -13,7 +12,7 @@ import com.charan.unloop.data.local.entity.SessionEventEntity
 
 @Database(
     entities = [RoutineEntity::class, SessionEntity::class, SessionEventEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

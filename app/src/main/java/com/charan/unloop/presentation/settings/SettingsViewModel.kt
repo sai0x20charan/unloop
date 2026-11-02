@@ -39,7 +39,7 @@ class SettingsViewModel @Inject constructor(
                 changeTheme(event.theme)
             }
             is SettingsEvent.OnDynamicColorsChange -> {
-                setDynamicColorsState(event.isEnabled)
+                setDynamicColorsEnabled(event.isEnabled)
             }
             SettingsEvent.OnBack -> {
                 sendEffect(SettingsEffect.OnBack)
@@ -60,8 +60,8 @@ class SettingsViewModel @Inject constructor(
 
     private fun observeSettingsDataStore() = viewModelScope.launch {
         combine(
-            dataStore.getTheme,
-            dataStore.getDynamicColorsState
+            dataStore.theme,
+            dataStore.isDynamicColorsEnabled
         ) { theme, dynamic ->
             theme to dynamic
         }.collectLatest { (theme, dynamic) ->
@@ -78,8 +78,8 @@ class SettingsViewModel @Inject constructor(
         dataStore.setTheme(theme)
     }
 
-    private fun setDynamicColorsState(isEnabled: Boolean) = viewModelScope.launch {
-        dataStore.setDynamicColorsState(isEnabled)
+    private fun setDynamicColorsEnabled(isEnabled: Boolean) = viewModelScope.launch {
+        dataStore.setDynamicColorsEnabled(isEnabled)
     }
 
     private fun sendEffect(effect: SettingsEffect) = viewModelScope.launch {

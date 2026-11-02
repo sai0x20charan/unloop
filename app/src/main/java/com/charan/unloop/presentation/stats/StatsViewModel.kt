@@ -12,7 +12,7 @@ import com.charan.unloop.core.utils.DateTimeUtils.getNextWeek
 import com.charan.unloop.core.utils.DateTimeUtils.getPreviousMonth
 import com.charan.unloop.core.utils.DateTimeUtils.getPreviousWeek
 import com.charan.unloop.core.utils.DateTimeUtils.toSeconds
-import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.local.model.enums.SessionEventType
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toFocusChartDataUiModels
@@ -61,8 +61,8 @@ class StatsViewModel @Inject constructor(
 
     fun onEvent(event : StatsEvent){
         when(event){
-            StatsEvent.OnSeeAllSessions -> sendEffect(StatsEffect.NavigateToSessions(_state.value.selectedDateRange.first,_state.value.selectedDateRange.second))
-            StatsEvent.OnSeeAllAppBlocks -> sendEffect(StatsEffect.NavigateToBlockedApps(_state.value.selectedDateRange.first, _state.value.selectedDateRange.second))
+            StatsEvent.OnSeeAllSessions -> sendEffect(StatsEffect.NavigateToSessionHistory(_state.value.selectedDateRange.first,_state.value.selectedDateRange.second))
+            StatsEvent.OnSeeAllAppBlocks -> sendEffect(StatsEffect.NavigateToAppBlockHistory(_state.value.selectedDateRange.first, _state.value.selectedDateRange.second))
             StatsEvent.OnDecrementPeriod -> handleDecrementPeriod()
             StatsEvent.OnIncrementPeriod -> handleIncrementPeriod()
             is StatsEvent.OnPeriodChange -> handlePeriodChange()
@@ -166,7 +166,7 @@ class StatsViewModel @Inject constructor(
                             focusChartData = focusChartData,
                             totalFocusDurationSeconds = focusChartData.sumOf { it.focusDurationSeconds },
                             sessionCount = sessions.size,
-                            appBlockCount = sessions.sumOf { it.sessionEvents.count { event -> event.eventType == SessionEvents.APP_BLOCKED } },
+                            appBlockCount = sessions.sumOf { it.sessionEvents.count { event -> event.eventType == SessionEventType.APP_BLOCKED } },
                             recentSessions = sessions.sortedByDescending { it.sessionEntity.createdAt }.take(5).map { session ->
                                 session.toSessionSummaryUiModel()
                             },

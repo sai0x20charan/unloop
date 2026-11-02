@@ -28,9 +28,9 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.charan.unloop.core.di.ApplicationScope
 import com.charan.unloop.R
-import com.charan.unloop.data.local.model.enums.SessionEvents
-import com.charan.unloop.presentation.overlay.OverLayScreen
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.SessionEventType
+import com.charan.unloop.presentation.overlay.OverlayScreen
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.presentation.theme.UnloopTheme
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -62,7 +62,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
     private data class OverlayDetails(
         val sessionId: String?,
         val routineName: String,
-        val appPackage: String?,
+        val packageName: String?,
         val unlockType: UnlockChallengeType,
         val waitSeconds: Int,
         val endTime: String,
@@ -95,7 +95,7 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         val nextDetails = OverlayDetails(
             sessionId = intent.getStringExtra(EXTRA_SESSION_ID),
             routineName = intent.getStringExtra(EXTRA_ROUTINE_NAME).orEmpty().ifBlank { getString(R.string.overlay_default_routine_name) },
-            appPackage = intent.getStringExtra(EXTRA_APP_PACKAGE),
+            packageName = intent.getStringExtra(EXTRA_APP_PACKAGE),
             unlockType = UnlockChallengeType.entries.firstOrNull { it.name == unlockTypeName }
                 ?: UnlockChallengeType.WAIT_TIME,
             waitSeconds = intent.getIntExtra(EXTRA_WAIT_SECONDS, 30).coerceIn(5, 120),
@@ -133,11 +133,11 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
                 UnloopTheme {
                     details?.let { current ->
                         key(current) {
-                            OverLayScreen(
+                            OverlayScreen(
                                 unlockType = current.unlockType,
                                 routineName = current.routineName,
-                                appName = appLabel(current.appPackage),
-                                waitTimeSeconds = current.waitSeconds,
+                                appName = appLabel(current.packageName),
+                                waitDurationSeconds = current.waitSeconds,
                                 endTime = current.endTime,
                                 onKeepFocusing = ::returnHome,
                                 onUnlock = { unlockApp(current) }
@@ -196,14 +196,14 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
         removeOverlay()
 
         val sessionId = current.sessionId?.takeIf { it.isNotBlank() } ?: return
-        val appPackage = current.appPackage?.takeIf { it.isNotBlank() } ?: return
+        val packageName = current.packageName?.takeIf { it.isNotBlank() } ?: return
         // Keep the write alive if the monitor destroys this service as the user switches apps.
         applicationScope.launch {
             try {
                 sessionManager.logSessionEvent(
                     sessionId = sessionId,
-                    eventName = SessionEvents.APP_ACCESS_GRANTED,
-                    appPackage = appPackage
+                    eventName = SessionEventType.APP_ACCESS_GRANTED,
+                    packageName = packageName
                 )
             } catch (e: CancellationException) {
                 throw e
@@ -214,13 +214,13 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
     }
 
     @Suppress("DEPRECATION")
-    private fun appLabel(appPackage: String?): String {
-        if (appPackage == null) return getString(R.string.overlay_default_app_name)
+    private fun appLabel(packageName: String?): String {
+        if (packageName == null) return getString(R.string.overlay_default_app_name)
         return try {
             val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                packageManager.getApplicationInfo(appPackage, PackageManager.ApplicationInfoFlags.of(0))
+                packageManager.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0))
             } else {
-                packageManager.getApplicationInfo(appPackage, 0)
+                packageManager.getApplicationInfo(packageName, 0)
             }
             packageManager.getApplicationLabel(info).toString()
         } catch (_: PackageManager.NameNotFoundException) {

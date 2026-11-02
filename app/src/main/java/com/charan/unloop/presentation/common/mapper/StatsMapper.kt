@@ -2,7 +2,7 @@ package com.charan.unloop.presentation.common.mapper
 
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.SessionWithSessionEvents
-import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.local.model.enums.SessionEventType
 import com.charan.unloop.presentation.stats.FocusChartDataUiModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -29,8 +29,8 @@ internal fun SessionWithSessionEvents.toPauseIntervals(
 ): List<Pair<LocalDateTime, LocalDateTime>> {
     val sessionStart = sessionEntity.actualStartTime ?: sessionEntity.createdAt
     val sessionEnd = minOf(
-        sessionEntity.actualEndTime ?: sessionEntity.endTime,
-        sessionEntity.endTime,
+        sessionEntity.actualEndTime ?: sessionEntity.scheduledEndTime,
+        sessionEntity.scheduledEndTime,
         currentDateTime
     )
 
@@ -45,18 +45,18 @@ internal fun SessionWithSessionEvents.toPauseIntervals(
 
     for ((_, _, eventTime, eventType) in events) {
         when (eventType) {
-            SessionEvents.PAUSE_SESSION -> {
+            SessionEventType.PAUSE_SESSION -> {
                 if (pauseStart == null) pauseStart = eventTime
             }
 
-            SessionEvents.RESUME_SESSION,
-            SessionEvents.COMPLETE_SESSION -> {
+            SessionEventType.RESUME_SESSION,
+            SessionEventType.COMPLETE_SESSION -> {
                 pauseStart?.let {
                     intervals.add(it to eventTime)
                 }
                 pauseStart = null
 
-                if (eventType == SessionEvents.COMPLETE_SESSION) break
+                if (eventType == SessionEventType.COMPLETE_SESSION) break
             }
 
             else -> Unit
@@ -75,8 +75,8 @@ internal fun SessionWithSessionEvents.toFocusIntervals(
 ): List<Pair<LocalDateTime, LocalDateTime>> {
     val sessionStart = sessionEntity.actualStartTime ?: sessionEntity.createdAt
     val sessionEnd = minOf(
-        sessionEntity.actualEndTime ?: sessionEntity.endTime,
-        sessionEntity.endTime,
+        sessionEntity.actualEndTime ?: sessionEntity.scheduledEndTime,
+        sessionEntity.scheduledEndTime,
         currentDateTime
     )
     if (sessionEnd <= sessionStart) return emptyList()
@@ -89,13 +89,13 @@ internal fun SessionWithSessionEvents.toFocusIntervals(
 
     for ((_, _, eventTime, eventType) in events) {
         when (eventType) {
-            SessionEvents.PAUSE_SESSION, SessionEvents.COMPLETE_SESSION -> {
+            SessionEventType.PAUSE_SESSION, SessionEventType.COMPLETE_SESSION -> {
                 activeStart?.let { intervals.add(it to eventTime) }
                 activeStart = null
-                if (eventType == SessionEvents.COMPLETE_SESSION) break
+                if (eventType == SessionEventType.COMPLETE_SESSION) break
             }
 
-            SessionEvents.RESUME_SESSION -> {
+            SessionEventType.RESUME_SESSION -> {
                 if (activeStart == null) activeStart = eventTime
             }
 

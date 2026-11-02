@@ -28,7 +28,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.R
-import com.charan.unloop.presentation.common.models.AppInfoUiModel
+import com.charan.unloop.presentation.common.model.AppInfoUiModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)

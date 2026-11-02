@@ -42,7 +42,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.charan.unloop.R
-import com.charan.unloop.presentation.all_routines.AllRoutinesScreen
+import com.charan.unloop.presentation.routines.RoutinesScreen
 import com.charan.unloop.presentation.home.HomeScreen
 import com.charan.unloop.presentation.settings.SettingsScreen
 import com.charan.unloop.presentation.stats.StatsScreen
@@ -64,7 +64,7 @@ private enum class MainTab(
         R.string.navigation_routines,
         Icons.Rounded.Schedule,
         Icons.Outlined.Schedule,
-        BottomBarNavDestinations.AllRoutines,
+        BottomBarNavDestinations.Routines,
     ),
 
     Stats(
@@ -83,10 +83,10 @@ private enum class MainTab(
 
 @Composable
 fun BottomBarNavigation(
-    onNavigateToCreateRoutine: (String?) -> Unit,
-    onNavigateToLicense: () -> Unit,
-    onNavigateToSessions: (LocalDate, LocalDate) -> Unit,
-    onNavigateToBlockedApps: (LocalDate, LocalDate) -> Unit,
+    onNavigateToRoutineDetails: (String?) -> Unit,
+    onNavigateToOpenSourceLicenses: () -> Unit,
+    onNavigateToSessionHistory: (LocalDate, LocalDate) -> Unit,
+    onNavigateToAppBlockHistory: (LocalDate, LocalDate) -> Unit,
     onNavigateToSessionDetails : (String) -> Unit
 ) {
     val bottomBarBackStack = rememberNavBackStack(BottomBarNavDestinations.Home)
@@ -177,22 +177,22 @@ fun BottomBarNavigation(
                     BottomBarNavDestinations.Home -> NavEntry(key) {
                         HomeScreen()
                     }
-                    BottomBarNavDestinations.AllRoutines -> NavEntry(key) {
-                        AllRoutinesScreen(
-                            onNavigateToCreateRoutine = onNavigateToCreateRoutine
+                    BottomBarNavDestinations.Routines -> NavEntry(key) {
+                        RoutinesScreen(
+                            onNavigateToRoutineDetails = onNavigateToRoutineDetails
                         )
                     }
                     BottomBarNavDestinations.Settings -> NavEntry(key) {
                         SettingsScreen(
-                            onNavigateToLicense = onNavigateToLicense
+                            onNavigateToOpenSourceLicenses = onNavigateToOpenSourceLicenses
                         )
                     }
 
                     BottomBarNavDestinations.Stats -> NavEntry(key) {
                         StatsScreen(
-                            onNavigateToSessions = onNavigateToSessions,
+                            onNavigateToSessionHistory = onNavigateToSessionHistory,
                             onNavigateToSessionDetails = onNavigateToSessionDetails,
-                            onNavigateToBlockedApps = onNavigateToBlockedApps
+                            onNavigateToAppBlockHistory = onNavigateToAppBlockHistory
                         )
                     }
                     else -> throw IllegalArgumentException("Unknown bottom bar destination: $key")

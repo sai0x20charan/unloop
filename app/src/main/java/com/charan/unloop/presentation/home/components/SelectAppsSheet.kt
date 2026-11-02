@@ -67,12 +67,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
-import com.charan.unloop.presentation.common.models.AppInfoUiModel
+import com.charan.unloop.presentation.common.model.AppInfoUiModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PresetDurationSelector(
-    presets: List<Int>,
+    presetsMinutes: List<Int>,
     hour: Int,
     minute: Int,
     isHourValid: Boolean,
@@ -80,31 +80,31 @@ fun PresetDurationSelector(
     onPresetSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (presets.isEmpty()) return
+    if (presetsMinutes.isEmpty()) return
     val currentTotalMinutes = hour * 60 + minute
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
         modifier = modifier.fillMaxWidth(),
     ) {
-        presets.forEachIndexed { index, preset ->
-            val isChecked = isHourValid && isMinutesValid && currentTotalMinutes == preset
+        presetsMinutes.forEachIndexed { index, durationMinutes ->
+            val isChecked = isHourValid && isMinutesValid && currentTotalMinutes == durationMinutes
             ToggleButton(
                 checked = isChecked,
                 onCheckedChange = {
-                    onPresetSelect(preset)
+                    onPresetSelect(durationMinutes)
                 },
                 shapes = when {
-                    presets.size == 1 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    presetsMinutes.size == 1 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                     index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    index == presets.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    index == presetsMinutes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                 },
                 contentPadding = PaddingValues(0.dp),
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = formatPreset(preset),
+                    text = formatPreset(durationMinutes),
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     softWrap = false,

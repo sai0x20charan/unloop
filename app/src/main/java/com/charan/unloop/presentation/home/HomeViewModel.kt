@@ -7,11 +7,11 @@ import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toAppInfoUiModel
-import com.charan.unloop.presentation.common.models.toggleAppSelection
-import com.charan.unloop.presentation.common.models.toggleSelectAll
+import com.charan.unloop.presentation.common.model.toggleAppSelection
+import com.charan.unloop.presentation.common.model.toggleSelectAll
 import com.charan.unloop.presentation.common.mapper.toCurrentSessionUiModel
 import com.charan.unloop.presentation.common.mapper.toInstantSessionUiModel
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -41,7 +41,7 @@ class HomeViewModel @Inject constructor(
 
     private fun loadInstantSessionAndApps() = viewModelScope.launch {
         val lastInstantSession = sessionRepository.getLastInstantSession()
-        val installedApps = installedAppsProvider.getInstalledApps().map { app ->
+        val installedApps = installedAppsProvider.getLaunchableApps().map { app ->
             app.toAppInfoUiModel()
         }
         _state.update {
@@ -61,7 +61,7 @@ class HomeViewModel @Inject constructor(
                 return@collectLatest
             }
 
-            val isRunning = sessionEntity.sessionStatus == SessionStatus.RUNNING
+            val isRunning = sessionEntity.status == SessionStatus.RUNNING
             _state.update {
                 it.copy(
                     currentSessionUiModel = sessionEntity.toCurrentSessionUiModel(),
@@ -69,8 +69,8 @@ class HomeViewModel @Inject constructor(
                 )
             }
             while (isRunning && isActive) {
-                val remaining = DateTimeUtils.getRemainingDuration(
-                    endTime = sessionEntity.endTime
+                val remaining = DateTimeUtils.getRemainingSeconds(
+                    endTime = sessionEntity.scheduledEndTime
                 ).toInt().coerceAtLeast(0)
                 _state.update {
                     it.copy(
@@ -89,7 +89,7 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.OnAppClicked -> handleAppClick(event.packageName)
             is HomeEvent.OnHourChange -> handleHourChange(event.hour)
             is HomeEvent.OnMinuteChange -> handleMinuteChange(event.minute)
-            is HomeEvent.OnPresetDurationSelect -> handlePresetDurationSelect(event.preset)
+            is HomeEvent.OnPresetDurationSelect -> handlePresetDurationSelect(event.durationMinutes)
             HomeEvent.OnSelectAllApps -> handleSelectAllApps()
             HomeEvent.OnInstantSessionCustomizeToggle -> handleSessionCustomizeToggle()
             HomeEvent.OnAppsSheetDismiss -> _state.update {
@@ -103,15 +103,15 @@ class HomeViewModel @Inject constructor(
             HomeEvent.OnEditTitleClick -> handleEditTitleClick()
             HomeEvent.OnSessionControlsLockToggle -> handleSessionControlsLockToggle()
             HomeEvent.OnWaitTimeToggle -> handleWaitTimeToggle()
-            is HomeEvent.OnWaitTimeChange -> handleWaitTimeChange(event.time)
+            is HomeEvent.OnWaitTimeChange -> handleWaitTimeChange(event.seconds)
         }
     }
 
-    private fun handleWaitTimeChange(time : Int) = viewModelScope.launch {
+    private fun handleWaitTimeChange(seconds : Int) = viewModelScope.launch {
         _state.update {
             it.copy(
                 instantSessionUiModel = it.instantSessionUiModel.copy(
-                    waitTime = time
+                    waitDurationSeconds = seconds
                 )
             )
 
@@ -178,17 +178,17 @@ class HomeViewModel @Inject constructor(
     private fun handleStartSessionClick() = viewModelScope.launch {
         val uiModel = _state.value.instantSessionUiModel
         if (!uiModel.canStart) return@launch
-        val blockedApps = uiModel.installedApps
+        val blockedAppPackages = uiModel.installedApps
             .filter { it.isSelected }
             .map { it.packageName }
 
         sessionManager.startInstantSession(
             name = uiModel.sessionTitle,
             durationSeconds = uiModel.totalSeconds.toLong(),
-            blockedApps = blockedApps,
+            blockedAppPackages = blockedAppPackages,
             areSessionControlsLocked = uiModel.areSessionControlsLocked,
             unlockChallengeType = uiModel.unlockChallengeType,
-            waitTime = uiModel.waitTime,
+            waitDurationSeconds = uiModel.waitDurationSeconds,
         )
     }
 
@@ -216,12 +216,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun handlePresetDurationSelect(preset: Int) {
+    private fun handlePresetDurationSelect(durationMinutes: Int) {
         _state.update {
             it.copy(
                 instantSessionUiModel = it.instantSessionUiModel.copy(
-                    hour = preset / 60,
-                    minute = preset % 60,
+                    hour = durationMinutes / 60,
+                    minute = durationMinutes % 60,
                     isHourValid = true,
                     isMinutesValid = true,
                 )

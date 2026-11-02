@@ -1,8 +1,8 @@
 package com.charan.unloop.presentation.common.mapper
 
 import com.charan.unloop.data.model.AppInfo
-import com.charan.unloop.presentation.common.model.BlockedAppsUiModel
-import com.charan.unloop.presentation.common.models.AppInfoUiModel
+import com.charan.unloop.presentation.common.model.BlockedAppUiModel
+import com.charan.unloop.presentation.common.model.AppInfoUiModel
 
 fun AppInfo.toAppInfoUiModel(isSelected: Boolean = false) = AppInfoUiModel(
     appName = appName,
@@ -11,13 +11,13 @@ fun AppInfo.toAppInfoUiModel(isSelected: Boolean = false) = AppInfoUiModel(
     isSelected = isSelected
 )
 
-fun AppInfo?.toBlockedAppsUiModel(
+fun AppInfo?.toBlockedAppUiModel(
     packageName: String,
     blockedCount: Int = 0,
     accessGrantedCount: Int = 0
-) = BlockedAppsUiModel(
+) = BlockedAppUiModel(
     appName = this?.appName ?: packageName,
-    appPackage = this?.packageName ?: packageName,
+    packageName = this?.packageName ?: packageName,
     appIcon = this?.icon,
     blockedCount = blockedCount,
     accessGrantedCount = accessGrantedCount

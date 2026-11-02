@@ -13,7 +13,7 @@ import com.charan.unloop.session.blocking.AppUsageChecker
 import com.charan.unloop.session.blocking.FullScreenOverlayService
 import com.charan.unloop.core.notification.NotificationHelper
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
-import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.local.model.enums.SessionEventType
 import com.charan.unloop.data.repository.SessionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -256,13 +256,13 @@ class SessionForegroundService : Service() {
                     .getSessionById(sessionId ?: return@collect)
                     ?: return@collect
 
-                val blockedApps = currentSession.blockedApps.orEmpty()
+                val blockedAppPackages = currentSession.blockedAppPackages.orEmpty()
 
-                if (foregroundPackage in blockedApps) {
+                if (foregroundPackage in blockedAppPackages) {
                     sessionManager.logSessionEvent(
                         sessionId = currentSession.id,
-                        eventName = SessionEvents.APP_BLOCKED,
-                        appPackage = foregroundPackage
+                        eventName = SessionEventType.APP_BLOCKED,
+                        packageName = foregroundPackage
                     )
                     val overlayIntent = Intent(
                         this@SessionForegroundService,
@@ -278,7 +278,7 @@ class SessionForegroundService : Service() {
                         )
                         putExtra(
                             FullScreenOverlayService.EXTRA_ROUTINE_NAME,
-                            currentSession.sessionName
+                            currentSession.name
                         )
                         putExtra(
                             FullScreenOverlayService.EXTRA_APP_PACKAGE,
@@ -291,7 +291,7 @@ class SessionForegroundService : Service() {
 
                         putExtra(
                             FullScreenOverlayService.EXTRA_END_TIME,
-                            currentSession.endTime.toDisplayString()
+                            currentSession.scheduledEndTime.toDisplayString()
                         )
                     }
                     startService(overlayIntent)

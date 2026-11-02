@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
-    onNavigateToLicense : () -> Unit = {},
+    onNavigateToOpenSourceLicenses : () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -49,7 +49,7 @@ fun SettingsScreen(
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 SettingsEffect.OnBack -> onNavigateBack()
-                SettingsEffect.OnNavigateToOpenSourceLicenses -> onNavigateToLicense()
+                SettingsEffect.OnNavigateToOpenSourceLicenses -> onNavigateToOpenSourceLicenses()
             }
         }
     }

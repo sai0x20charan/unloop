@@ -2,10 +2,10 @@ package com.charan.unloop.data.local
 
 import androidx.room.TypeConverter
 import com.charan.unloop.data.local.model.enums.ScheduleType
-import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.local.model.enums.SessionEventType
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -20,12 +20,12 @@ import kotlin.time.Instant
 object Converters {
 
     @TypeConverter
-    fun localTimeToLong(value : LocalTime) : Int {
+    fun localTimeToSecondsOfDay(value : LocalTime) : Int {
         return value.toSecondOfDay()
     }
 
     @TypeConverter
-    fun longToLocalTime(value : Int) : LocalTime {
+    fun secondsOfDayToLocalTime(value : Int) : LocalTime {
         return LocalTime.fromSecondOfDay(value)
     }
 
@@ -111,13 +111,13 @@ object Converters {
     }
 
     @TypeConverter
-    fun sessionEventsToString(value: SessionEvents): String {
+    fun sessionEventTypeToString(value: SessionEventType): String {
         return value.name
     }
 
     @TypeConverter
-    fun stringToSessionEvents(value: String): SessionEvents {
-        return SessionEvents.valueOf(value)
+    fun stringToSessionEventType(value: String): SessionEventType {
+        return SessionEventType.valueOf(value)
     }
 
     @TypeConverter

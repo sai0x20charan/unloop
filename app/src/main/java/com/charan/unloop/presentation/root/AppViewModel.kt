@@ -26,23 +26,23 @@ class AppViewModel @Inject constructor(
     }
 
     private fun observeAppState() = viewModelScope.launch {
-        val initialTheme = dataStoreRepository.getTheme.first()
-        val initialDynamic = dataStoreRepository.getDynamicColorsState.first()
-        val initialOnboarding = dataStoreRepository.isOnBoardingCompleted.first()
+        val initialTheme = dataStoreRepository.theme.first()
+        val initialDynamic = dataStoreRepository.isDynamicColorsEnabled.first()
+        val initialOnboarding = dataStoreRepository.isOnboardingCompleted.first()
 
         _state.update {
             it.copy(
                 isLoading = false,
                 theme = initialTheme,
                 dynamicColorsEnabled = initialDynamic,
-                isOnBoardingCompleted = initialOnboarding
+                isOnboardingCompleted = initialOnboarding
             )
         }
 
         launch {
             combine(
-                dataStoreRepository.getTheme,
-                dataStoreRepository.getDynamicColorsState
+                dataStoreRepository.theme,
+                dataStoreRepository.isDynamicColorsEnabled
             ) { theme, dynamicColorsEnabled ->
                 theme to dynamicColorsEnabled
             }.collectLatest { (theme, dynamicColorsEnabled) ->

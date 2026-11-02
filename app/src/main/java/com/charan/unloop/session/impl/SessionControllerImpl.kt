@@ -184,7 +184,7 @@ class SessionControllerImpl @Inject constructor(
         context.startForegroundService(intent)
     }
 
-    override fun cancelScheduledSession(sessionId: String) {
+    override fun cancelSessionEndAlarm(sessionId: String) {
         val pendingIntent = createSessionPendingIntent(sessionId) {
             putExtra(SessionForegroundService.EXTRA_SESSION_ID, sessionId)
             action = SessionForegroundService.ACTION_REQUEST_STOP_SESSION

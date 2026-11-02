@@ -109,7 +109,7 @@ fun SessionDetailsScreen(
                 Spacer(Modifier.height(28.dp))
 
                 Text(
-                    text = state.totalFocusTime.toFocusDuration(resource),
+                    text = state.totalFocusDurationSeconds.toFocusDuration(resource),
                     style = MaterialTheme.typography.displayLarge,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
@@ -176,7 +176,7 @@ fun SessionDetailsScreen(
                         Text(
                             text = stringResource(
                                 R.string.session_details_focused_duration,
-                                state.totalFocusTime.toFocusDuration(resource)
+                                state.totalFocusDurationSeconds.toFocusDuration(resource)
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -197,7 +197,7 @@ fun SessionDetailsScreen(
                         Text(
                             text = stringResource(
                                 R.string.session_details_paused_duration,
-                                state.totalPausedTime.toFocusDuration(resource)
+                                state.totalPausedDurationSeconds.toFocusDuration(resource)
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

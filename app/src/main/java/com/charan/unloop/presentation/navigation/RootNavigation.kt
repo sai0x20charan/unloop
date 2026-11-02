@@ -14,12 +14,12 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.charan.unloop.presentation.blocked_apps.BlockedAppsScreen
-import com.charan.unloop.presentation.on_boarding.OnBoardingScreen
-import com.charan.unloop.presentation.routine.RoutineScreen
+import com.charan.unloop.presentation.app_block_history.AppBlockHistoryScreen
+import com.charan.unloop.presentation.onboarding.OnboardingScreen
+import com.charan.unloop.presentation.routine_details.RoutineDetailsScreen
 import com.charan.unloop.presentation.session_details.SessionDetailsScreen
-import com.charan.unloop.presentation.sessions.SessionsScreen
-import com.charan.unloop.presentation.settings.aboutlibraries.AboutLibrariesScreen
+import com.charan.unloop.presentation.session_history.SessionHistoryScreen
+import com.charan.unloop.presentation.settings.open_source_licenses.OpenSourceLicensesScreen
 
 private val navigationAnimationSpec = tween<IntOffset>(
     durationMillis = 300,
@@ -28,14 +28,14 @@ private val navigationAnimationSpec = tween<IntOffset>(
 
 @Composable
 fun RootNavigation(
-    isOnBoardingCompleted : Boolean = false
+    isOnboardingCompleted : Boolean = false
 ) {
     val backStack = rememberNavBackStack(Destination.BottomBarNav)
 
-    LaunchedEffect(isOnBoardingCompleted) {
-        if (!isOnBoardingCompleted) {
+    LaunchedEffect(isOnboardingCompleted) {
+        if (!isOnboardingCompleted) {
             backStack.clear()
-            backStack.add(Destination.OnBoarding)
+            backStack.add(Destination.Onboarding)
         }
     }
 
@@ -88,25 +88,25 @@ fun RootNavigation(
         entryProvider = { key ->
             when (key) {
 
-                is Destination.OnBoarding -> NavEntry(key){
-                    OnBoardingScreen(onComplete = {
+                is Destination.Onboarding -> NavEntry(key){
+                    OnboardingScreen(onComplete = {
                         backStack.clear()
                         backStack.add(Destination.BottomBarNav)
                     })
                 }
                 is Destination.BottomBarNav -> NavEntry(key) {
                     BottomBarNavigation(
-                        onNavigateToCreateRoutine = {
-                            backStack.add(Destination.Routine(it))
+                        onNavigateToRoutineDetails = {
+                            backStack.add(Destination.RoutineDetails(it))
                         },
-                        onNavigateToLicense = {
-                            backStack.add(Destination.AboutLibraries)
+                        onNavigateToOpenSourceLicenses = {
+                            backStack.add(Destination.OpenSourceLicenses)
                         },
-                        onNavigateToSessions = { startDate, endDate ->
-                            backStack.add(Destination.Sessions(startDate, endDate))
+                        onNavigateToSessionHistory = { startDate, endDate ->
+                            backStack.add(Destination.SessionHistory(startDate, endDate))
                         },
-                        onNavigateToBlockedApps = { startDate, endDate ->
-                            backStack.add(Destination.BlockedApps(startDate, endDate))
+                        onNavigateToAppBlockHistory = { startDate, endDate ->
+                            backStack.add(Destination.AppBlockHistory(startDate, endDate))
                         },
                         onNavigateToSessionDetails = { sessionId ->
                             backStack.add(Destination.SessionDetails(sessionId))
@@ -114,16 +114,16 @@ fun RootNavigation(
                     )
                 }
 
-                is Destination.AboutLibraries -> NavEntry(key){
-                    AboutLibrariesScreen(
+                is Destination.OpenSourceLicenses -> NavEntry(key){
+                    OpenSourceLicensesScreen(
                         onBack = {
                             backStack.removeLastOrNull()
                         }
                     )
                 }
 
-                is Destination.Sessions -> NavEntry(key) {
-                    SessionsScreen(
+                is Destination.SessionHistory -> NavEntry(key) {
+                    SessionHistoryScreen(
                         startDate = key.startDate,
                         endDate = key.endDate,
                         onBack = { backStack.removeLastOrNull() },
@@ -133,20 +133,20 @@ fun RootNavigation(
                     )
                 }
 
-                is Destination.BlockedApps -> NavEntry(key) {
-                    BlockedAppsScreen(
+                is Destination.AppBlockHistory -> NavEntry(key) {
+                    AppBlockHistoryScreen(
                         startDate = key.startDate,
                         endDate = key.endDate,
                         onBack = { backStack.removeLastOrNull() }
                     )
                 }
 
-                is Destination.Routine -> NavEntry(key) {
-                    RoutineScreen(
+                is Destination.RoutineDetails -> NavEntry(key) {
+                    RoutineDetailsScreen(
                         onBackClick = {
                             backStack.removeLastOrNull()
                         },
-                        onRoutineCreated = {
+                        onRoutineSaved = {
                             backStack.removeLastOrNull()
                         },
                         routineId = key.routineId

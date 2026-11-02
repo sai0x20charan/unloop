@@ -3,7 +3,7 @@ package com.charan.unloop.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.charan.unloop.data.local.model.enums.ScheduleType
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -39,7 +39,7 @@ data class RoutineEntity(
 
     val isIntervalBlocking: Boolean = false,
     val intervalMinutes : Int?,
-    val disableAppPackages : List<String>?,
+    val blockedAppPackages : List<String>?,
 
     val areSessionControlsLocked: Boolean = false,
 

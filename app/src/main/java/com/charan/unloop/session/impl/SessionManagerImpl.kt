@@ -5,13 +5,13 @@ import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.entity.SessionEntity
-import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.local.model.enums.SessionEventType
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.session.SessionController
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -32,27 +32,27 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun startInstantSession(
         name: String,
         durationSeconds: Long,
-        blockedApps: List<String>,
+        blockedAppPackages: List<String>,
         areSessionControlsLocked : Boolean,
         unlockChallengeType: UnlockChallengeType,
-        waitTime : Int,
+        waitDurationSeconds : Int,
     ): String? = mutex.withLock {
-        if (durationSeconds <= 0 || blockedApps.isEmpty()) return@withLock null
+        if (durationSeconds <= 0 || blockedAppPackages.isEmpty()) return@withLock null
 
         val startTime = DateTimeUtils.getCurrentDateTime()
         val session = SessionEntity(
             id = generateUuid(),
             actualStartTime = startTime,
-            startTime = startTime,
-            endTime = DateTimeUtils.getEndTimeForDuration(durationSeconds),
-            blockedApps = blockedApps,
-            sessionStatus = SessionStatus.RUNNING,
-            sessionType = SessionType.INSTANT,
-            sessionName = name.trim().ifBlank {
+            scheduledStartTime = startTime,
+            scheduledEndTime = DateTimeUtils.getEndTimeForDuration(durationSeconds),
+            blockedAppPackages = blockedAppPackages,
+            status = SessionStatus.RUNNING,
+            type = SessionType.INSTANT,
+            name = name.trim().ifBlank {
                 context.getString(R.string.home_session_title_default)
             },
             unlockChallengeType = unlockChallengeType,
-            waitDurationSeconds = waitTime,
+            waitDurationSeconds = waitDurationSeconds,
             createdAt = startTime,
             areSessionControlsLocked = areSessionControlsLocked
         )
@@ -64,12 +64,12 @@ class SessionManagerImpl @Inject constructor(
     private suspend fun startSession(session: SessionEntity) {
         sessionEventRepository.recordSessionEvent(
             sessionId = session.id,
-            sessionEvents = SessionEvents.START_SESSION,
-            appPackage = null
+            sessionEvents = SessionEventType.START_SESSION,
+            packageName = null
         )
         sessionController.startSession(
             sessionId = session.id,
-            sessionName = session.sessionName,
+            sessionName = session.name,
             remainingSeconds = getRemainingSeconds(session),
             totalSeconds = getTotalSeconds(session),
             areSessionControlsLocked = session.areSessionControlsLocked
@@ -80,23 +80,23 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun stopSession(sessionId: String) {
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId) ?: return@withLock
-            if (session.sessionStatus != SessionStatus.RUNNING &&
-                session.sessionStatus != SessionStatus.PAUSED
+            if (session.status != SessionStatus.RUNNING &&
+                session.status != SessionStatus.PAUSED
             ) return@withLock
 
             sessionEventRepository.recordSessionEvent(
                 sessionId = sessionId,
-                sessionEvents = SessionEvents.COMPLETE_SESSION,
-                appPackage = null
+                sessionEvents = SessionEventType.COMPLETE_SESSION,
+                packageName = null
             )
             sessionRepository.updateSessionStatus(
                 sessionId = sessionId,
                 status = SessionStatus.COMPLETED,
                 actualEndTime = DateTimeUtils.getCurrentDateTime()
             )
-            cancelScheduledSession(sessionId)
+            cancelSessionEndAlarm(sessionId)
             if (session.routineId != null) {
-                scheduleSession(session.routineId)
+                scheduleNextRoutineStart(session.routineId)
             }
             sessionController.stopSession(sessionId)
         }
@@ -105,26 +105,26 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun pauseSession(sessionId: String) {
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
-            if (session != null && session.sessionStatus == SessionStatus.RUNNING &&
+            if (session != null && session.status == SessionStatus.RUNNING &&
                 !session.areSessionControlsLocked
             ) {
-                val remaining = DateTimeUtils.getRemainingDuration(session.endTime)
+                val remaining = DateTimeUtils.getRemainingSeconds(session.scheduledEndTime)
                 sessionRepository.updateSession(
                     session.copy(
                         pausedRemainingSeconds = remaining,
-                        sessionStatus = SessionStatus.PAUSED
+                        status = SessionStatus.PAUSED
                     )
                 )
                 sessionEventRepository.recordSessionEvent(
                     sessionId = sessionId,
-                    sessionEvents = SessionEvents.PAUSE_SESSION,
-                    appPackage = null
+                    sessionEvents = SessionEventType.PAUSE_SESSION,
+                    packageName = null
                 )
-                cancelScheduledSession(sessionId)
+                cancelSessionEndAlarm(sessionId)
                 val totalSeconds = getTotalSeconds(session)
                 sessionController.pauseSession(
                     sessionId = sessionId,
-                    sessionName = session.sessionName,
+                    sessionName = session.name,
                     remainingSeconds = remaining,
                     totalSeconds = totalSeconds
                 )
@@ -135,14 +135,14 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun resumeSession(sessionId: String) {
         mutex.withLock {
             val session = sessionRepository.getSessionById(sessionId)
-            if (session != null && session.sessionStatus == SessionStatus.PAUSED &&
+            if (session != null && session.status == SessionStatus.PAUSED &&
                 !session.areSessionControlsLocked
             ) {
                 val remainingSeconds = session.pausedRemainingSeconds ?: 0L
 
                 val originalTotalSeconds = DateTimeUtils.getDurationSeconds(
-                    startTime = session.startTime,
-                    endTime = session.endTime
+                    startTime = session.scheduledStartTime,
+                    endTime = session.scheduledEndTime
                 )
 
                 val newEndTime = DateTimeUtils.getEndTimeForDuration(remainingSeconds)
@@ -155,21 +155,21 @@ class SessionManagerImpl @Inject constructor(
                 sessionRepository.updateSession(
                     session.copy(
                         pausedRemainingSeconds = null,
-                        startTime = newStartTime,
-                        endTime = newEndTime,
-                        sessionStatus = SessionStatus.RUNNING
+                        scheduledStartTime = newStartTime,
+                        scheduledEndTime = newEndTime,
+                        status = SessionStatus.RUNNING
                     )
                 )
                 scheduleEnd(sessionId)
                 sessionEventRepository.recordSessionEvent(
                     sessionId = sessionId,
-                    sessionEvents = SessionEvents.RESUME_SESSION,
-                    appPackage = null
+                    sessionEvents = SessionEventType.RESUME_SESSION,
+                    packageName = null
                 )
                 val totalSeconds = originalTotalSeconds.coerceAtLeast(1L)
                 sessionController.resumeSession(
                     sessionId = sessionId,
-                    sessionName = session.sessionName,
+                    sessionName = session.name,
                     remainingSeconds = remainingSeconds,
                     totalSeconds = totalSeconds
                 )
@@ -180,19 +180,19 @@ class SessionManagerImpl @Inject constructor(
 
     override suspend fun logSessionEvent(
         sessionId: String,
-        eventName: SessionEvents,
-        appPackage: String?
+        eventName: SessionEventType,
+        packageName: String?
     ) {
         mutex.withLock {
             sessionEventRepository.recordSessionEvent(
                 sessionId = sessionId,
                 sessionEvents = eventName,
-                appPackage = appPackage
+                packageName = packageName
             )
         }
     }
 
-    override suspend fun scheduleSession(routineId: String) {
+    override suspend fun scheduleNextRoutineStart(routineId: String) {
         val routine = routineRepository.getRoutineById(routineId)
         if (routine != null && routine.isEnabled && !routine.isDeleted && routine.daysOfWeek.isNotEmpty()) {
             val startTime = routine.startTime
@@ -204,7 +204,7 @@ class SessionManagerImpl @Inject constructor(
     override suspend fun scheduleEnd(sessionId: String) {
         val session = sessionRepository.getSessionById(sessionId)
         if (session != null) {
-            val endTime = session.endTime
+            val endTime = session.scheduledEndTime
             sessionController.scheduleStopSession(sessionId, endTime)
         }
     }
@@ -223,21 +223,21 @@ class SessionManagerImpl @Inject constructor(
         val sessionEntity = SessionEntity(
             id = sessionId,
             routineId = routineId,
-            startTime = currentDateTime,
-            endTime = calculatedEndTime,
+            scheduledStartTime = currentDateTime,
+            scheduledEndTime = calculatedEndTime,
             pausedRemainingSeconds = null,
-            sessionStatus = SessionStatus.RUNNING,
-            sessionType = SessionType.SCHEDULED,
+            status = SessionStatus.RUNNING,
+            type = SessionType.SCHEDULED,
             createdAt = currentDateTime,
-            sessionName = routine.name,
+            name = routine.name,
             unlockChallengeType = routine.unlockChallengeType,
             waitDurationSeconds = routine.waitDurationSeconds ?: 0,
-            blockedApps = routine.disableAppPackages,
+            blockedAppPackages = routine.blockedAppPackages,
             actualStartTime = currentDateTime,
             areSessionControlsLocked = routine.areSessionControlsLocked,
         )
         sessionRepository.insertSession(sessionEntity)
-        scheduleSession(routineId)
+        scheduleNextRoutineStart(routineId)
         startSession(sessionEntity)
         sessionId
     }
@@ -246,8 +246,8 @@ class SessionManagerImpl @Inject constructor(
         sessionController.cancelRoutine(routineId)
     }
 
-    override suspend fun cancelScheduledSession(sessionId: String) {
-        sessionController.cancelScheduledSession(sessionId)
+    override suspend fun cancelSessionEndAlarm(sessionId: String) {
+        sessionController.cancelSessionEndAlarm(sessionId)
     }
 
     override suspend fun restoreSession(sessionId: String) {
@@ -256,7 +256,7 @@ class SessionManagerImpl @Inject constructor(
         val totalSeconds = getTotalSeconds(session)
         sessionController.startSession(
             sessionId = sessionId,
-            sessionName = session.sessionName,
+            sessionName = session.name,
             remainingSeconds = remainingSeconds,
             totalSeconds = totalSeconds,
             areSessionControlsLocked = session.areSessionControlsLocked
@@ -265,17 +265,17 @@ class SessionManagerImpl @Inject constructor(
     }
 
     private fun getRemainingSeconds(session: SessionEntity): Long {
-        return if (session.sessionStatus == SessionStatus.PAUSED && session.pausedRemainingSeconds != null) {
+        return if (session.status == SessionStatus.PAUSED && session.pausedRemainingSeconds != null) {
             session.pausedRemainingSeconds
         } else {
-            DateTimeUtils.getRemainingDuration(session.endTime)
+            DateTimeUtils.getRemainingSeconds(session.scheduledEndTime)
         }
     }
 
     private fun getTotalSeconds(session: SessionEntity): Long {
         return DateTimeUtils.getDurationSeconds(
-            startTime = session.startTime,
-            endTime = session.endTime
+            startTime = session.scheduledStartTime,
+            endTime = session.scheduledEndTime
         ).coerceAtLeast(1L)
     }
 }

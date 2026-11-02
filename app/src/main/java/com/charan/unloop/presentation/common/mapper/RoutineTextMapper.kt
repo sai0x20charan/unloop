@@ -5,7 +5,7 @@ import androidx.compose.ui.res.stringResource
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.core.utils.DateTimeUtils.toLocale
-import com.charan.unloop.presentation.common.models.RoutineUiModel
+import com.charan.unloop.presentation.common.model.RoutineUiModel
 import kotlinx.datetime.DayOfWeek
 import java.time.format.TextStyle
 

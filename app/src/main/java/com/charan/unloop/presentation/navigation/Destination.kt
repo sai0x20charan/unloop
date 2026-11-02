@@ -2,6 +2,7 @@ package com.charan.unloop.presentation.navigation
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,7 +12,8 @@ sealed class BottomBarNavDestinations : NavKey {
     data object Home : BottomBarNavDestinations()
 
     @Serializable
-    data object AllRoutines : BottomBarNavDestinations()
+    @SerialName("com.charan.unloop.presentation.navigation.BottomBarNavDestinations.AllRoutines")
+    data object Routines : BottomBarNavDestinations()
 
     @Serializable
     data object Settings : BottomBarNavDestinations()
@@ -24,22 +26,27 @@ sealed class BottomBarNavDestinations : NavKey {
 sealed class Destination : NavKey {
 
     @Serializable
-    data object OnBoarding : Destination()
+    @SerialName("com.charan.unloop.presentation.navigation.Destination.OnBoarding")
+    data object Onboarding : Destination()
 
     @Serializable
-    data class Routine(val routineId : String? = null) : Destination()
+    @SerialName("com.charan.unloop.presentation.navigation.Destination.Routine")
+    data class RoutineDetails(val routineId : String? = null) : Destination()
 
     @Serializable
     data object BottomBarNav : Destination()
 
     @Serializable
-    data object AboutLibraries : Destination()
+    @SerialName("com.charan.unloop.presentation.navigation.Destination.AboutLibraries")
+    data object OpenSourceLicenses : Destination()
 
     @Serializable
-    data class Sessions(val startDate: LocalDate, val endDate: LocalDate) : Destination()
+    @SerialName("com.charan.unloop.presentation.navigation.Destination.Sessions")
+    data class SessionHistory(val startDate: LocalDate, val endDate: LocalDate) : Destination()
 
     @Serializable
-    data class BlockedApps(val startDate: LocalDate, val endDate: LocalDate) : Destination()
+    @SerialName("com.charan.unloop.presentation.navigation.Destination.BlockedApps")
+    data class AppBlockHistory(val startDate: LocalDate, val endDate: LocalDate) : Destination()
 
     @Serializable
     data class SessionDetails(val id : String) : Destination()

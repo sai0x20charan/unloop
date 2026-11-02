@@ -2,8 +2,8 @@ package com.charan.unloop.presentation.home
 
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.presentation.common.models.AppInfoUiModel
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.presentation.common.model.AppInfoUiModel
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 
 data class HomeState(
     val instantSessionUiModel: InstantSessionUiModel = InstantSessionUiModel(),
@@ -20,10 +20,10 @@ data class InstantSessionUiModel(
     val isHourValid: Boolean = true,
     val isMinutesValid: Boolean = true,
     val unlockChallengeType: UnlockChallengeType = UnlockChallengeType.STRICT_MODE,
-    val durationPresets: List<Int> = listOf(15, 30, 45, 60, 120),
+    val durationPresetsMinutes: List<Int> = listOf(15, 30, 45, 60, 120),
     val isSessionTimeEditing: Boolean = false,
     val areSessionControlsLocked : Boolean = false,
-    val waitTime : Int = 30
+    val waitDurationSeconds : Int = 30
 ) {
     val totalSeconds: Int
         get() = if (isHourValid && isMinutesValid) hour * 3600 + minute * 60 else 0
@@ -45,7 +45,7 @@ data class CurrentSessionUiModel(
     val routineId : String? = null,
     val sessionName: String = "",
     val endTime: String = "",
-    val blockedPackages: List<String> = emptyList(),
+    val blockedAppPackages: List<String> = emptyList(),
     val remainingSeconds: Int = 0,
     val totalSeconds: Int = 0,
     val sessionStatus : SessionStatus = SessionStatus.STOPPED,

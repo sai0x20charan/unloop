@@ -115,7 +115,7 @@ object DateTimeUtils {
         }
     }
 
-    fun getRemainingDuration(endTime: LocalDateTime): Long {
+    fun getRemainingSeconds(endTime: LocalDateTime): Long {
         val endInstant = endTime.toInstant(TimeZone.currentSystemDefault())
         val currentInstant = Clock.System.now()
 

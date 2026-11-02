@@ -62,7 +62,7 @@ class NotificationHelper @Inject constructor(
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val formatedDuration = DateTimeUtils.formatDuration(remainingSeconds?.toInt() ?: 0)
+        val formattedDuration = DateTimeUtils.formatDuration(remainingSeconds?.toInt() ?: 0)
 
         val builder = Notification.Builder(
             context,
@@ -73,7 +73,7 @@ class NotificationHelper @Inject constructor(
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentText(
-                context.getString(R.string.notification_remaining_time, formatedDuration)
+                context.getString(R.string.notification_remaining_time, formattedDuration)
             )
             .setShowWhen(true)
             .setContentIntent(contentIntent)
@@ -141,7 +141,7 @@ class NotificationHelper @Inject constructor(
 
                 builder.setStyle(progressStyle)
                 builder.setRequestPromotedOngoing(true)
-                builder.setShortCriticalText(formatedDuration)
+                builder.setShortCriticalText(formattedDuration)
 
 
             } else {

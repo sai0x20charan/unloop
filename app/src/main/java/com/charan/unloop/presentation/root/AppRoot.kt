@@ -28,7 +28,7 @@ fun AppRoot(
     ) {
         Surface {
             RootNavigation(
-                isOnBoardingCompleted = state.isOnBoardingCompleted
+                isOnboardingCompleted = state.isOnboardingCompleted
             )
         }
     }

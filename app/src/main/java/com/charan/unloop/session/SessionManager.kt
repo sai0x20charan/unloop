@@ -1,17 +1,17 @@
 package com.charan.unloop.session
 
-import com.charan.unloop.data.local.model.enums.SessionEvents
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.SessionEventType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 
 interface SessionManager {
 
     suspend fun startInstantSession(
         name: String,
         durationSeconds: Long,
-        blockedApps: List<String>,
+        blockedAppPackages: List<String>,
         areSessionControlsLocked : Boolean,
         unlockChallengeType: UnlockChallengeType,
-        waitTime : Int,
+        waitDurationSeconds : Int,
     ): String?
 
     suspend fun stopSession(sessionId : String)
@@ -20,13 +20,13 @@ interface SessionManager {
 
     suspend fun resumeSession(sessionId : String)
 
-    suspend fun logSessionEvent(sessionId : String, eventName : SessionEvents, appPackage: String?)
+    suspend fun logSessionEvent(sessionId : String, eventName : SessionEventType, packageName: String?)
 
-    suspend fun scheduleSession(routineId : String)
+    suspend fun scheduleNextRoutineStart(routineId : String)
 
     suspend fun scheduleEnd(sessionId : String)
 
-    suspend fun cancelScheduledSession(sessionId : String)
+    suspend fun cancelSessionEndAlarm(sessionId : String)
 
     suspend fun startScheduledSession(routineId: String): String?
 

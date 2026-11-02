@@ -6,7 +6,7 @@ import com.charan.unloop.core.utils.DateTimeUtils.getCurrentTime
 import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.dao.SessionEventDao
 import com.charan.unloop.data.local.entity.SessionEventEntity
-import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.local.model.enums.SessionEventType
 import com.charan.unloop.data.repository.SessionEventRepository
 import javax.inject.Inject
 
@@ -19,8 +19,8 @@ class SessionEventRepositoryImpl @Inject constructor(
 
     override suspend fun recordSessionEvent(
         sessionId: String,
-        sessionEvents: SessionEvents,
-        appPackage: String?
+        sessionEvents: SessionEventType,
+        packageName: String?
     ) {
 
         val sessionEventEntity = SessionEventEntity(
@@ -28,14 +28,14 @@ class SessionEventRepositoryImpl @Inject constructor(
             sessionId = sessionId,
             eventTime = DateTimeUtils.getCurrentDateTime(),
             eventType = sessionEvents,
-            packageName = appPackage
+            packageName = packageName
         )
 
         insertSessionEvent(sessionEventEntity)
     }
 
-    override suspend fun getSessionEventById(sessionId: String): List<SessionEventEntity> {
-        return sessionEventDao.getSessionEventById(sessionId)
+    override suspend fun getEventsForSession(sessionId: String): List<SessionEventEntity> {
+        return sessionEventDao.getEventsForSession(sessionId)
 
     }
 }

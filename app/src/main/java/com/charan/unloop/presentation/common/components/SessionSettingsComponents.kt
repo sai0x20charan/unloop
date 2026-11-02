@@ -61,7 +61,7 @@ fun BlockedAppsSetting(
 @Composable
 fun WaitTimeSetting(
     isWaitEnabled: Boolean,
-    waitTimeSeconds: Int,
+    waitDurationSeconds: Int,
     onWaitToggle: () -> Unit,
     onWaitTimeChange: (Int) -> Unit,
     indexItem: IndexItem,
@@ -92,7 +92,7 @@ fun WaitTimeSetting(
         isExpanded = isWaitEnabled,
         onExpandToggle = onWaitToggle,
         expandedContent = {
-            WaitTimeSlider(seconds = waitTimeSeconds, onSecondsChange = onWaitTimeChange)
+            WaitTimeSlider(seconds = waitDurationSeconds, onSecondsChange = onWaitTimeChange)
         },
     )
 }

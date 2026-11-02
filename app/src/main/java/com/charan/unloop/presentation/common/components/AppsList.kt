@@ -53,7 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
-import com.charan.unloop.presentation.common.models.AppInfoUiModel
+import com.charan.unloop.presentation.common.model.AppInfoUiModel
 import com.charan.unloop.presentation.theme.indexItemFor
 import kotlinx.coroutines.launch
 

@@ -23,7 +23,7 @@ interface SessionDao {
 
     @Query("""
     SELECT * FROM sessions 
-    WHERE sessionStatus IN (:statuses)
+    WHERE status IN (:statuses)
     LIMIT 1
 """)
     fun getActiveSession(
@@ -35,7 +35,7 @@ interface SessionDao {
 
     @Query("""
     SELECT * FROM sessions 
-    WHERE sessionStatus IN (:statuses)
+    WHERE status IN (:statuses)
     LIMIT 1
 """)
     suspend fun getActiveSessionOnce(
@@ -50,7 +50,7 @@ interface SessionDao {
 
     @Query("""
     UPDATE sessions 
-    SET sessionStatus = :status, actualEndTime = :actualEndTime 
+    SET status = :status, actualEndTime = :actualEndTime
     WHERE id = :sessionId
 """)
     suspend fun updateSessionStatus(
@@ -59,7 +59,7 @@ interface SessionDao {
         actualEndTime: LocalDateTime?
     )
 
-    @Query("SELECT * from sessions WHERE sessionType = :sessionType ORDER BY createdAt DESC LIMIT 1")
+    @Query("SELECT * from sessions WHERE type = :sessionType ORDER BY createdAt DESC LIMIT 1")
     suspend fun getLastInstantSession(sessionType: SessionType = SessionType.INSTANT): SessionEntity?
 
     @Query("SELECT * from sessions")

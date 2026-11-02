@@ -11,5 +11,5 @@ interface SessionEventDao {
     suspend fun insertSessionEvent(sessionEvents: SessionEventEntity)
 
     @Query("SELECT * FROM session_events WHERE sessionId = :sessionId")
-    suspend fun getSessionEventById(sessionId: String): List<SessionEventEntity>
+    suspend fun getEventsForSession(sessionId: String): List<SessionEventEntity>
 }

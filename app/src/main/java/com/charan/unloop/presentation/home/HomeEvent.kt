@@ -4,7 +4,7 @@ sealed class HomeEvent {
     data class OnAppClicked(val packageName: String) : HomeEvent()
     data class OnHourChange(val hour: String) : HomeEvent()
     data class OnMinuteChange(val minute: String) : HomeEvent()
-    data class OnPresetDurationSelect(val preset : Int) : HomeEvent()
+    data class OnPresetDurationSelect(val durationMinutes : Int) : HomeEvent()
     data class OnSessionTitleChange(val title: String) : HomeEvent()
 
     data object OnInstantSessionCustomizeToggle : HomeEvent()
@@ -24,6 +24,6 @@ sealed class HomeEvent {
     data object OnSessionControlsLockToggle : HomeEvent()
 
     data object OnWaitTimeToggle : HomeEvent()
-    data class OnWaitTimeChange(val time : Int) : HomeEvent()
+    data class OnWaitTimeChange(val seconds : Int) : HomeEvent()
 
 }

@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.apps.InstalledAppsProvider
-import com.charan.unloop.data.local.model.enums.SessionEvents
+import com.charan.unloop.data.local.model.enums.SessionEventType
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
-import com.charan.unloop.presentation.common.mapper.toBlockedAppsUiModel
+import com.charan.unloop.presentation.common.mapper.toBlockedAppUiModel
 import com.charan.unloop.presentation.common.mapper.toFocusIntervals
 import com.charan.unloop.presentation.common.mapper.toFocusSegmentUiModels
 import com.charan.unloop.presentation.common.mapper.toPauseIntervals
@@ -58,21 +58,21 @@ class SessionDetailsViewModel @AssistedInject constructor(
     private fun loadSessionDetails() = viewModelScope.launch {
         val session = sessionRepository.getSessionWithSessionEventById(sessionId)
         val totalFocusIntervals = session.toFocusIntervals()
-        val totalFocusTime = DateTimeUtils.getIntervalDuration(totalFocusIntervals).inWholeSeconds.toInt()
-        val pausedSessions = session.sessionEvents.filter { it.eventType == SessionEvents.PAUSE_SESSION }
-        val pausedTotalTime = DateTimeUtils.getIntervalDuration(session.toPauseIntervals()).inWholeSeconds.toInt()
-        val appAccessGrantedCount = session.sessionEvents.filter { it.eventType == SessionEvents.APP_ACCESS_GRANTED }.size
+        val totalFocusDurationSeconds = DateTimeUtils.getIntervalDuration(totalFocusIntervals).inWholeSeconds.toInt()
+        val pauseEvents = session.sessionEvents.filter { it.eventType == SessionEventType.PAUSE_SESSION }
+        val pausedDurationSeconds = DateTimeUtils.getIntervalDuration(session.toPauseIntervals()).inWholeSeconds.toInt()
+        val appAccessGrantedCount = session.sessionEvents.filter { it.eventType == SessionEventType.APP_ACCESS_GRANTED }.size
         val focusSegments = totalFocusIntervals.toFocusSegmentUiModels(
             startTime = session.sessionEntity.createdAt,
-            endTime = session.sessionEntity.endTime,
+            endTime = session.sessionEntity.scheduledEndTime,
             actualEndTime = session.sessionEntity.actualEndTime,
         )
 
-        val blockedApps = session.sessionEntity.blockedApps?.map { app->
+        val blockedApps = session.sessionEntity.blockedAppPackages?.map { app->
             val appDetails = installedAppsProvider.getAppInfo(app)
-            val blockedCount = session.sessionEvents.filter { it.packageName == app && it.eventType == SessionEvents.APP_BLOCKED }.size
-            val unlockCount = session.sessionEvents.filter { it.packageName == app && it.eventType == SessionEvents.APP_ACCESS_GRANTED }.size
-            appDetails.toBlockedAppsUiModel(
+            val blockedCount = session.sessionEvents.filter { it.packageName == app && it.eventType == SessionEventType.APP_BLOCKED }.size
+            val unlockCount = session.sessionEvents.filter { it.packageName == app && it.eventType == SessionEventType.APP_ACCESS_GRANTED }.size
+            appDetails.toBlockedAppUiModel(
                 packageName = app,
                 blockedCount = blockedCount,
                 accessGrantedCount = unlockCount
@@ -81,17 +81,17 @@ class SessionDetailsViewModel @AssistedInject constructor(
 
         _state.update {
             it.copy(
-                totalFocusTime = totalFocusTime,
+                totalFocusDurationSeconds = totalFocusDurationSeconds,
                 focusSegments = focusSegments,
                 blockedApps = blockedApps,
-                sessionName = session.sessionEntity.sessionName,
-                sessionType = session.sessionEntity.sessionType,
+                sessionName = session.sessionEntity.name,
+                sessionType = session.sessionEntity.type,
                 createdAt = session.sessionEntity.createdAt,
-                endTime = session.sessionEntity.endTime,
+                endTime = session.sessionEntity.scheduledEndTime,
                 actualEndTime = session.sessionEntity.actualEndTime,
-                totalPausedSessions = pausedSessions.size,
-                totalPausedTime = pausedTotalTime,
-                totalSessionDuration = DateTimeUtils.getDurationSeconds(session.sessionEntity.createdAt, session.sessionEntity.endTime).toInt(),
+                pauseCount = pauseEvents.size,
+                totalPausedDurationSeconds = pausedDurationSeconds,
+                totalSessionDurationSeconds = DateTimeUtils.getDurationSeconds(session.sessionEntity.createdAt, session.sessionEntity.scheduledEndTime).toInt(),
                 appAccessGrantedCount = appAccessGrantedCount
             )
         }

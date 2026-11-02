@@ -89,7 +89,7 @@ import com.charan.unloop.presentation.home.components.DurationInputField
 import com.charan.unloop.presentation.home.components.PresetDurationSelector
 import com.charan.unloop.presentation.home.components.SelectedAppsPreview
 import com.charan.unloop.presentation.home.components.SelectedBlockedAppsCard
-import com.charan.unloop.presentation.routine.UnlockChallengeType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.presentation.theme.IndexItem
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -246,7 +246,7 @@ fun HomeScreen(
                 AnimatedVisibility(visible = !isSessionActive) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         PresetDurationSelector(
-                            presets = state.instantSessionUiModel.durationPresets,
+                            presetsMinutes = state.instantSessionUiModel.durationPresetsMinutes,
                             hour = state.instantSessionUiModel.hour,
                             minute = state.instantSessionUiModel.minute,
                             isHourValid = state.instantSessionUiModel.isHourValid,
@@ -273,7 +273,7 @@ fun HomeScreen(
                         )
                         WaitTimeSetting(
                             isWaitEnabled = state.instantSessionUiModel.unlockChallengeType == UnlockChallengeType.WAIT_TIME,
-                            waitTimeSeconds = state.instantSessionUiModel.waitTime,
+                            waitDurationSeconds = state.instantSessionUiModel.waitDurationSeconds,
                             indexItem = IndexItem.MIDDLE,
                             onWaitToggle = { viewModel.onEvent(HomeEvent.OnWaitTimeToggle) },
                             onWaitTimeChange = { viewModel.onEvent(HomeEvent.OnWaitTimeChange(it)) },
