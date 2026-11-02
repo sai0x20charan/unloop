@@ -1,10 +1,9 @@
 ## New Features
 
-- Track your focus time, session counts, app blocks, and unlocks in the new Stats screen, with weekly and monthly views and recent session history.
+- View blocked apps for a selected date range, with block and access grant counts for each app.
+- Open session details to see focus and pause times, a focus timeline, and app activity.
+- Browse all sessions in a selected date range and open individual sessions from the list.
 
 ## Improvements
 
-- Redesigned the app blocking screen with a clearer end time and an explanation when strict mode prevents unlocking.
-- Updated AM/PM labels to follow your device's language settings.
-- Simplified routine creation and editing with schedule, blocked app, and session settings on one screen.
-- Redesigned routine list items to make schedules, blocked app counts, and enabled status easier to see.
+- Refreshed the Stats screen layout with shortcuts to session history and blocked apps.
