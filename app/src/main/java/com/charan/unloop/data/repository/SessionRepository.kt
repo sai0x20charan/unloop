@@ -39,6 +39,4 @@ interface SessionRepository {
 
     suspend fun getSessionWithSessionEventById(sessionId: String): SessionWithSessionEvents
 
-    fun observeSessionWithSessionEventsById(sessionId: String): Flow<SessionWithSessionEvents>
-
 }

@@ -75,8 +75,4 @@ interface SessionDao {
     @Query("SELECT * from sessions WHERE id = :sessionId")
     suspend fun getSessionWithSessionEventsById(sessionId: String): SessionWithSessionEvents
 
-    @Transaction
-    @Query("SELECT * from sessions WHERE id = :sessionId")
-    fun observeSessionWithSessionEventsById(sessionId: String): Flow<SessionWithSessionEvents>
-
 }
