@@ -23,6 +23,53 @@ fun List<SessionWithSessionEvents>.toFocusChartDataUiModels(
     }
 }
 
+
+internal fun SessionWithSessionEvents.toPauseIntervals(
+    currentDateTime: LocalDateTime = DateTimeUtils.getCurrentDateTime()
+): List<Pair<LocalDateTime, LocalDateTime>> {
+    val sessionStart = sessionEntity.actualStartTime ?: sessionEntity.createdAt
+    val sessionEnd = minOf(
+        sessionEntity.actualEndTime ?: sessionEntity.endTime,
+        sessionEntity.endTime,
+        currentDateTime
+    )
+
+    if (sessionEnd <= sessionStart) return emptyList()
+
+    val intervals = mutableListOf<Pair<LocalDateTime, LocalDateTime>>()
+    var pauseStart: LocalDateTime? = null
+
+    val events = sessionEvents
+        .filter { it.eventTime in sessionStart..sessionEnd }
+        .sortedBy { it.eventTime }
+
+    for ((_, _, eventTime, eventType) in events) {
+        when (eventType) {
+            SessionEvents.PAUSE_SESSION -> {
+                if (pauseStart == null) pauseStart = eventTime
+            }
+
+            SessionEvents.RESUME_SESSION,
+            SessionEvents.COMPLETE_SESSION -> {
+                pauseStart?.let {
+                    intervals.add(it to eventTime)
+                }
+                pauseStart = null
+
+                if (eventType == SessionEvents.COMPLETE_SESSION) break
+            }
+
+            else -> Unit
+        }
+    }
+
+    pauseStart?.let {
+        intervals.add(it to sessionEnd)
+    }
+
+    return intervals
+}
+
 internal fun SessionWithSessionEvents.toFocusIntervals(
     currentDateTime: LocalDateTime = DateTimeUtils.getCurrentDateTime()
 ): List<Pair<LocalDateTime, LocalDateTime>> {

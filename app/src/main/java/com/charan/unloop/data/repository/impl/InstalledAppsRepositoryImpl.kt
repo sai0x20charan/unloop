@@ -12,4 +12,9 @@ class InstalledAppsRepositoryImpl @Inject constructor(
         return installedAppsDataSource.getInstalledApps()
 
     }
+
+    override suspend fun getAppDetailsByPackageName(packageName: String) : InstalledApp {
+        return installedAppsDataSource.getAppDetailsByPackage(packageName)
+
+    }
 }

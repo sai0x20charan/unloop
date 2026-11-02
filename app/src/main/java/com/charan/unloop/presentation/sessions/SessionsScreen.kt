@@ -92,7 +92,8 @@ fun SessionsScreen(
                     startTime = session.startTime,
                     endTime = session.endTime,
                     focusDuration = session.focusDurationSeconds,
-                    indexItem = state.sessions.indexItemFor(index)
+                    indexItem = state.sessions.indexItemFor(index),
+                    onClick = {}
                 )
             }
         }

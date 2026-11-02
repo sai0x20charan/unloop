@@ -58,17 +58,20 @@ import kotlinx.datetime.LocalDate
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun StatsScreen(onNavigateToSessions: (LocalDate, LocalDate) -> Unit) {
+fun StatsScreen(
+    onNavigateToSessions: (LocalDate, LocalDate) -> Unit,
+    onNavigateToSessionDetails : (String) -> Unit
+) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val viewModel = hiltViewModel<StatsViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val resources = LocalResources.current
-    val currentOnNavigateToSessions by rememberUpdatedState(onNavigateToSessions)
 
     LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is StatsEffect.NavigateToSessions -> currentOnNavigateToSessions(effect.startDate, effect.endDate)
+                is StatsEffect.NavigateToSessions -> onNavigateToSessions(effect.startDate, effect.endDate)
+                is StatsEffect.NavigateToSessionDetails -> onNavigateToSessionDetails(effect.id)
             }
         }
     }
@@ -201,7 +204,8 @@ fun StatsScreen(onNavigateToSessions: (LocalDate, LocalDate) -> Unit) {
                         startTime = session.startTime,
                         endTime = session.endTime,
                         focusDuration = session.focusDurationSeconds,
-                        indexItem = state.recentSessions.indexItemFor(index)
+                        indexItem = state.recentSessions.indexItemFor(index),
+                        onClick = { viewModel.onEvent(StatsEvent.OnSessionDetails(session.id)) }
                     )
                 }
             }

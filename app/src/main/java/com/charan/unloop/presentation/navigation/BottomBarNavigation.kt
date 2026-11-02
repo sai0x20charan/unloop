@@ -85,7 +85,8 @@ private enum class MainTab(
 fun BottomBarNavigation(
     onNavigateToCreateRoutine: (String?) -> Unit,
     onNavigateToLicense: () -> Unit,
-    onNavigateToSessions: (LocalDate, LocalDate) -> Unit
+    onNavigateToSessions: (LocalDate, LocalDate) -> Unit,
+    onNavigateToSessionDetails : (String) -> Unit
 ) {
     val bottomBarBackStack = rememberNavBackStack(BottomBarNavDestinations.Home)
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
@@ -187,7 +188,7 @@ fun BottomBarNavigation(
                     }
 
                     BottomBarNavDestinations.Stats -> NavEntry(key) {
-                        StatsScreen(onNavigateToSessions = onNavigateToSessions)
+                        StatsScreen(onNavigateToSessions = onNavigateToSessions, onNavigateToSessionDetails = onNavigateToSessionDetails)
                     }
                     else -> throw IllegalArgumentException("Unknown bottom bar destination: $key")
                 }

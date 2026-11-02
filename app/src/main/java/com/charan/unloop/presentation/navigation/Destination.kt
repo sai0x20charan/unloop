@@ -39,4 +39,7 @@ sealed class Destination : NavKey {
 
     @Serializable
     data class Sessions(val startDate: LocalDate, val endDate: LocalDate) : Destination()
+
+    @Serializable
+    data class SessionDetails(val id : String) : Destination()
 }

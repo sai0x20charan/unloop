@@ -12,8 +12,9 @@ import javax.inject.Inject
 class InstalledAppsDataSource @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    private val packageManager = context.packageManager
+
     suspend fun getInstalledApps(): List<InstalledApp> = withContext(Dispatchers.IO) {
-        val packageManager = context.packageManager
 
         val intent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
@@ -37,5 +38,14 @@ class InstalledAppsDataSource @Inject constructor(
                 )
             }
             .sortedBy { it.appName.lowercase() }
+    }
+
+    suspend fun getAppDetailsByPackage(packageName : String) : InstalledApp{
+        return InstalledApp(
+            packageName = packageName,
+            appName = packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)).toString(),
+            icon = packageManager.getApplicationIcon(packageName)
+
+        )
     }
 }

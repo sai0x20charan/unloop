@@ -61,14 +61,16 @@ class StatsViewModel @Inject constructor(
 
     fun onEvent(event : StatsEvent){
         when(event){
-            StatsEvent.OnSeeAllSessions -> viewModelScope.launch {
-                val range = _state.value.selectedDateRange
-                _effect.send(StatsEffect.NavigateToSessions(range.first, range.second))
-            }
+            StatsEvent.OnSeeAllSessions -> sendEffect(StatsEffect.NavigateToSessions(_state.value.selectedDateRange.first,_state.value.selectedDateRange.second))
             StatsEvent.OnDecrementPeriod -> handleDecrementPeriod()
             StatsEvent.OnIncrementPeriod -> handleIncrementPeriod()
             is StatsEvent.OnPeriodChange -> handlePeriodChange()
+            is StatsEvent.OnSessionDetails -> sendEffect(StatsEffect.NavigateToSessionDetails(event.id))
         }
+    }
+
+    private fun sendEffect(effect : StatsEffect) = viewModelScope.launch {
+        _effect.send(effect)
     }
 
     private fun handleDecrementPeriod() {

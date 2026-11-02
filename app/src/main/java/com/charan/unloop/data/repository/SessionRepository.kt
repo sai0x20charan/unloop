@@ -37,4 +37,8 @@ interface SessionRepository {
         endTime: LocalDateTime
     ): List<SessionWithSessionEvents>
 
+    suspend fun getSessionWithSessionEventById(sessionId: String): SessionWithSessionEvents
+
+    fun observeSessionWithSessionEventsById(sessionId: String): Flow<SessionWithSessionEvents>
+
 }

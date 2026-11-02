@@ -232,4 +232,22 @@
     <string name="sessions_retry">Retry</string>
     <string name="sessions_invalid_range">The start date must be on or before the end date.</string>
     <string name="sessions_date_and_time">%1$s, %2$s</string>
+    <string name="session_details_title">Session details</string>
+    <string name="session_details_stopped_at">Stopped %1$s</string>
+    <string name="session_details_focus_time">Focus time</string>
+    <string name="session_details_focused">Focused</string>
+    <string name="session_details_app_activity">App activity</string>
+    <string name="session_details_app_access_granted">App access granted</string>
+    <string name="session_details_date_and_type">%1$s · %2$s</string>
+    <string name="session_details_scheduled_session">Scheduled session</string>
+    <string name="session_details_focused_duration">%1$s focused</string>
+    <string name="session_details_paused_duration">%1$s paused</string>
+    <plurals name="session_details_access_grants">
+        <item quantity="one">%1$d access grant</item>
+        <item quantity="other">%1$d access grants</item>
+    </plurals>
+    <plurals name="session_details_blocks">
+        <item quantity="one">%1$d block</item>
+        <item quantity="other">%1$d blocks</item>
+    </plurals>
 </resources>

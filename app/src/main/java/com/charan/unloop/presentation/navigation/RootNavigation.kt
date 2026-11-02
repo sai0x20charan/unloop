@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.charan.unloop.presentation.on_boarding.OnBoardingScreen
 import com.charan.unloop.presentation.routine.RoutineScreen
+import com.charan.unloop.presentation.session_details.SessionDetailsScreen
 import com.charan.unloop.presentation.sessions.SessionsScreen
 import com.charan.unloop.presentation.settings.aboutlibraries.AboutLibrariesScreen
 
@@ -102,6 +103,9 @@ fun RootNavigation(
                         },
                         onNavigateToSessions = { startDate, endDate ->
                             backStack.add(Destination.Sessions(startDate, endDate))
+                        },
+                        onNavigateToSessionDetails = { sessionId ->
+                            backStack.add(Destination.SessionDetails(sessionId))
                         }
                     )
                 }
@@ -131,6 +135,13 @@ fun RootNavigation(
                             backStack.removeLastOrNull()
                         },
                         routineId = key.routineId
+                    )
+                }
+
+                is Destination.SessionDetails -> NavEntry(key) {
+                    SessionDetailsScreen(
+                        sessionId = key.id,
+                        onBack = { backStack.removeLastOrNull() }
                     )
                 }
                 else -> throw IllegalArgumentException("Unknown destination: $key")

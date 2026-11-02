@@ -89,10 +89,13 @@ object DateTimeUtils {
         return (endTime.toInstant(timeZone) - seconds.seconds).toLocalDateTime(timeZone)
     }
 
-    fun getDurationSeconds(startTime: LocalDateTime, endTime: LocalDateTime): Long {
+    fun getDuration(startTime: LocalDateTime, endTime: LocalDateTime): Duration {
         val timeZone = TimeZone.currentSystemDefault()
-        return (endTime.toInstant(timeZone) - startTime.toInstant(timeZone)).inWholeSeconds
+        return endTime.toInstant(timeZone) - startTime.toInstant(timeZone)
     }
+
+    fun getDurationSeconds(startTime: LocalDateTime, endTime: LocalDateTime): Long =
+        getDuration(startTime, endTime).inWholeSeconds
 
     fun getRoutineDuration(startTime: LocalTime, endTime: LocalTime): Duration {
         val seconds = endTime.toSecondOfDay() - startTime.toSecondOfDay()

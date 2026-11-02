@@ -34,7 +34,8 @@ fun SessionListItem(
     startTime : LocalDateTime,
     endTime : LocalDateTime,
     focusDuration : Int,
-    indexItem: IndexItem
+    indexItem: IndexItem,
+    onClick : () -> Unit
 
 ) {
     val resources = LocalResources.current
@@ -88,7 +89,8 @@ fun SessionListItem(
                 color = MaterialTheme.colorScheme.primary
             )
         },
-        indexItem = indexItem
+        indexItem = indexItem,
+        onClick = onClick
     )
 
 }

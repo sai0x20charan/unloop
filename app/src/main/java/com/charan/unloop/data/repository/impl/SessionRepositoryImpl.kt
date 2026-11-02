@@ -56,4 +56,8 @@ class SessionRepositoryImpl @Inject constructor(
     ): List<SessionWithSessionEvents>{
         return sessionDao.getSessionForRange(startDate, endTime)
     }
+
+    override suspend fun getSessionWithSessionEventById(sessionId: String): SessionWithSessionEvents {
+        return sessionDao.getSessionWithSessionEventsById(sessionId)
+    }
 }

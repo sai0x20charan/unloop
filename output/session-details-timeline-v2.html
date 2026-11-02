@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unloop session timeline design</title>
+<style>
+html,body{margin:0;padding:0;background:transparent}*{box-sizing:border-box}
+#timeline-preview{display:flex;justify-content:center;font-family:Roboto,system-ui,sans-serif}
+#timeline-preview .screen{--t-bg:light-dark(#f7fbf2,#101510);--t-text:light-dark(#181d18,#e0e4db);--t-muted:light-dark(#424941,#c1c9be);--t-surface:light-dark(#ebefe7,#1c211c);--t-primary:light-dark(#35693e,#9cd49f);--t-soft:light-dark(#b7f1ba,#1c5128);--t-onsoft:light-dark(#1c5128,#b7f1ba);--t-line:light-dark(#c1c9be,#424941);--t-pause:light-dark(#39656d,#a1ced7);--t-pausebg:light-dark(#bdeaf3,#1f4d54);--t-pausetext:light-dark(#1f4d54,#bdeaf3);width:100%;max-width:400px;background:var(--t-bg);color:var(--t-text);border-radius:28px;padding:22px}
+#timeline-preview header{display:flex;align-items:center;gap:16px;font-size:18px;margin-bottom:26px}#timeline-preview .arrow{font-size:25px}#timeline-preview h1{font-size:28px;font-weight:500;letter-spacing:-.6px;margin:0 0 8px}#timeline-preview p{margin:0}#timeline-preview .meta{font-size:13px;color:var(--t-muted)}#timeline-preview .summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:23px 0 7px}#timeline-preview .focus{font-size:26px;letter-spacing:-.6px}#timeline-preview .focus small{font-size:13px;color:var(--t-muted);letter-spacing:0}#timeline-preview .status{font-size:12px;color:var(--t-primary)}#timeline-preview .sub-summary{font-size:12px;color:var(--t-muted)}
+#timeline-preview .tabs{display:flex;gap:6px;margin:24px 0;border-bottom:1px solid var(--t-line)}#timeline-preview .tabs button{background:transparent;border:0;border-bottom:3px solid transparent;color:var(--t-muted);font:inherit;font-size:14px;padding:13px 16px;min-height:46px;flex:1;cursor:pointer}#timeline-preview .tabs button[aria-pressed=true]{border-bottom-color:var(--t-primary);color:var(--t-primary);font-weight:500}#timeline-preview button:focus-visible,#timeline-preview summary:focus-visible{outline:2px solid var(--t-primary);outline-offset:2px}
+#timeline-preview .boundary{display:flex;align-items:center;gap:12px;color:var(--t-muted);font-size:12px}#timeline-preview .boundary span:last-child{color:var(--t-text)}#timeline-preview .boundary i{display:block;width:9px;height:9px;background:var(--t-primary);border-radius:50%}
+#timeline-preview .phase{margin:14px 0 14px 4px;border-left:3px solid var(--t-primary);padding:3px 0 3px 18px}#timeline-preview .phase-title{font-size:16px;font-weight:500;display:flex;justify-content:space-between;gap:12px}#timeline-preview .phase-title small{font-size:12px;color:var(--t-muted);font-weight:400}#timeline-preview .range{font-size:12px;color:var(--t-muted);margin-top:5px}#timeline-preview .events{list-style:none;padding:0;margin:18px 0 0}#timeline-preview .events li{display:flex;gap:12px;margin-top:14px;font-size:12px;align-items:flex-start}#timeline-preview .events time{min-width:34px;color:var(--t-muted);font-variant-numeric:tabular-nums}#timeline-preview .event-text{flex:1}#timeline-preview .event-sub{font-size:11px;color:var(--t-muted);margin-top:3px}#timeline-preview .pause{border-left-color:var(--t-pause);padding-top:10px;padding-bottom:10px}#timeline-preview .pause .phase-title{color:var(--t-pause)}#timeline-preview .pause-label{background:var(--t-pausebg);color:var(--t-pausetext);padding:4px 8px;border-radius:8px;font-size:11px;font-weight:400}
+#timeline-preview .stat-strip{display:flex;gap:22px;margin-bottom:20px}#timeline-preview .stat-strip strong{display:block;font-weight:400;font-size:29px}#timeline-preview .stat-strip span{font-size:12px;color:var(--t-muted)}#timeline-preview h2{font-size:16px;font-weight:500;margin:0 0 12px}#timeline-preview .app-row{display:flex;gap:12px;align-items:center;padding:16px 0;border-top:1px solid var(--t-line)}#timeline-preview .app-mark{width:38px;height:38px;border-radius:13px;background:var(--t-surface);color:var(--t-primary);display:grid;place-items:center;font-size:12px}#timeline-preview .app-name{font-size:14px}#timeline-preview .app-sub{font-size:12px;color:var(--t-muted);margin-top:4px}#timeline-preview .app-count{font-size:12px;color:var(--t-muted);margin-left:auto}
+#timeline-preview details{margin-top:25px;padding-top:10px;border-top:1px solid var(--t-line)}#timeline-preview summary{min-height:44px;display:flex;align-items:center;justify-content:space-between;list-style:none;font-size:14px;cursor:pointer}#timeline-preview summary::-webkit-details-marker{display:none}#timeline-preview summary::after{content:'+';font-size:22px;color:var(--t-primary)}#timeline-preview details[open] summary::after{content:'−'}#timeline-preview .setting{display:flex;justify-content:space-between;gap:10px;padding:9px 0;font-size:12px;color:var(--t-muted)}#timeline-preview .setting span:last-child{color:var(--t-text);text-align:right}#timeline-preview .note{font-size:11px;color:var(--t-muted);text-align:center;margin-top:22px}#timeline-preview [hidden]{display:none!important}
+@media(max-width:350px){#timeline-preview .screen{padding:18px}#timeline-preview .phase{padding-left:14px}#timeline-preview .events li{gap:9px}}
+</style>
+</head>
+<body>
+<div id="timeline-preview"><main class="screen" aria-label="Timeline focused session details design">
+ <header><span class="arrow" aria-hidden="true">←</span>Session details</header>
+ <h1>Morning focus</h1><p class="meta">Sat, Oct 31 · Scheduled session</p>
+ <div class="summary"><div class="focus">45 min <small>focused</small></div><span class="status">✓ Completed</span></div>
+ <p class="sub-summary">50 min elapsed · 5 min paused</p>
+ <div class="tabs" aria-label="Session detail view"><button type="button" id="timeline-switch" aria-pressed="true" aria-controls="timeline-content">Timeline</button><button type="button" id="apps-switch" aria-pressed="false" aria-controls="apps-content">Apps</button></div>
+ <section id="timeline-content" aria-label="Session timeline">
+  <div class="boundary"><i aria-hidden="true"></i><time>9:00 AM</time><span>Session started</span></div>
+  <div class="phase"><div class="phase-title">Focused <small>20 min</small></div><p class="range">9:00 to 9:20 AM</p><ol class="events"><li><time>9:12</time><div class="event-text">Instagram blocked</div></li><li><time>9:13</time><div class="event-text">Instagram access granted<div class="event-sub">After the 30 second wait</div></div></li></ol></div>
+  <div class="phase pause"><div class="phase-title">Paused <span class="pause-label">5 min</span></div><p class="range">9:20 to 9:25 AM</p></div>
+  <div class="phase"><div class="phase-title">Focused <small>25 min</small></div><p class="range">9:25 to 9:50 AM</p><ol class="events"><li><time>9:34</time><div class="event-text">Reddit blocked</div></li><li><time>9:42</time><div class="event-text">Instagram blocked</div></li></ol></div>
+  <div class="boundary"><i aria-hidden="true"></i><time>9:50 AM</time><span>Session ended</span></div>
+ </section>
+ <section id="apps-content" aria-label="Blocked app activity" hidden>
+  <div class="stat-strip"><div><strong>3</strong><span>Blocked openings</span></div><div><strong>1</strong><span>Access grant</span></div></div>
+  <h2>3 blocked apps</h2>
+  <div class="app-row"><span class="app-mark" aria-hidden="true">IG</span><div><div class="app-name">Instagram</div><div class="app-sub">1 access grant</div></div><span class="app-count">2 blocks</span></div>
+  <div class="app-row"><span class="app-mark" aria-hidden="true">R</span><div class="app-name">Reddit</div><span class="app-count">1 block</span></div>
+  <div class="app-row"><span class="app-mark" aria-hidden="true">YT</span><div class="app-name">YouTube</div><span class="app-count">0 blocks</span></div>
+ </section>
+ <details><summary>Session settings</summary><div class="setting"><span>Unlock challenge</span><span>Wait 30 seconds</span></div><div class="setting"><span>Session controls</span><span>Unlocked</span></div></details>
+ <p class="note">Timeline view · Example data</p>
+</main></div>
+<script>
+(()=>{const root=document.getElementById('timeline-preview');const timeline=root.querySelector('#timeline-switch');const apps=root.querySelector('#apps-switch');function choose(showTimeline){timeline.setAttribute('aria-pressed',String(showTimeline));apps.setAttribute('aria-pressed',String(!showTimeline));root.querySelector('#timeline-content').hidden=!showTimeline;root.querySelector('#apps-content').hidden=showTimeline}timeline.addEventListener('click',()=>choose(true));apps.addEventListener('click',()=>choose(false))})();
+</script>
+</body>
+</html>
