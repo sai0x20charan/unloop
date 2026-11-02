@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Block
-import androidx.compose.material.icons.rounded.HourglassEmpty
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -26,10 +25,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -45,19 +47,31 @@ import com.charan.unloop.core.utils.DateTimeUtils.toFocusDuration
 import com.charan.unloop.core.utils.DateTimeUtils.toLocale
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
+import com.charan.unloop.presentation.common.components.EmptySessions
 import com.charan.unloop.presentation.common.components.SectionHeader
+import com.charan.unloop.presentation.common.components.SessionListItem
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.stats.components.StatGraph
 import com.charan.unloop.presentation.stats.components.StatSummaryTile
 import com.charan.unloop.presentation.theme.indexItemFor
+import kotlinx.datetime.LocalDate
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun StatsScreen() {
+fun StatsScreen(onNavigateToSessions: (LocalDate, LocalDate) -> Unit) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val viewModel = hiltViewModel<StatsViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val resources = LocalResources.current
+    val currentOnNavigateToSessions by rememberUpdatedState(onNavigateToSessions)
+
+    LaunchedEffect(viewModel) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is StatsEffect.NavigateToSessions -> currentOnNavigateToSessions(effect.startDate, effect.endDate)
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -160,60 +174,33 @@ fun StatsScreen() {
             }
 
             item {
-                SectionHeader(
-                    title = stringResource(R.string.stats_recent_sessions),
-                    modifier = Modifier.padding(start = 4.dp, top = 12.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    SectionHeader(title = stringResource(R.string.stats_recent_sessions))
+                    TextButton(onClick = { viewModel.onEvent(StatsEvent.OnSeeAllSessions) }) {
+                        Text(stringResource(R.string.sessions_see_all))
+                    }
+                }
             }
 
             if (state.recentSessions.isEmpty()) {
-                item { EmptySessions() }
+                item {
+                    EmptySessions()
+                }
+
             } else {
                 itemsIndexed(
                     items = state.recentSessions,
                     key = { _, session -> session.id }
                 ) { index, session ->
-                    CustomSegmentedListItem(
-                        headLineContent = {
-                            Text(
-                                text = session.sessionName,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        },
-                        supportingContent = {
-                            Text(
-                                text = stringResource(
-                                    R.string.stats_date_range,
-                                    session.startTime.toDisplayString(),
-                                    session.endTime.toDisplayString()
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        leadingContent = {
-                            Surface(
-                                modifier = Modifier.size(40.dp),
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Timer,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                        },
-                        trailingContent = {
-                            Text(
-                                text = session.focusDurationSeconds.toFocusDuration(resources),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        },
+                    SessionListItem(
+                        sessionName = session.sessionName,
+                        startTime = session.startTime,
+                        endTime = session.endTime,
+                        focusDuration = session.focusDurationSeconds,
                         indexItem = state.recentSessions.indexItemFor(index)
                     )
                 }
@@ -285,39 +272,6 @@ private fun PeriodNavigator(
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = stringResource(R.string.stats_next_period)
-            )
-        }
-    }
-}
-
-@Composable
-private fun EmptySessions() {
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.HourglassEmpty,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = stringResource(R.string.stats_no_sessions),
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = stringResource(R.string.stats_no_sessions_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
             )
         }
     }

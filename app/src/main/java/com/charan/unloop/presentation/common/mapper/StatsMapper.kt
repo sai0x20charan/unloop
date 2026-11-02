@@ -1,11 +1,9 @@
 package com.charan.unloop.presentation.common.mapper
 
 import com.charan.unloop.core.utils.DateTimeUtils
-import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.SessionWithSessionEvents
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.presentation.stats.FocusChartDataUiModel
-import com.charan.unloop.presentation.stats.SessionSummaryUiModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 
@@ -25,18 +23,7 @@ fun List<SessionWithSessionEvents>.toFocusChartDataUiModels(
     }
 }
 
-fun SessionWithSessionEvents.toSessionSummaryUiModel() : SessionSummaryUiModel {
-    val totalFocusedTime = this.toFocusIntervals()
-    return SessionSummaryUiModel(
-        id = this.sessionEntity.id,
-        sessionName = this.sessionEntity.sessionName,
-        focusDurationSeconds = DateTimeUtils.getIntervalDuration(totalFocusedTime).inWholeSeconds.toInt(),
-        startTime = this.sessionEntity.createdAt,
-        endTime = this.sessionEntity.endTime
-    )
-}
-
-private fun SessionWithSessionEvents.toFocusIntervals(
+internal fun SessionWithSessionEvents.toFocusIntervals(
     currentDateTime: LocalDateTime = DateTimeUtils.getCurrentDateTime()
 ): List<Pair<LocalDateTime, LocalDateTime>> {
     val sessionStart = sessionEntity.actualStartTime ?: sessionEntity.createdAt

@@ -15,14 +15,17 @@ import com.charan.unloop.core.utils.DateTimeUtils.toSeconds
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
-import com.charan.unloop.presentation.common.mapper.toSessionSummaryUiModel
 import com.charan.unloop.presentation.common.mapper.toFocusChartDataUiModels
+import com.charan.unloop.presentation.common.mapper.toSessionSummaryUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
@@ -30,7 +33,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
-import javax.inject.Inject
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
@@ -39,6 +41,9 @@ class StatsViewModel @Inject constructor(
 ) : ViewModel(){
     private val _state = MutableStateFlow(StatsState())
     val state = _state.asStateFlow()
+
+    private val _effect = Channel<StatsEffect>(Channel.BUFFERED)
+    val effect = _effect.receiveAsFlow()
 
     init {
         init()
@@ -56,6 +61,10 @@ class StatsViewModel @Inject constructor(
 
     fun onEvent(event : StatsEvent){
         when(event){
+            StatsEvent.OnSeeAllSessions -> viewModelScope.launch {
+                val range = _state.value.selectedDateRange
+                _effect.send(StatsEffect.NavigateToSessions(range.first, range.second))
+            }
             StatsEvent.OnDecrementPeriod -> handleDecrementPeriod()
             StatsEvent.OnIncrementPeriod -> handleIncrementPeriod()
             is StatsEvent.OnPeriodChange -> handlePeriodChange()

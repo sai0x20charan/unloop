@@ -1,6 +1,7 @@
 package com.charan.unloop.presentation.navigation
 
 import androidx.navigation3.runtime.NavKey
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -35,4 +36,7 @@ sealed class Destination : NavKey {
 
     @Serializable
     data object AboutLibraries : Destination()
+
+    @Serializable
+    data class Sessions(val startDate: LocalDate, val endDate: LocalDate) : Destination()
 }

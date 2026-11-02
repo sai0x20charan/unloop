@@ -46,6 +46,7 @@ import com.charan.unloop.presentation.all_routines.AllRoutinesScreen
 import com.charan.unloop.presentation.home.HomeScreen
 import com.charan.unloop.presentation.settings.SettingsScreen
 import com.charan.unloop.presentation.stats.StatsScreen
+import kotlinx.datetime.LocalDate
 
 private enum class MainTab(
     @param:StringRes val label: Int,
@@ -81,7 +82,11 @@ private enum class MainTab(
 }
 
 @Composable
-fun BottomBarNavigation(onNavigateToCreateRoutine: (String?) -> Unit, onNavigateToLicense: () -> Unit) {
+fun BottomBarNavigation(
+    onNavigateToCreateRoutine: (String?) -> Unit,
+    onNavigateToLicense: () -> Unit,
+    onNavigateToSessions: (LocalDate, LocalDate) -> Unit
+) {
     val bottomBarBackStack = rememberNavBackStack(BottomBarNavDestinations.Home)
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     var previousSelectedItem by rememberSaveable { mutableIntStateOf(0) }
@@ -182,7 +187,7 @@ fun BottomBarNavigation(onNavigateToCreateRoutine: (String?) -> Unit, onNavigate
                     }
 
                     BottomBarNavDestinations.Stats -> NavEntry(key) {
-                        StatsScreen()
+                        StatsScreen(onNavigateToSessions = onNavigateToSessions)
                     }
                     else -> throw IllegalArgumentException("Unknown bottom bar destination: $key")
                 }

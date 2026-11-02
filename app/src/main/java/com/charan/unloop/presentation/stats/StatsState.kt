@@ -1,8 +1,8 @@
 package com.charan.unloop.presentation.stats
 
+import com.charan.unloop.presentation.common.model.SessionSummaryUiModel
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 
 data class StatsState(
     val totalFocusDurationSeconds: Int = 0,
@@ -12,14 +12,6 @@ data class StatsState(
     val selectedDateRange: Pair<LocalDate, LocalDate> = Pair(LocalDate(2024, 6, 1), LocalDate(2024, 6, 7)),
     val sessionCount: Int = 0,
     val recentSessions: List<SessionSummaryUiModel> = emptyList()
-)
-
-data class SessionSummaryUiModel(
-    val id: String,
-    val sessionName: String,
-    val focusDurationSeconds: Int,
-    val startTime: LocalDateTime,
-    val endTime: LocalDateTime
 )
 
 enum class StatsPeriod {

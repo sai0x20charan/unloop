@@ -227,4 +227,9 @@
     <string name="stats_date_range">%1$s – %2$s</string>
     <string name="stats_previous_period">Previous period</string>
     <string name="stats_next_period">Next period</string>
+    <string name="sessions_see_all">See all</string>
+    <string name="sessions_load_error">Could not load sessions. Try again.</string>
+    <string name="sessions_retry">Retry</string>
+    <string name="sessions_invalid_range">The start date must be on or before the end date.</string>
+    <string name="sessions_date_and_time">%1$s, %2$s</string>
 </resources>

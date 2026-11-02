@@ -2,6 +2,14 @@ package com.charan.unloop.core.utils
 
 import android.content.res.Resources
 import com.charan.unloop.R
+import java.text.DateFormatSymbols
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.time.format.TextStyle
+import java.util.Locale
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -14,14 +22,9 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toJavaDayOfWeek
+import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaMonth
 import kotlinx.datetime.toLocalDateTime
-import java.time.format.TextStyle
-import java.text.DateFormatSymbols
-import java.util.Locale
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 
 object DateTimeUtils {
@@ -59,6 +62,10 @@ object DateTimeUtils {
         val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
         return String.format(locale = Locale.getDefault(),"%02d:%02d %s", displayHour, minute, amPm)
     }
+
+    fun LocalDate.toDisplayString(): String = toJavaLocalDate().format(
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
+    )
 
     fun LocalDateTime.toDisplayString(): String = time.toDisplayString()
 
@@ -205,7 +212,7 @@ object DateTimeUtils {
         return LocalDateTime(this, LocalTime(0,0,0))
     }
     fun LocalDate.atEndOfDay() : LocalDateTime {
-        return LocalDateTime(this, LocalTime(23,59,59))
+        return LocalDateTime(this, LocalTime(23,59,59,999_999_999))
     }
 
     fun getDatesInRange(range: Pair<LocalDate, LocalDate>): List<LocalDate> {

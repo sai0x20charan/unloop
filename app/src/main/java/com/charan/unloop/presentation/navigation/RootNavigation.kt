@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.charan.unloop.presentation.on_boarding.OnBoardingScreen
 import com.charan.unloop.presentation.routine.RoutineScreen
+import com.charan.unloop.presentation.sessions.SessionsScreen
 import com.charan.unloop.presentation.settings.aboutlibraries.AboutLibrariesScreen
 
 private val navigationAnimationSpec = tween<IntOffset>(
@@ -98,6 +99,9 @@ fun RootNavigation(
                         },
                         onNavigateToLicense = {
                             backStack.add(Destination.AboutLibraries)
+                        },
+                        onNavigateToSessions = { startDate, endDate ->
+                            backStack.add(Destination.Sessions(startDate, endDate))
                         }
                     )
                 }
@@ -107,6 +111,14 @@ fun RootNavigation(
                         onBack = {
                             backStack.removeLastOrNull()
                         }
+                    )
+                }
+
+                is Destination.Sessions -> NavEntry(key) {
+                    SessionsScreen(
+                        startDate = key.startDate,
+                        endDate = key.endDate,
+                        onBack = { backStack.removeLastOrNull() }
                     )
                 }
 
