@@ -122,7 +122,10 @@ fun RootNavigation(
                     SessionsScreen(
                         startDate = key.startDate,
                         endDate = key.endDate,
-                        onBack = { backStack.removeLastOrNull() }
+                        onBack = { backStack.removeLastOrNull() },
+                        onNavigateToSessionDetails = { sessionId ->
+                            backStack.add(Destination.SessionDetails(sessionId))
+                        }
                     )
                 }
 

@@ -54,6 +54,9 @@ class SessionsViewModel @AssistedInject constructor(
             SessionsEvent.OnBack -> viewModelScope.launch {
                 _effect.send(SessionsEffect.NavigateBack)
             }
+            is SessionsEvent.OnSessionDetails -> viewModelScope.launch {
+                _effect.send(SessionsEffect.NavigateToSessionDetails(event.id))
+            }
         }
     }
 

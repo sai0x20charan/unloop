@@ -41,10 +41,10 @@ fun SessionsScreen(
     startDate: LocalDate,
     endDate: LocalDate,
     onBack: () -> Unit,
-
+    onNavigateToSessionDetails: (String) -> Unit
 ) {
     val viewModel : SessionsViewModel = hiltViewModel<SessionsViewModel, SessionsViewModel.Factory>(
-    creationCallback = { factory -> factory.create(startDate, endDate) }
+        creationCallback = { factory -> factory.create(startDate, endDate) }
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -53,6 +53,7 @@ fun SessionsScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 SessionsEffect.NavigateBack -> onBack()
+                is SessionsEffect.NavigateToSessionDetails -> onNavigateToSessionDetails(effect.id)
             }
         }
     }
@@ -93,7 +94,7 @@ fun SessionsScreen(
                     endTime = session.endTime,
                     focusDuration = session.focusDurationSeconds,
                     indexItem = state.sessions.indexItemFor(index),
-                    onClick = {}
+                    onClick = { viewModel.onEvent(SessionsEvent.OnSessionDetails(session.id)) }
                 )
             }
         }
