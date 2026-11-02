@@ -62,6 +62,7 @@ class StatsViewModel @Inject constructor(
     fun onEvent(event : StatsEvent){
         when(event){
             StatsEvent.OnSeeAllSessions -> sendEffect(StatsEffect.NavigateToSessions(_state.value.selectedDateRange.first,_state.value.selectedDateRange.second))
+            StatsEvent.OnSeeAllAppBlocks -> sendEffect(StatsEffect.NavigateToBlockedApps(_state.value.selectedDateRange.first, _state.value.selectedDateRange.second))
             StatsEvent.OnDecrementPeriod -> handleDecrementPeriod()
             StatsEvent.OnIncrementPeriod -> handleIncrementPeriod()
             is StatsEvent.OnPeriodChange -> handlePeriodChange()
@@ -182,12 +183,7 @@ class StatsViewModel @Inject constructor(
             }
 
 
-
     }
-
-
-
-
 
 
 }

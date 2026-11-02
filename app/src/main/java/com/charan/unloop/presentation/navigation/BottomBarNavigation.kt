@@ -86,6 +86,7 @@ fun BottomBarNavigation(
     onNavigateToCreateRoutine: (String?) -> Unit,
     onNavigateToLicense: () -> Unit,
     onNavigateToSessions: (LocalDate, LocalDate) -> Unit,
+    onNavigateToBlockedApps: (LocalDate, LocalDate) -> Unit,
     onNavigateToSessionDetails : (String) -> Unit
 ) {
     val bottomBarBackStack = rememberNavBackStack(BottomBarNavDestinations.Home)
@@ -188,7 +189,11 @@ fun BottomBarNavigation(
                     }
 
                     BottomBarNavDestinations.Stats -> NavEntry(key) {
-                        StatsScreen(onNavigateToSessions = onNavigateToSessions, onNavigateToSessionDetails = onNavigateToSessionDetails)
+                        StatsScreen(
+                            onNavigateToSessions = onNavigateToSessions,
+                            onNavigateToSessionDetails = onNavigateToSessionDetails,
+                            onNavigateToBlockedApps = onNavigateToBlockedApps
+                        )
                     }
                     else -> throw IllegalArgumentException("Unknown bottom bar destination: $key")
                 }

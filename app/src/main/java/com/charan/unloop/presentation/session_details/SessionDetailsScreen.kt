@@ -1,6 +1,5 @@
 package com.charan.unloop.presentation.session_details
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,14 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Apps
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -36,22 +30,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.core.utils.DateTimeUtils.toFocusDuration
 import com.charan.unloop.data.local.model.enums.SessionType
-import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
+import com.charan.unloop.presentation.common.components.BlockedAppListItem
 import com.charan.unloop.presentation.common.components.CustomTopBar
 import com.charan.unloop.presentation.common.components.SectionHeader
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
@@ -90,9 +81,7 @@ fun SessionDetailsScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = innerPadding.toScreenContentPadding(
-
-            )
+            contentPadding = innerPadding.toScreenContentPadding()
         ) {
             item {
                 Text(
@@ -181,7 +170,7 @@ fun SessionDetailsScreen(
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
-                                .clip(CircleShape)
+                                .clip(RoundedCornerShape(50))
                                 .background(MaterialTheme.colorScheme.primary)
                         )
                         Text(
@@ -202,7 +191,7 @@ fun SessionDetailsScreen(
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
-                                .clip(CircleShape)
+                                .clip(RoundedCornerShape(50))
                                 .background(MaterialTheme.colorScheme.tertiaryContainer)
                         )
                         Text(
@@ -265,70 +254,13 @@ fun SessionDetailsScreen(
                 )
             }
             itemsIndexed(items = state.blockedApps) { index, item ->
-                val appBitmap = remember(item.appIcon) {
-                    item.appIcon?.toBitmap()?.asImageBitmap()
-                }
-                CustomSegmentedListItem(
-                    headLineContent = {
-                        Text(
-                            text = item.appName,
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                    },
-                    supportingContent = {
-                        if (item.accessGrantedCount > 0) {
-                            Text(
-                                text = pluralStringResource(
-                                    R.plurals.session_details_access_grants,
-                                    item.accessGrantedCount,
-                                    item.accessGrantedCount
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    },
-                    leadingContent = {
-                        if (appBitmap != null) {
-                            Image(
-                                bitmap = appBitmap,
-                                contentDescription = item.appName,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                            )
-                        } else {
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                modifier = Modifier.size(36.dp),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Apps,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.size(20.dp),
-                                    )
-                                }
-                            }
-                        }
-
-                    },
-                    trailingContent = {
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.session_details_blocks,
-                                item.blockedCount,
-                                item.blockedCount
-                            ),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
+                BlockedAppListItem(
+                    appName = item.appName,
+                    appIcon = item.appIcon,
+                    blockedCount = item.blockedCount,
+                    accessGrantedCount = item.accessGrantedCount,
                     indexItem = state.blockedApps.indexItemFor(index)
                 )
-
             }
         }
     }

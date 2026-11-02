@@ -5,10 +5,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class
-
-BottomBarNavDestinations : NavKey {
-
+sealed class BottomBarNavDestinations : NavKey {
 
     @Serializable
     data object Home : BottomBarNavDestinations()
@@ -28,6 +25,7 @@ sealed class Destination : NavKey {
 
     @Serializable
     data object OnBoarding : Destination()
+
     @Serializable
     data class Routine(val routineId : String? = null) : Destination()
 
@@ -39,6 +37,9 @@ sealed class Destination : NavKey {
 
     @Serializable
     data class Sessions(val startDate: LocalDate, val endDate: LocalDate) : Destination()
+
+    @Serializable
+    data class BlockedApps(val startDate: LocalDate, val endDate: LocalDate) : Destination()
 
     @Serializable
     data class SessionDetails(val id : String) : Destination()

@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.charan.unloop.presentation.blocked_apps.BlockedAppsScreen
 import com.charan.unloop.presentation.on_boarding.OnBoardingScreen
 import com.charan.unloop.presentation.routine.RoutineScreen
 import com.charan.unloop.presentation.session_details.SessionDetailsScreen
@@ -104,6 +105,9 @@ fun RootNavigation(
                         onNavigateToSessions = { startDate, endDate ->
                             backStack.add(Destination.Sessions(startDate, endDate))
                         },
+                        onNavigateToBlockedApps = { startDate, endDate ->
+                            backStack.add(Destination.BlockedApps(startDate, endDate))
+                        },
                         onNavigateToSessionDetails = { sessionId ->
                             backStack.add(Destination.SessionDetails(sessionId))
                         }
@@ -126,6 +130,14 @@ fun RootNavigation(
                         onNavigateToSessionDetails = { sessionId ->
                             backStack.add(Destination.SessionDetails(sessionId))
                         }
+                    )
+                }
+
+                is Destination.BlockedApps -> NavEntry(key) {
+                    BlockedAppsScreen(
+                        startDate = key.startDate,
+                        endDate = key.endDate,
+                        onBack = { backStack.removeLastOrNull() }
                     )
                 }
 

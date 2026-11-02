@@ -10,6 +10,7 @@ import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toFocusIntervals
 import com.charan.unloop.presentation.common.mapper.toFocusSegmentUiModels
 import com.charan.unloop.presentation.common.mapper.toPauseIntervals
+import com.charan.unloop.presentation.common.model.BlockedAppsUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -77,12 +78,7 @@ class SessionDetailsViewModel @AssistedInject constructor(
                 appPackage = app,
                 blockedCount = blockedCount,
                 accessGrantedCount = unlockCount
-
             )
-
-
-
-
         } ?: emptyList()
 
         _state.update {

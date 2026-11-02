@@ -1,8 +1,8 @@
 package com.charan.unloop.presentation.session_details
 
-import android.graphics.drawable.Drawable
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.enums.SessionType
+import com.charan.unloop.presentation.common.model.BlockedAppsUiModel
 import com.charan.unloop.presentation.common.model.FocusSegmentUiModel
 import kotlinx.datetime.LocalDateTime
 
@@ -19,12 +19,4 @@ data class SessionDetailsState(
     val totalPausedSessions : Int = 0,
     val totalSessionDuration : Int = 0,
     val appAccessGrantedCount : Int = 0
-)
-
-data class BlockedAppsUiModel(
-    val appName: String,
-    val appPackage: String,
-    val appIcon: Drawable? = null,
-    val accessGrantedCount: Int = 0,
-    val blockedCount: Int = 0
 )

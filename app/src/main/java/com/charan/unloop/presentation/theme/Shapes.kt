@@ -69,6 +69,58 @@ fun <T> List<T>.indexItemFor(index: Int): IndexItem {
     }
 }
 
+@Composable
+fun customListItemShapesForHorizontal(
+    indexItem: IndexItem,
+    defaultShape : ListItemShapes = ListItemDefaults.shapes()
+): ListItemShapes {
+    val overrideShape = ShapeDefaults.Large
+    val shape = when (indexItem) {
+        IndexItem.FIRST -> {
+            val defaultBaseShape = defaultShape.shape
+            if (defaultBaseShape is CornerBasedShape) {
+                defaultShape.copy(
+                    shape =
+                        defaultBaseShape.copy(
+                            topStart = overrideShape.topStart,
+                            bottomStart = overrideShape.topEnd,
+                        )
+                )
+            } else {
+                defaultShape
+            }
+        }
+        IndexItem.LAST -> {
+            val defaultBaseShape = defaultShape.shape
+            if (defaultBaseShape is CornerBasedShape) {
+                defaultShape.copy(
+                    shape =
+                        defaultBaseShape.copy(
+                            topEnd = overrideShape.bottomStart,
+                            bottomEnd = overrideShape.bottomEnd,
+                        )
+                )
+            } else {
+                defaultShape
+            }
+        }
+
+        IndexItem.MIDDLE -> {
+            defaultShape
+        }
+
+        IndexItem.FIRST_AND_LAST -> {
+            defaultShape.copy(
+                shape = ShapeDefaults.Large
+            )
+
+
+        }
+    }
+
+    return shape
+}
+
 
 enum class IndexItem {
     FIRST,

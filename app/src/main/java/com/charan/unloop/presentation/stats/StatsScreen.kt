@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -18,12 +16,11 @@ import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
@@ -31,7 +28,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -46,13 +42,13 @@ import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.core.utils.DateTimeUtils.toFocusDuration
 import com.charan.unloop.core.utils.DateTimeUtils.toLocale
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
-import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
 import com.charan.unloop.presentation.common.components.EmptySessions
 import com.charan.unloop.presentation.common.components.SectionHeader
 import com.charan.unloop.presentation.common.components.SessionListItem
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.stats.components.StatGraph
 import com.charan.unloop.presentation.stats.components.StatSummaryTile
+import com.charan.unloop.presentation.theme.IndexItem
 import com.charan.unloop.presentation.theme.indexItemFor
 import kotlinx.datetime.LocalDate
 
@@ -60,7 +56,8 @@ import kotlinx.datetime.LocalDate
 @Composable
 fun StatsScreen(
     onNavigateToSessions: (LocalDate, LocalDate) -> Unit,
-    onNavigateToSessionDetails : (String) -> Unit
+    onNavigateToSessionDetails: (String) -> Unit,
+    onNavigateToBlockedApps: (LocalDate, LocalDate) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val viewModel = hiltViewModel<StatsViewModel>()
@@ -71,6 +68,7 @@ fun StatsScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is StatsEffect.NavigateToSessions -> onNavigateToSessions(effect.startDate, effect.endDate)
+                is StatsEffect.NavigateToBlockedApps -> onNavigateToBlockedApps(effect.startDate, effect.endDate)
                 is StatsEffect.NavigateToSessionDetails -> onNavigateToSessionDetails(effect.id)
             }
         }
@@ -101,51 +99,45 @@ fun StatsScreen(
             }
 
             item {
-                Surface(
-                    modifier = Modifier.padding(top = 16.dp),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    color = MaterialTheme.colorScheme.surfaceContainer
-                ) {
-                    Column(modifier = Modifier.padding(vertical = 16.dp)) {
-                        PeriodNavigator(
-                            label = if (state.selectedPeriod == StatsPeriod.MONTHLY) {
-                                state.selectedDateRange.first.month.toLocale()
-                            } else {
-                                state.selectedDateRange.toDisplayString()
-                            },
-                            onPrevious = { viewModel.onEvent(StatsEvent.OnDecrementPeriod) },
-                            onNext = { viewModel.onEvent(StatsEvent.OnIncrementPeriod) },
-                            modifier = Modifier.padding(horizontal = 12.dp)
+                Column {
+                    PeriodNavigator(
+                        label = if (state.selectedPeriod == StatsPeriod.MONTHLY) {
+                            state.selectedDateRange.first.month.toLocale()
+                        } else {
+                            state.selectedDateRange.toDisplayString()
+                        },
+                        onPrevious = { viewModel.onEvent(StatsEvent.OnDecrementPeriod) },
+                        onNext = { viewModel.onEvent(StatsEvent.OnIncrementPeriod) },
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.stats_time_in_focus),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Text(
+                            text = state.totalFocusDurationSeconds.toFocusDuration(resources),
+                            style = MaterialTheme.typography.displayMediumEmphasized,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.stats_time_in_focus),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = state.totalFocusDurationSeconds.toFocusDuration(resources),
-                                style = MaterialTheme.typography.displayMediumEmphasized,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            StatGraph(
-                                focusChartData = state.focusChartData,
-                                period = state.selectedPeriod
-                            )
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        StatGraph(
+                            focusChartData = state.focusChartData,
+                            period = state.selectedPeriod
+                        )
                     }
                 }
             }
@@ -155,23 +147,27 @@ fun StatsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     StatSummaryTile(
                         icon = Icons.Rounded.Timer,
                         value = state.sessionCount.toString(),
                         label = stringResource(R.string.stats_sessions),
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.weight(1f)
+                        indexItem = IndexItem.FIRST,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            viewModel.onEvent(StatsEvent.OnSeeAllSessions)
+                        }
                     )
                     StatSummaryTile(
                         icon = Icons.Rounded.Block,
                         value = state.appBlockCount.toString(),
                         label = stringResource(R.string.stats_app_blocks),
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.weight(1f)
+                        indexItem = IndexItem.LAST,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            viewModel.onEvent(StatsEvent.OnSeeAllAppBlocks)
+                        }
                     )
                 }
             }
@@ -193,7 +189,6 @@ fun StatsScreen(
                 item {
                     EmptySessions()
                 }
-
             } else {
                 itemsIndexed(
                     items = state.recentSessions,
@@ -254,7 +249,7 @@ private fun PeriodNavigator(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        FilledTonalIconButton(
+        IconButton(
             onClick = onPrevious,
             shapes = IconButtonDefaults.shapes()
         ) {
@@ -269,7 +264,7 @@ private fun PeriodNavigator(
             textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f)
         )
-        FilledTonalIconButton(
+        IconButton(
             onClick = onNext,
             shapes = IconButtonDefaults.shapes()
         ) {
