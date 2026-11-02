@@ -2,7 +2,7 @@ package com.charan.unloop.presentation.home
 
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.AppInfoUiModel
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 
 data class HomeState(
@@ -12,7 +12,7 @@ data class HomeState(
 
 data class InstantSessionUiModel(
     val isTitleEditable : Boolean = false,
-    val installedApps: List<InstalledAppsUiModel> = emptyList(),
+    val installedApps: List<AppInfoUiModel> = emptyList(),
     val showBottomSheet: Boolean = false,
     val sessionTitle: String = "",
     val hour: Int = 0,

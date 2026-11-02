@@ -3,10 +3,10 @@ package com.charan.unloop.presentation.routine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.R
-import com.charan.unloop.data.repository.InstalledAppsRepository
+import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.presentation.common.ToastMessage
-import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
+import com.charan.unloop.presentation.common.mapper.toAppInfoUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
 import com.charan.unloop.presentation.common.mapper.toRoutineEntity
@@ -29,7 +29,7 @@ import kotlinx.datetime.LocalTime
 @HiltViewModel(assistedFactory = RoutineViewModel.Factory::class)
 class RoutineViewModel @AssistedInject constructor(
     @Assisted("routineId") private val routineId: String?,
-    private val installedAppsRepository: InstalledAppsRepository,
+    private val installedAppsProvider: InstalledAppsProvider,
     private val routineRepository: RoutineRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
@@ -51,14 +51,14 @@ class RoutineViewModel @AssistedInject constructor(
 
     private fun initRoutineAndApps() = viewModelScope.launch {
         val routineUiModel = routineId?.let { routineRepository.getRoutineById(it)?.toRoutineUiModel() }
-        val installedApps = installedAppsRepository.getInstalledApps()
+        val installedApps = installedAppsProvider.getInstalledApps()
         val blockedSet = routineUiModel?.blockedApps.orEmpty().toSet()
 
         _state.update { current ->
             current.copy(
                 routine = routineUiModel ?: current.routine,
                 installedApps = installedApps.map { app ->
-                    app.toInstalledAppsUiModel(isSelected = app.packageName in blockedSet)
+                    app.toAppInfoUiModel(isSelected = app.packageName in blockedSet)
                 }
             )
         }

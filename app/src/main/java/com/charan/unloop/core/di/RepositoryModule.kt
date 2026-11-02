@@ -1,10 +1,8 @@
 package com.charan.unloop.core.di
 
-import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.impl.DataStoreRepositoryImpl
-import com.charan.unloop.data.repository.impl.InstalledAppsRepositoryImpl
 import com.charan.unloop.data.repository.impl.RoutineRepositoryImpl
 import com.charan.unloop.data.repository.impl.SessionEventRepositoryImpl
 import com.charan.unloop.data.repository.impl.SessionRepositoryImpl
@@ -17,12 +15,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
-
-    @Binds
-    @Singleton
-    abstract fun bindInstalledAppsRepository(
-        installedAppsRepositoryImpl: InstalledAppsRepositoryImpl
-    ): InstalledAppsRepository
 
     @Binds
     @Singleton

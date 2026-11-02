@@ -53,14 +53,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
-import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.AppInfoUiModel
 import com.charan.unloop.presentation.theme.indexItemFor
 import kotlinx.coroutines.launch
 
 @Composable
 fun AppsList(
     modifier: Modifier = Modifier,
-    apps: List<InstalledAppsUiModel>,
+    apps: List<AppInfoUiModel>,
     onAppSelect: (String) -> Unit,
     onAllAppsSelect: () -> Unit,
     contentPaddingValues: PaddingValues = PaddingValues(),

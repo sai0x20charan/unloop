@@ -33,14 +33,14 @@ import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
 import com.charan.unloop.presentation.common.mapper.toFormattedDays
 import com.charan.unloop.presentation.common.mapper.toFormattedTime
-import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.AppInfoUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.routine.UnlockChallengeType
 
 @Composable
 fun ReviewPage(
     routine: RoutineUiModel,
-    selectedApps: List<InstalledAppsUiModel>,
+    selectedApps: List<AppInfoUiModel>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
 ) {

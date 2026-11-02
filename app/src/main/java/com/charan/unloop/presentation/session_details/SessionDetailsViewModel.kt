@@ -3,14 +3,14 @@ package com.charan.unloop.presentation.session_details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.local.model.enums.SessionEvents
-import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
+import com.charan.unloop.presentation.common.mapper.toBlockedAppsUiModel
 import com.charan.unloop.presentation.common.mapper.toFocusIntervals
 import com.charan.unloop.presentation.common.mapper.toFocusSegmentUiModels
 import com.charan.unloop.presentation.common.mapper.toPauseIntervals
-import com.charan.unloop.presentation.common.model.BlockedAppsUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -27,7 +27,7 @@ class SessionDetailsViewModel @AssistedInject constructor(
     @Assisted("sessionId") private val sessionId: String,
     private val sessionRepository: SessionRepository,
     private val sessionEventRepository: SessionEventRepository,
-    private val installedAppsRepository: InstalledAppsRepository
+    private val installedAppsProvider: InstalledAppsProvider
 ) : ViewModel() {
 
     @AssistedFactory
@@ -69,13 +69,11 @@ class SessionDetailsViewModel @AssistedInject constructor(
         )
 
         val blockedApps = session.sessionEntity.blockedApps?.map { app->
-            val appDetails = installedAppsRepository.getAppDetailsByPackageName(app)
+            val appDetails = installedAppsProvider.getAppInfo(app)
             val blockedCount = session.sessionEvents.filter { it.packageName == app && it.eventType == SessionEvents.APP_BLOCKED }.size
             val unlockCount = session.sessionEvents.filter { it.packageName == app && it.eventType == SessionEvents.APP_ACCESS_GRANTED }.size
-            BlockedAppsUiModel(
-                appName = appDetails.appName,
-                appIcon = appDetails.icon,
-                appPackage = app,
+            appDetails.toBlockedAppsUiModel(
+                packageName = app,
                 blockedCount = blockedCount,
                 accessGrantedCount = unlockCount
             )

@@ -3,10 +3,10 @@ package com.charan.unloop.presentation.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.utils.DateTimeUtils
+import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.SessionRepository
-import com.charan.unloop.presentation.common.models.toInstalledAppsUiModel
+import com.charan.unloop.presentation.common.mapper.toAppInfoUiModel
 import com.charan.unloop.presentation.common.models.toggleAppSelection
 import com.charan.unloop.presentation.common.models.toggleSelectAll
 import com.charan.unloop.presentation.common.mapper.toCurrentSessionUiModel
@@ -26,7 +26,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val installedAppsRepository: InstalledAppsRepository,
+    private val installedAppsProvider: InstalledAppsProvider,
     private val sessionRepository: SessionRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
@@ -41,8 +41,8 @@ class HomeViewModel @Inject constructor(
 
     private fun loadInstantSessionAndApps() = viewModelScope.launch {
         val lastInstantSession = sessionRepository.getLastInstantSession()
-        val installedApps = installedAppsRepository.getInstalledApps().map { app ->
-            app.toInstalledAppsUiModel()
+        val installedApps = installedAppsProvider.getInstalledApps().map { app ->
+            app.toAppInfoUiModel()
         }
         _state.update {
             it.copy(

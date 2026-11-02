@@ -8,7 +8,7 @@ import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.entity.RoutineEntity
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.enums.SessionStatus
-import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.AppInfoUiModel
 import com.charan.unloop.presentation.common.models.RoutineUiModel
 import com.charan.unloop.presentation.home.CurrentSessionUiModel
 import com.charan.unloop.presentation.home.InstantSessionUiModel
@@ -80,7 +80,7 @@ fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
 }
 
 fun SessionEntity.toInstantSessionUiModel(
-    installedApps: List<InstalledAppsUiModel>
+    installedApps: List<AppInfoUiModel>
 ): InstantSessionUiModel {
     val duration = DateTimeUtils.getDuration(createdAt, endTime).coerceAtLeast(Duration.ZERO)
     val blockedPackages = blockedApps.orEmpty().toSet()

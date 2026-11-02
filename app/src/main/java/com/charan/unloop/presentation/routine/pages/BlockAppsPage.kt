@@ -6,11 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.presentation.common.components.AppsList
-import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.AppInfoUiModel
 
 @Composable
 fun BlockAppsPage(
-    appsList: List<InstalledAppsUiModel>,
+    appsList: List<AppInfoUiModel>,
     onAppSelect: (String) -> Unit,
     onSelectAllApps: () -> Unit,
     modifier: Modifier = Modifier,

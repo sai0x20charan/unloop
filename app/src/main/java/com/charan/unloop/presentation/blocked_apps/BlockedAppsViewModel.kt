@@ -5,9 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.utils.DateTimeUtils.atEndOfDay
 import com.charan.unloop.core.utils.DateTimeUtils.atStartOfDay
+import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.local.model.enums.SessionEvents
-import com.charan.unloop.data.repository.InstalledAppsRepository
 import com.charan.unloop.data.repository.SessionRepository
+import com.charan.unloop.presentation.common.mapper.toBlockedAppsUiModel
 import com.charan.unloop.presentation.common.model.BlockedAppsUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -26,7 +27,7 @@ class BlockedAppsViewModel @AssistedInject constructor(
     @Assisted("startDate") startDate: LocalDate,
     @Assisted("endDate") endDate: LocalDate,
     private val sessionRepository: SessionRepository,
-    private val installedAppsRepository: InstalledAppsRepository,
+    private val installedAppsProvider: InstalledAppsProvider,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -77,15 +78,13 @@ class BlockedAppsViewModel @AssistedInject constructor(
             .flatMap { it.sessionEntity.blockedApps.orEmpty() }
             .distinct()
             .map { packageName ->
-                val appDetail = installedAppsRepository
-                    .getAppDetailsByPackageName(packageName)
+                val appDetail = installedAppsProvider
+                    .getAppInfo(packageName)
 
                 val events = eventsByPackage[packageName].orEmpty()
 
-                BlockedAppsUiModel(
-                    appName = appDetail.appName,
-                    appPackage = appDetail.packageName,
-                    appIcon = appDetail.icon,
+                appDetail.toBlockedAppsUiModel(
+                    packageName = packageName,
                     blockedCount = events.count {
                         it.eventType == SessionEvents.APP_BLOCKED
                     },

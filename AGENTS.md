@@ -36,7 +36,7 @@ The application has a single `app` module. Kotlin source files live under `app/s
 
 ### Data
 
-- `data/apps`: Installed app discovery through `InstalledAppsDataSource`.
+- `data/apps`: Installed app discovery through the concrete `InstalledAppsProvider`.
 - `data/local`: Local Data Source (Room Database: entities, DAOs, type converters, models for Room relations, entity related enums, and migrations).
 - `data/model`: Data models other than local entities.
 - `data/repository`: Repository interfaces.

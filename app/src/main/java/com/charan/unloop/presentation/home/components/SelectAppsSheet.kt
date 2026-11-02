@@ -67,7 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.drawable.toBitmap
 import com.charan.unloop.R
-import com.charan.unloop.presentation.common.models.InstalledAppsUiModel
+import com.charan.unloop.presentation.common.models.AppInfoUiModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -116,7 +116,7 @@ fun PresetDurationSelector(
 
 @Composable
 fun SelectedBlockedAppsCard(
-    selectedApps: List<InstalledAppsUiModel>,
+    selectedApps: List<AppInfoUiModel>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
