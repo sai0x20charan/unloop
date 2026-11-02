@@ -4,33 +4,33 @@ import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.model.SessionWithSessionEvents
 import com.charan.unloop.data.local.model.enums.SessionEvents
-import com.charan.unloop.presentation.stats.GraphData
-import com.charan.unloop.presentation.stats.Sessions
+import com.charan.unloop.presentation.stats.FocusChartDataUiModel
+import com.charan.unloop.presentation.stats.SessionSummaryUiModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 
-fun List<SessionWithSessionEvents>.toStatsGraphData(
+fun List<SessionWithSessionEvents>.toFocusChartDataUiModels(
     range: Pair<LocalDate, LocalDate>,
     currentDateTime: LocalDateTime = DateTimeUtils.getCurrentDateTime()
-): List<GraphData> {
+): List<FocusChartDataUiModel> {
     val intervals = flatMap { it.toFocusIntervals(currentDateTime) }
     val durations = DateTimeUtils.getDailyDurations(intervals, range)
 
     return DateTimeUtils.getDatesInRange(range).map { date ->
-        GraphData(
-            value = durations[date] ?: 0,
-            day = date.dayOfWeek,
+        FocusChartDataUiModel(
+            focusDurationSeconds = durations[date] ?: 0,
+            dayOfWeek = date.dayOfWeek,
             date = date
         )
     }
 }
 
-fun SessionWithSessionEvents.toSessions() : Sessions {
+fun SessionWithSessionEvents.toSessionSummaryUiModel() : SessionSummaryUiModel {
     val totalFocusedTime = this.toFocusIntervals()
-    return Sessions(
+    return SessionSummaryUiModel(
         id = this.sessionEntity.id,
         sessionName = this.sessionEntity.sessionName,
-        totalTime = DateTimeUtils.getIntervalDuration(totalFocusedTime).inWholeSeconds.toInt(),
+        focusDurationSeconds = DateTimeUtils.getIntervalDuration(totalFocusedTime).inWholeSeconds.toInt(),
         startTime = this.sessionEntity.createdAt,
         endTime = this.sessionEntity.endTime
     )

@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.deeplink.invoke
 import com.charan.unloop.core.utils.DateTimeUtils.getDisplayName
 import com.charan.unloop.core.utils.DateTimeUtils.toFocusDuration
-import com.charan.unloop.presentation.stats.GraphData
-import com.charan.unloop.presentation.stats.StatsType
+import com.charan.unloop.presentation.stats.FocusChartDataUiModel
+import com.charan.unloop.presentation.stats.StatsPeriod
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.compose.cartesian.VicoZoomState
@@ -63,11 +63,11 @@ import kotlin.math.ceil
 
 @Composable
 fun StatGraph(
-    graphData : List<GraphData> = emptyList(),
-    statType : StatsType = StatsType.WEEKLY
+    focusChartData : List<FocusChartDataUiModel> = emptyList(),
+    period : StatsPeriod = StatsPeriod.WEEKLY
 
 ) {
-    val values = graphData.map{ it.value }
+    val values = focusChartData.map{ it.focusDurationSeconds }
     val resources = LocalResources.current
     val maxAxisSeconds = ceil((values.maxOrNull() ?: 0) / 3600.0)
         .coerceAtLeast(1.0) * 3600.0
@@ -81,12 +81,12 @@ fun StatGraph(
         shape = CircleShape,
         thickness = 8.dp
     )
-    LaunchedEffect(graphData, statType) {
-        if(graphData.isNotEmpty()) {
+    LaunchedEffect(focusChartData, period) {
+        if(focusChartData.isNotEmpty()) {
             modelProducer.runTransaction {
                 columnModel { series(values) }
-                extras { it[labelListKey] = if(statType == StatsType.WEEKLY) graphData.map { it.date.dayOfWeek.getDisplayName(
-                    TextStyle.SHORT) } else graphData.map { it.date.day.toString() } }
+                extras { it[labelListKey] = if(period == StatsPeriod.WEEKLY) focusChartData.map { it.date.dayOfWeek.getDisplayName(
+                    TextStyle.SHORT) } else focusChartData.map { it.date.day.toString() } }
 
             }
         }
@@ -97,11 +97,11 @@ fun StatGraph(
             modifier = Modifier.fillMaxHeight(),
             chart = rememberCartesianChart(
                 rememberColumnCartesianLayer(
-                    columnProvider = remember(graph,graphData) {
+                    columnProvider = remember(graph,focusChartData) {
                         getColumnProvider(
                             graph,
 
-                            graphData
+                            focusChartData
                         )
                     },
                     rangeProvider = CartesianLayerRangeProvider.fixed(
@@ -183,22 +183,22 @@ fun StatGraph(
 @Composable
 fun StatGraphPreview(){
     StatGraph(
-        graphData = listOf(
-            GraphData(
-                value = 10,
-                day = DayOfWeek.MONDAY,
+        focusChartData = listOf(
+            FocusChartDataUiModel(
+                focusDurationSeconds = 10,
+                dayOfWeek = DayOfWeek.MONDAY,
                 date = LocalDate(2024, 6, 1)
 
             ),
-            GraphData(
-                value = 20,
-                day = DayOfWeek.TUESDAY,
+            FocusChartDataUiModel(
+                focusDurationSeconds = 20,
+                dayOfWeek = DayOfWeek.TUESDAY,
                 date = LocalDate(2024, 6, 2)
 
             ),
-            GraphData(
-                value = 30,
-                day = DayOfWeek.WEDNESDAY,
+            FocusChartDataUiModel(
+                focusDurationSeconds = 30,
+                dayOfWeek = DayOfWeek.WEDNESDAY,
                 date = LocalDate(2024, 6, 3)
 
             )
@@ -206,7 +206,7 @@ fun StatGraphPreview(){
     )
 }
 
-private fun getColumnProvider(graph : LineComponent, values : List<GraphData>) =
+private fun getColumnProvider(graph : LineComponent, values : List<FocusChartDataUiModel>) =
     object : ColumnCartesianLayer.ColumnProvider {
         override fun getColumn(
             entry: ColumnCartesianLayerModel.Entry,

@@ -15,8 +15,8 @@ import com.charan.unloop.core.utils.DateTimeUtils.toSeconds
 import com.charan.unloop.data.local.model.enums.SessionEvents
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
-import com.charan.unloop.presentation.common.mapper.toSessions
-import com.charan.unloop.presentation.common.mapper.toStatsGraphData
+import com.charan.unloop.presentation.common.mapper.toSessionSummaryUiModel
+import com.charan.unloop.presentation.common.mapper.toFocusChartDataUiModels
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,13 +42,13 @@ class StatsViewModel @Inject constructor(
 
     init {
         init()
-        observeStatTypeChange()
+        observePeriodChanges()
     }
 
     private fun init() = viewModelScope.launch {
         _state.update {
             it.copy(
-                graphTimePeriod = DateTimeUtils.getCurrentWeekPair()
+                selectedDateRange = DateTimeUtils.getCurrentWeekPair()
             )
         }
         observeDateRangeChanges()
@@ -58,23 +58,23 @@ class StatsViewModel @Inject constructor(
         when(event){
             StatsEvent.OnDecrementPeriod -> handleDecrementPeriod()
             StatsEvent.OnIncrementPeriod -> handleIncrementPeriod()
-            is StatsEvent.OnStatTypeChange -> handleStatTypeChange()
+            is StatsEvent.OnPeriodChange -> handlePeriodChange()
         }
     }
 
     private fun handleDecrementPeriod() {
-        val statType = _state.value.selectedStatsType
-        if(statType == StatsType.WEEKLY){
+        val period = _state.value.selectedPeriod
+        if(period == StatsPeriod.WEEKLY){
             _state.update {
                 it.copy(
-                    graphTimePeriod = _state.value.graphTimePeriod.getPreviousWeek()
+                    selectedDateRange = _state.value.selectedDateRange.getPreviousWeek()
                 )
             }
         }
-        if(statType == StatsType.MONTHLY){
+        if(period == StatsPeriod.MONTHLY){
             _state.update {
                 it.copy(
-                    graphTimePeriod = _state.value.graphTimePeriod.getPreviousMonth()
+                    selectedDateRange = _state.value.selectedDateRange.getPreviousMonth()
                 )
             }
         }
@@ -84,52 +84,52 @@ class StatsViewModel @Inject constructor(
     }
 
     private fun handleIncrementPeriod() {
-        val statType = _state.value.selectedStatsType
-        if(statType == StatsType.WEEKLY){
+        val period = _state.value.selectedPeriod
+        if(period == StatsPeriod.WEEKLY){
             _state.update {
                 it.copy(
-                    graphTimePeriod = _state.value.graphTimePeriod.getNextWeek()
+                    selectedDateRange = _state.value.selectedDateRange.getNextWeek()
                 )
             }
         }
-        if(statType == StatsType.MONTHLY){
+        if(period == StatsPeriod.MONTHLY){
             _state.update {
                 it.copy(
-                    graphTimePeriod = _state.value.graphTimePeriod.getNextMonth()
+                    selectedDateRange = _state.value.selectedDateRange.getNextMonth()
                 )
             }
         }
 
     }
 
-    private fun handleStatTypeChange() {
+    private fun handlePeriodChange() {
         _state.update {
             it.copy(
-                selectedStatsType = if(_state.value.selectedStatsType == StatsType.WEEKLY) StatsType.MONTHLY else StatsType.WEEKLY,
+                selectedPeriod = if(_state.value.selectedPeriod == StatsPeriod.WEEKLY) StatsPeriod.MONTHLY else StatsPeriod.WEEKLY,
 
             )
         }
 
     }
 
-    private fun observeStatTypeChange() = viewModelScope.launch {
+    private fun observePeriodChanges() = viewModelScope.launch {
         _state
-            .map { it.selectedStatsType }
+            .map { it.selectedPeriod }
             .distinctUntilChanged()
-            .collectLatest { statType ->
+            .collectLatest { period ->
 
-                if(statType == StatsType.WEEKLY){
+                if(period == StatsPeriod.WEEKLY){
                     _state.update {
                         it.copy(
-                            graphTimePeriod = DateTimeUtils.getCurrentWeekPair()
+                            selectedDateRange = DateTimeUtils.getCurrentWeekPair()
                         )
                     }
                 }
 
-                if(statType == StatsType.MONTHLY){
+                if(period == StatsPeriod.MONTHLY){
                     _state.update {
                         it.copy(
-                            graphTimePeriod = DateTimeUtils.getCurrentMonthPair()
+                            selectedDateRange = DateTimeUtils.getCurrentMonthPair()
                         )
                     }
                 }
@@ -138,25 +138,25 @@ class StatsViewModel @Inject constructor(
 
     private fun observeDateRangeChanges() = viewModelScope.launch {
         _state
-            .map { it.graphTimePeriod }
+            .map { it.selectedDateRange }
             .distinctUntilChanged()
             .collectLatest { range ->
                 val startTime = range.first.atStartOfDay()
                 val endTime = range.second.atEndOfDay()
 
                 sessionRepository.getSessionWithSessionEventForRange(startTime,endTime).let { sessions->
-                    val graphData = sessions.toStatsGraphData(
+                    val focusChartData = sessions.toFocusChartDataUiModels(
                         range = range,
                         currentDateTime = DateTimeUtils.getCurrentDateTime()
                     )
                     _state.update {
                         it.copy(
-                            graphData = graphData,
-                            totalFocusTime = graphData.sumOf { it.value },
-                            totalSessions = sessions.size,
-                            totalBlockedApps = sessions.sumOf { it.sessionEvents.count { event -> event.eventType == SessionEvents.APP_BLOCKED } },
+                            focusChartData = focusChartData,
+                            totalFocusDurationSeconds = focusChartData.sumOf { it.focusDurationSeconds },
+                            sessionCount = sessions.size,
+                            appBlockCount = sessions.sumOf { it.sessionEvents.count { event -> event.eventType == SessionEvents.APP_BLOCKED } },
                             recentSessions = sessions.sortedByDescending { it.sessionEntity.createdAt }.take(5).map { session ->
-                                session.toSessions()
+                                session.toSessionSummaryUiModel()
                             },
 
                         )

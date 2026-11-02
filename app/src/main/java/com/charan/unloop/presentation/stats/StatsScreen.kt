@@ -73,11 +73,11 @@ fun StatsScreen() {
             contentPadding = innerPadding.toScreenContentPadding(bottom = 24.dp)
         ) {
             item {
-                StatsTypeSelector(
-                    selected = state.selectedStatsType,
+                StatsPeriodSelector(
+                    selected = state.selectedPeriod,
                     onSelect = { type ->
-                        if (type != state.selectedStatsType) {
-                            viewModel.onEvent(StatsEvent.OnStatTypeChange(type))
+                        if (type != state.selectedPeriod) {
+                            viewModel.onEvent(StatsEvent.OnPeriodChange(type))
                         }
                     }
                 )
@@ -91,10 +91,10 @@ fun StatsScreen() {
                 ) {
                     Column(modifier = Modifier.padding(vertical = 16.dp)) {
                         PeriodNavigator(
-                            label = if (state.selectedStatsType == StatsType.MONTHLY) {
-                                state.graphTimePeriod.first.month.toLocale()
+                            label = if (state.selectedPeriod == StatsPeriod.MONTHLY) {
+                                state.selectedDateRange.first.month.toLocale()
                             } else {
-                                state.graphTimePeriod.toDisplayString()
+                                state.selectedDateRange.toDisplayString()
                             },
                             onPrevious = { viewModel.onEvent(StatsEvent.OnDecrementPeriod) },
                             onNext = { viewModel.onEvent(StatsEvent.OnIncrementPeriod) },
@@ -112,7 +112,7 @@ fun StatsScreen() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = state.totalFocusTime.toFocusDuration(resources),
+                                text = state.totalFocusDurationSeconds.toFocusDuration(resources),
                                 style = MaterialTheme.typography.displayMediumEmphasized,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -125,8 +125,8 @@ fun StatsScreen() {
                                 .padding(horizontal = 8.dp)
                         ) {
                             StatGraph(
-                                graphData = state.graphData,
-                                statType = state.selectedStatsType
+                                focusChartData = state.focusChartData,
+                                period = state.selectedPeriod
                             )
                         }
                     }
@@ -142,7 +142,7 @@ fun StatsScreen() {
                 ) {
                     StatSummaryTile(
                         icon = Icons.Rounded.Timer,
-                        value = state.totalSessions.toString(),
+                        value = state.sessionCount.toString(),
                         label = stringResource(R.string.stats_sessions),
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -150,7 +150,7 @@ fun StatsScreen() {
                     )
                     StatSummaryTile(
                         icon = Icons.Rounded.Block,
-                        value = state.totalBlockedApps.toString(),
+                        value = state.appBlockCount.toString(),
                         label = stringResource(R.string.stats_app_blocks),
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -209,7 +209,7 @@ fun StatsScreen() {
                         },
                         trailingContent = {
                             Text(
-                                text = session.totalTime.toFocusDuration(resources),
+                                text = session.focusDurationSeconds.toFocusDuration(resources),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -224,9 +224,9 @@ fun StatsScreen() {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun StatsTypeSelector(
-    selected: StatsType,
-    onSelect: (StatsType) -> Unit
+private fun StatsPeriodSelector(
+    selected: StatsPeriod,
+    onSelect: (StatsPeriod) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -234,14 +234,14 @@ private fun StatsTypeSelector(
             .padding(top = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
     ) {
-        StatsType.entries.forEachIndexed { index, type ->
+        StatsPeriod.entries.forEachIndexed { index, type ->
             ToggleButton(
                 checked = type == selected,
                 onCheckedChange = { onSelect(type) },
                 modifier = Modifier.weight(1f),
                 shapes = when (index) {
                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    StatsType.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    StatsPeriod.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                 }
             ) {
@@ -323,7 +323,7 @@ private fun EmptySessions() {
     }
 }
 
-private fun StatsType.toLabelRes(): Int = when (this) {
-    StatsType.WEEKLY -> R.string.stats_weekly
-    StatsType.MONTHLY -> R.string.stats_monthly
+private fun StatsPeriod.toLabelRes(): Int = when (this) {
+    StatsPeriod.WEEKLY -> R.string.stats_weekly
+    StatsPeriod.MONTHLY -> R.string.stats_monthly
 }
