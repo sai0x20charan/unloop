@@ -7,6 +7,18 @@
 
 Unloop is an Android app that helps you reduce distractions by blocking selected apps during scheduled routines and instant focus sessions.
 
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.charan.unloop">
+    <img src="readme-screenshots/unloop-overview.png" alt="Unloop focus setup, routines, and app blocking screens" width="100%">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.charan.unloop">
+    <img src="readme-screenshots/unloop-statistics.png" alt="Unloop statistics, session details, and session notification screens" width="100%">
+  </a>
+</p>
+
 ## Routines
 
 Routines let you set aside time for focus throughout the week.
