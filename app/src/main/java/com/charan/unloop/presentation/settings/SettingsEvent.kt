@@ -7,5 +7,9 @@ sealed interface SettingsEvent {
     data class OnDynamicColorsChange(val isEnabled: Boolean) : SettingsEvent
     data object OnBack : SettingsEvent
 
+    data object OnSendFeedbackClick : SettingsEvent
+    data object OnRateAppClick : SettingsEvent
+    data object OnOpenSourceCodeClick : SettingsEvent
+
     data object OnOpenSourceLicensesClick : SettingsEvent
 }

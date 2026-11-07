@@ -1,8 +1,9 @@
 package com.charan.unloop.presentation.settings
 
-import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.charan.unloop.core.utils.GITHUB_URL
+import com.charan.unloop.core.utils.PLAY_STORE_URL
 import com.charan.unloop.core.utils.getAppVersionWithVersionCode
 import com.charan.unloop.data.model.ThemeOptions
 import com.charan.unloop.data.repository.DataStoreRepository
@@ -44,6 +45,10 @@ class SettingsViewModel @Inject constructor(
             SettingsEvent.OnBack -> {
                 sendEffect(SettingsEffect.OnBack)
             }
+
+            SettingsEvent.OnSendFeedbackClick -> sendEffect(SettingsEffect.LaunchSendFeedbackEmail)
+            SettingsEvent.OnRateAppClick -> sendEffect(SettingsEffect.OpenUrl(PLAY_STORE_URL))
+            SettingsEvent.OnOpenSourceCodeClick -> sendEffect(SettingsEffect.OpenUrl(GITHUB_URL))
 
             SettingsEvent.OnOpenSourceLicensesClick -> sendEffect(SettingsEffect.OnNavigateToOpenSourceLicenses)
         }
