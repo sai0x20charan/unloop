@@ -20,7 +20,8 @@ const base = Astro.url.pathname.startsWith('/unloop') ? '/unloop' : '';
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f7fbf2" />
     <link rel="canonical" href={`https://unloop.nsaicharan.com/${privacy ? 'privacy-policy' : ''}`} />
-    <link rel="icon" href="/unloop/icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/media/logo.svg" />
+    <link rel="alternate icon" href="/media/icon.png" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -30,7 +31,7 @@ const base = Astro.url.pathname.startsWith('/unloop') ? '/unloop' : '';
     <slot />
     {!privacy && (
       <section class="download-section shell" aria-labelledby="download-title">
-        <img src="/unloop/icon.png" width="64" height="64" alt="" />
+        <img src="/media/logo.svg" width="108" height="56" alt="" />
         <h2 id="download-title">Start focusing with Unloop</h2>
         <a class="download" href="https://play.google.com/store/apps/details?id=com.charan.unloop" target="_blank" rel="noopener noreferrer"><img class="play-store-logo" src="/play_store.svg" width="20" height="22" alt="" />Get it on Google Play</a>
       </section>

@@ -2,8 +2,16 @@ name: Android CI
 
 on:
   pull_request:
+    paths-ignore:
+      - 'website/**'
+      - 'media/**'
+      - 'README.md'
   push:
     branches: [dev, master]
+    paths-ignore:
+      - 'website/**'
+      - 'media/**'
+      - 'README.md'
   workflow_dispatch:
   workflow_call:
 

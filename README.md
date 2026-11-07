@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="Unloop app icon" width="100">
+  <img src="media/icon.png" alt="Unloop app icon" width="100">
 
 # Unloop
 
@@ -53,13 +53,13 @@ Look back at your focus time and app activity.
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.charan.unloop">
-    <img src="readme-screenshots/unloop-overview.png" alt="Unloop focus setup, routines, and app blocking screens" width="100%">
+    <img src="media/unloop-overview.png" alt="Unloop focus setup, routines, and app blocking screens" width="100%">
   </a>
 </p>
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.charan.unloop">
-    <img src="readme-screenshots/unloop-statistics.png" alt="Unloop statistics, session details, and session notification screens" width="100%">
+    <img src="media/unloop-statistics.png" alt="Unloop statistics, session details, and session notification screens" width="100%">
   </a>
 </p>
 
