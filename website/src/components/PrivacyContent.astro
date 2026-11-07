@@ -1,0 +1,160 @@
+        <h1>
+          Unloop Privacy Policy
+        </h1>
+
+        <p>
+          This privacy policy applies to Unloop, an Android application created by Sai Charan. Unloop helps you manage distracting apps through blocking routines, focus sessions, and unlock challenges. This policy explains what information the app accesses, how it uses that information, and the choices available to you.
+        </p>
+        <p>
+          Effective date: <time datetime="2026-10-23">October 23, 2026</time>
+        </p>
+
+        <h2>
+          Information collection and use
+        </h2>
+        <p>
+          Unloop does not require an account. Your routines, selected apps, session history, and preferences are stored locally using Android's app storage. Unloop does not upload these records to a developer-operated server. Crash reporting and Android system backups are described separately below.
+        </p>
+
+        <div>
+          <h3>Installed apps and app usage</h3>
+          <p>
+            Unloop reads the names, package identifiers, and icons of apps available in your device's launcher so you can choose which apps to block. With usage access enabled, it checks recent Android app usage events to identify the app in the foreground during an active blocking session.
+          </p>
+          <p>
+            This information is used on your device to apply your blocking rules. Unloop does not read the content displayed inside other apps, your messages, passwords, or browsing history. Your installed app list and usage events are not sent to the developer for analytics or advertising.
+          </p>
+        </div>
+
+        <div>
+          <h3>Routines, sessions, and preferences</h3>
+          <p>
+            Unloop stores the information needed to run your routines and record session activity, including:
+          </p>
+          <ul>
+            <li>Routine names, descriptions, schedules, selected app package identifiers, and blocking intervals</li>
+            <li>Unlock challenge settings and waiting periods</li>
+            <li>Session start and end times, status, pauses, and resumes</li>
+            <li>Blocking and access-grant events, including timestamps and the relevant app package identifier</li>
+            <li>Theme, dynamic color, and onboarding preferences</li>
+          </ul>
+          <p>
+            These records are stored in a local Room database and DataStore preferences. They let Unloop run scheduled routines, maintain session state, and remember your settings.
+          </p>
+        </div>
+
+        <div>
+          <h3>Crash diagnostics</h3>
+          <p>
+            Unloop uses Google Firebase Crashlytics to report crashes and diagnose stability problems. Reports may contain:
+          </p>
+          <ul>
+            <li>Device model, operating system version, and app version</li>
+            <li>Crash stack traces, timestamps, and technical device state</li>
+            <li>Crashlytics installation identifiers, Firebase installation IDs, and diagnostic session identifiers</li>
+          </ul>
+          <p>
+            These reports are transmitted to Google and are available to the developer for debugging. Installation identifiers distinguish app installations, so crash reports should not be considered fully anonymous. Unloop does not intentionally attach your routine database or installed app list to crash reports.
+          </p>
+        </div>
+
+        <h2>
+          Permissions used
+        </h2>
+
+        <div>
+          <h3>Usage access</h3>
+          <p>
+            The <code>PACKAGE_USAGE_STATS</code> special access lets Unloop detect when you open an app selected for blocking. You grant this access through Android settings. It is used for app blocking, not to build an advertising profile.
+          </p>
+        </div>
+
+        <div>
+          <h3>Display over other apps</h3>
+          <p>
+            The <code>SYSTEM_ALERT_WINDOW</code> special access allows Unloop to display a blocking screen and unlock challenge over a selected app. This access does not let Unloop capture the underlying app's screen or read its content.
+          </p>
+        </div>
+
+        <div>
+          <h3>Notifications and foreground service</h3>
+          <p>
+            Notification permissions allow Unloop to display ongoing session status, timers, and session controls. Foreground service permissions keep app blocking active during a session. These notifications are generated on your device. Unloop does not request notification listener access to read notifications from other apps.
+          </p>
+        </div>
+
+        <div>
+          <h3>Alarms and restart handling</h3>
+          <p>
+            Exact alarm permissions support starting and ending sessions at their scheduled times. The <code>RECEIVE_BOOT_COMPLETED</code> permission lets Unloop restore routine schedules after your device restarts. These functions run locally.
+          </p>
+        </div>
+
+        <div>
+          <h3>Internet access</h3>
+          <p>
+            Firebase services use internet access to send crash diagnostics. Unloop's blocking logic and routine storage operate on your device.
+          </p>
+        </div>
+
+        <h2>
+          Third-party services and backups
+        </h2>
+        <p>
+          Google processes crash diagnostics through Firebase Crashlytics. Firebase may process this information on infrastructure outside your country. See the{" "}
+          <a href="https://firebase.google.com/support/privacy/" target="_blank" rel="noopener noreferrer">Firebase privacy and security information</a>.
+        </p>
+        <p>
+          Android backup is enabled for Unloop. Depending on your device and backup settings, Android may copy app data, including routines, session records, and preferences, to your system backup provider or transfer it to another device. The developer does not receive these backups. You can manage backups through your device or backup provider's settings. Google's handling of its services is explained in the{" "}
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>.
+        </p>
+        <p>
+          Unloop does not sell your data or include advertising or cross-app tracking SDKs.
+        </p>
+
+        <h2>
+          Data retention and deletion
+        </h2>
+        <p>
+          Local routines, session records, and preferences remain in app storage until that storage is cleared. Turning off a routine does not erase its stored records or session history. To remove all local Unloop data, use Android Settings, open Unloop's app information, and choose Clear storage or Clear data. Uninstalling normally removes local app data, unless your device offers and you choose an option to retain it.
+        </p>
+        <p>
+          Clearing app storage or uninstalling does not necessarily delete system backups. Manage or delete those separately through your backup provider to prevent data from being restored later.
+        </p>
+        <p>
+          According to Firebase's published retention policy, Crashlytics retains crash traces and associated identifiers for 90 days before beginning removal from live and backup systems. Uninstalling does not immediately remove reports already sent. See the{" "}
+          <a href="https://firebase.google.com/support/privacy/" target="_blank" rel="noopener noreferrer">Firebase retention details</a>{" "}
+          or contact the developer with a privacy request.
+        </p>
+
+        <h2>
+          Your choices
+        </h2>
+        <p>
+          You can change or disable routines, stop sessions, and revoke usage access, display-over-apps access, or notification permission through Android settings. Revoking access may prevent related features from working. The current app has no separate crash-reporting switch. Uninstalling stops future collection by the installed app.
+        </p>
+
+        <h2>
+          Security
+        </h2>
+        <p>
+          Local records use Android's app-private storage protections. Unloop does not add a separate encryption layer to its local database. Firebase encrypts diagnostic data in transit. Protect your device and backup account with a screen lock and appropriate account security. No storage or transmission method can guarantee complete security.
+        </p>
+
+        <h2>
+          Changes to this policy
+        </h2>
+        <p>
+          This policy may change when Unloop's features or data practices change. Updates will appear on this page with a revised effective date.
+        </p>
+
+        <h2>
+          Contact
+        </h2>
+        <p>
+          For questions about Unloop's privacy practices or requests concerning your information, contact Sai Charan at{" "}
+          <a href="mailto:saicharannallapaneni@gmail.com">saicharannallapaneni@gmail.com</a>.
+        </p>
+        <p>
+          If you email the developer, your email address and the information you provide will be used to respond to your request. Avoid sending sensitive app records unless they are needed to resolve your issue. Support correspondence is retained as needed to handle the request and meet applicable legal obligations.
+        </p>

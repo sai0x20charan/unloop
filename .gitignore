@@ -23,3 +23,8 @@ local.properties
 .hotswan/
 *.jks
 *.keystore
+
+# Website
+/website/dist/
+/website/.astro/
+/website/node_modules/

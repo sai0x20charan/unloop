@@ -1,0 +1,48 @@
+---
+import '../styles/unloop.css';
+interface Props { title?: string; description?: string; privacy?: boolean; }
+const {
+  title = 'Unloop · Less scrolling. More focus.',
+  description = 'Block distracting apps, set focus routines, and take back your time with Unloop for Android.',
+  privacy = false,
+} = Astro.props;
+const base = Astro.url.pathname.startsWith('/unloop') ? '/unloop' : '';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      try { const mode = localStorage.getItem('unloop-theme'); if (mode === 'light' || mode === 'dark') document.documentElement.dataset.theme = mode; } catch {}
+    </script>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7fbf2" />
+    <link rel="canonical" href={`https://unloop.nsaicharan.com/${privacy ? 'privacy-policy' : ''}`} />
+    <link rel="icon" href="/unloop/icon.png" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot />
+    {!privacy && (
+      <section class="download-section shell" aria-labelledby="download-title">
+        <img src="/unloop/icon.png" width="64" height="64" alt="" />
+        <h2 id="download-title">Start focusing with Unloop</h2>
+        <a class="download" href="https://play.google.com/store/apps/details?id=com.charan.unloop" target="_blank" rel="noopener noreferrer"><img class="play-store-logo" src="/play_store.svg" width="20" height="22" alt="" />Get it on Google Play</a>
+      </section>
+    )}
+    <footer class="site-footer">
+      <div class="site-footer-content shell">
+        <nav class="footer-links" aria-label="Footer">
+          <a href="https://github.com/sai0x20charan/unloop" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href={`${base}/privacy-policy`} target="_blank" rel="noopener noreferrer">Privacy policy</a>
+        </nav>
+        <p>Designed & built by <a href="https://nsaicharan.com" target="_blank" rel="noopener noreferrer">Sai Charan</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

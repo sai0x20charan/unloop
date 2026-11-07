@@ -1,0 +1,212 @@
+---
+import UnloopLayout from '../layouts/UnloopLayout.astro';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Timer, CalendarDays, ShieldCheck, ChartColumn, Palette, RotateCcw, Sun, Moon } from 'lucide';
+import Icon from './Icon.astro';
+const store = 'https://play.google.com/store/apps/details?id=com.charan.unloop';
+const screens = [
+  { image: 'focus', title: 'Focus session', alt: 'Unloop focus session setup with duration presets and app blocking settings' },
+  { image: 'routines', title: 'Routines', alt: 'Unloop routines screen showing scheduled work and sleep routines' },
+  { image: 'blocking', title: 'App blocking', alt: 'Unloop blocking screen keeping a selected app locked during a session' },
+  { image: 'statistics', title: 'Statistics', alt: 'Unloop statistics screen with weekly focus time and session history' },
+  { image: 'history', title: 'Session details', alt: 'Unloop session details showing a focus timeline and blocked app activity' },
+];
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+---
+<UnloopLayout>
+  <header id="topbar" class="topbar" aria-label="Unloop topbar" aria-hidden="true">
+    <div class="shell topbar-content">
+      <a href="#main" class="topbar-brand" aria-label="Unloop, back to top">
+        <img src="/unloop/icon.png" width="32" height="32" alt="" />
+        <span>Unloop</span>
+      </a>
+      <div class="topbar-actions">
+        <a class="topbar-icon-btn" href="https://github.com/sai0x20charan/unloop" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+            <path d="M9 18c-4.51 2-5-2-7-2" />
+          </svg>
+        </a>
+        <a class="topbar-cta" href={store} target="_blank" rel="noopener noreferrer" aria-label="Get the app on Google Play">
+          <img class="play-store-logo" src="/play_store.svg" width="16" height="18" alt="" />
+          <span>Get the app</span>
+        </a>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero shell" aria-labelledby="hero-title">
+      <h1 id="hero-title" class="hero-brand"><img src="/unloop/icon.png" width="96" height="96" alt="" /><span>Unloop</span></h1>
+      <p>Unloop blocks distracting apps during focus sessions and on a schedule you set.</p>
+      <a class="download" href={store} target="_blank" rel="noopener noreferrer"><img class="play-store-logo" src="/play_store.svg" width="20" height="22" alt="" />Get it on Google Play</a>
+      <ul class="hero-meta" aria-label="Details">
+        <li><a href="https://github.com/sai0x20charan/unloop" target="_blank" rel="noopener noreferrer">Open source <Icon icon={ArrowUpRight} size={14} /></a></li>
+      </ul>
+    </section>
+
+    <section class="showcase" aria-labelledby="screens-title">
+      <div class="section-head shell">
+        <h2 id="screens-title" class="sr-only">Screenshots</h2>
+        <div class="gallery-controls" hidden>
+          <button type="button" data-direction="-1" aria-label="Previous screenshot" aria-controls="screens-gallery"><Icon icon={ArrowLeft} /></button>
+          <button type="button" data-direction="1" aria-label="Next screenshot" aria-controls="screens-gallery"><Icon icon={ArrowRight} /></button>
+        </div>
+      </div>
+      <div class="screens-gallery" id="screens-gallery" tabindex="0" role="region" aria-label="Unloop screenshots. Scroll horizontally to explore.">
+        {screens.map((screen, index) => (
+          <figure class={`screen-card screen-${index}`}>
+            <div class="screen-image"><img src={`/unloop/${screen.image}.png`} width="1198" height="2531" alt={screen.alt} loading={index < 3 ? 'eager' : 'lazy'} /></div>
+            <figcaption>{screen.title}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <section class="bento-section shell" aria-labelledby="bento-title">
+      <div class="section-head">
+        <h2 id="bento-title">Features</h2>
+      </div>
+      <div class="bento-grid">
+        <article class="bento-card bento-focus">
+          <div class="bento-copy">
+            <span class="bento-icon"><Icon icon={Timer} /></span>
+            <div>
+              <h3>Focus sessions</h3>
+              <p>Pick a duration and the apps to block, then start.</p>
+            </div>
+          </div>
+          <div class="bento-timer">
+            <div class="timer-face" id="timer-face">
+              <svg class="timer-ring" viewBox="0 0 144 144" aria-hidden="true" focusable="false">
+                <circle class="timer-track" cx="72" cy="72" r="66" />
+                <circle id="focus-progress" class="timer-progress" cx="72" cy="72" r="66" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0" transform="rotate(-90 72 72)" />
+              </svg>
+              <output id="focus-time" role="timer" aria-label="Demo focus time remaining">25:00</output>
+            </div>
+            <div class="timer-presets" role="group" aria-label="Demo session duration">
+              {[15, 25, 45].map(minutes => <button type="button" data-minutes={minutes} aria-pressed={minutes === 25 ? 'true' : 'false'}>{minutes} min</button>)}
+            </div>
+            <button class="demo-primary" id="focus-toggle" type="button">Start</button>
+            <span class="sr-only" id="focus-state" role="status"></span>
+          </div>
+        </article>
+
+        <article class="bento-card bento-routines">
+          <span class="bento-icon"><Icon icon={CalendarDays} /></span>
+          <h3>Routines</h3>
+          <p>Block apps automatically on the days and hours you choose.</p>
+          <div class="routine-demo">
+            <div class="routine-time"><strong>9:00</strong><span>to</span><strong>12:00</strong></div>
+            <div class="week-days" role="group" aria-label="Routine repeat days">
+              {days.map((day, index) => <button type="button" data-day={day} aria-label={day} aria-pressed={index < 5 ? 'true' : 'false'}>{day[0]}</button>)}
+            </div>
+            <output id="routine-summary" aria-live="polite">Weekdays</output>
+          </div>
+        </article>
+
+        <article class="bento-card bento-blocking">
+          <span class="bento-icon"><Icon icon={ShieldCheck} /></span>
+          <h3>Blocking rules</h3>
+          <p>Add a wait before unlocking, or keep apps locked until the end.</p>
+          <div class="blocking-controls">
+            <label class="switch-row"><span>Wait before unlocking</span><input id="unlock-wait" type="checkbox" role="switch" checked /></label>
+            <label class="switch-row"><span>Strict mode</span><input id="strict-mode" type="checkbox" role="switch" /></label>
+            <label class="switch-row"><span>Lock session controls</span><input id="lock-controls" type="checkbox" role="switch" /></label>
+          </div>
+        </article>
+
+        <article class="bento-card bento-stats">
+          <div class="stats-head">
+            <span class="bento-icon"><Icon icon={ChartColumn} /></span>
+            <div class="stats-picker" role="group" aria-label="Statistics range">
+              <button type="button" data-stats="weekly" aria-pressed="true">Week</button>
+              <button type="button" data-stats="monthly" aria-pressed="false">Month</button>
+            </div>
+          </div>
+          <h3>Statistics</h3>
+          <p>Get detailed statistics for your focus sessions.</p>
+          <strong id="stats-total" class="stats-total" aria-live="polite">2h 30m</strong>
+          <div id="stats-chart" class="stats-chart" role="img" aria-label="Example weekly focus minutes"></div>
+        </article>
+
+        <article class="bento-card bento-themes">
+          <span class="bento-icon"><Icon icon={Palette} /></span>
+          <h3>Material 3 design</h3>
+          <p>Beautiful Material 3 Expressive design with dynamic color theming.</p>
+          <div class="accent-picker">
+            <div class="appearance-picker" role="group" aria-label="Website appearance">
+              <button type="button" data-appearance="light" aria-pressed="false"><Icon icon={Sun} size={17} />Light</button>
+              <button type="button" data-appearance="dark" aria-pressed="false"><Icon icon={Moon} size={17} />Dark</button>
+            </div>
+            <div class="theme-color-panel">
+              <div class="theme-color-heading">
+                <span class="theme-color-swatch" aria-hidden="true"></span>
+                <label for="theme-hue">Theme color</label>
+                <button id="theme-color-reset" class="theme-color-reset" type="button" aria-label="Reset theme color" title="Reset color"><Icon icon={RotateCcw} size={17} /></button>
+              </div>
+              <input id="theme-hue" class="theme-hue-slider" type="range" min="0" max="360" step="1" value="151" aria-label="Theme hue" />
+            </div>
+            <output id="accent-status" class="sr-only" aria-live="polite"></output>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <script>
+    import '../scripts/unloop-demos';
+    const gallery = document.querySelector<HTMLElement>('#screens-gallery');
+    const controls = document.querySelector<HTMLElement>('.gallery-controls');
+    if (gallery && controls) {
+      controls.hidden = false;
+      const buttons = controls.querySelectorAll<HTMLButtonElement>('button');
+      const update = () => {
+        buttons[0].disabled = gallery.scrollLeft <= 1;
+        buttons[1].disabled = gallery.scrollLeft + gallery.clientWidth >= gallery.scrollWidth - 2;
+      };
+      buttons.forEach(button => button.addEventListener('click', () => {
+        const card = gallery.querySelector<HTMLElement>('.screen-card');
+        const style = getComputedStyle(gallery);
+        const gap = parseFloat(style.columnGap) || parseFloat(style.gap) || 12;
+        const step = ((card?.offsetWidth ?? 280) + gap) * Number(button.dataset.direction);
+        gallery.scrollBy({ left: step, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+      }));
+      gallery.addEventListener('scroll', update, { passive: true });
+      new ResizeObserver(update).observe(gallery);
+      update();
+    }
+
+    const heroTitle = document.querySelector<HTMLElement>('#hero-title');
+    const topbar = document.querySelector<HTMLElement>('#topbar');
+    const topbarBrand = topbar?.querySelector<HTMLAnchorElement>('.topbar-brand');
+
+    if (heroTitle && topbar) {
+      const updateTopbar = () => {
+        const rect = heroTitle.getBoundingClientRect();
+        // Converted to topbar once the hero Unloop is no longer visible
+        const isPast = rect.bottom <= 0;
+        topbar.classList.toggle('is-visible', isPast);
+        topbar.setAttribute('aria-hidden', String(!isPast));
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          const isPast = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+          topbar.classList.toggle('is-visible', isPast);
+          topbar.setAttribute('aria-hidden', String(!isPast));
+        }
+      }, { threshold: 0 });
+
+      observer.observe(heroTitle);
+      window.addEventListener('scroll', updateTopbar, { passive: true });
+      window.addEventListener('resize', updateTopbar, { passive: true });
+      updateTopbar();
+
+      topbarBrand?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({
+          top: 0,
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+        });
+      });
+    }
+  </script>
+</UnloopLayout>

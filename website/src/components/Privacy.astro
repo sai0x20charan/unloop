@@ -1,0 +1,13 @@
+---
+import UnloopLayout from '../layouts/UnloopLayout.astro';
+import PrivacyContent from './PrivacyContent.astro';
+import { ArrowLeft } from 'lucide';
+import Icon from './Icon.astro';
+const base = Astro.url.pathname.startsWith('/unloop') ? '/unloop' : '';
+---
+<UnloopLayout title="Privacy policy · Unloop" description="Unloop privacy policy covering local app data, permissions, crash diagnostics, and Android backups." privacy>
+  <main class="legal shell" id="main">
+    <a class="back-link" href={`${base}/`}><Icon icon={ArrowLeft} size={16} /> Back to Unloop</a>
+    <PrivacyContent />
+  </main>
+</UnloopLayout>
