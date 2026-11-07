@@ -1,5 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 161 83" width="161" height="83" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" fill="none">
+  <defs>
+    <linearGradient id="background" x1="32" y1="24" x2="144" y2="176" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#294637"/>
+      <stop offset="1" stop-color="#193A2A"/>
+    </linearGradient>
+  </defs>
+  <circle cx="96" cy="96" r="88" fill="url(#background)"/>
+  <g transform="translate(26.77 60.31) scale(.86)">
   <path d="M86.05,41.23C104.88,65.44 134.46,86.96 147.91,70.82C155.98,60.06 155.98,22.41 147.91,11.65C134.46,-4.49 104.88,17.03 86.05,41.23Z" stroke="#D5E68D" stroke-width="12.103" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M73.96,41.23C55.14,17.03 25.55,-4.49 12.1,11.65C4.03,22.41 4.03,60.06 12.1,70.82C25.55,86.95 55.14,65.44 73.96,41.23Z" fill="#47A025" stroke="#47A025" stroke-width="12.103" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M80.55,34.05C76.41,34.05 73.05,37.41 73.05,41.55C73.05,45.69 76.41,49.05 80.55,49.05C84.69,49.05 88.05,45.69 88.05,41.55C88.05,37.41 84.69,34.05 80.55,34.05Z" fill="#A1CC65"/>
+  </g>
 </svg>
