@@ -3,7 +3,6 @@ package com.charan.unloop.session.blocking
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.os.Build
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -14,7 +13,7 @@ class AppUsageChecker @Inject constructor(
     private val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
     private var lastQueryTime = System.currentTimeMillis() - 10_000
-    private val visibleActivities = mutableSetOf<String?>()
+    private val resumedPackages = mutableSetOf<String?>()
 
     fun getForegroundApp(): String? {
         val now = System.currentTimeMillis()
@@ -26,24 +25,20 @@ class AppUsageChecker @Inject constructor(
 
             when (event.eventType) {
                 UsageEvents.Event.ACTIVITY_RESUMED -> {
-                    val activity = event.packageName
-                    visibleActivities.remove(activity)
-                    visibleActivities.add(activity)
+                    val packageName = event.packageName
+                    resumedPackages.remove(packageName)
+                    resumedPackages.add(packageName)
                 }
                 UsageEvents.Event.ACTIVITY_PAUSED -> {
-                    // Older Android versions do not report ACTIVITY_STOPPED.
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        visibleActivities.remove(event.packageName)
-                    }
+                    resumedPackages.remove(event.packageName)
                 }
-                UsageEvents.Event.ACTIVITY_STOPPED -> {
-                    visibleActivities.remove(event.packageName)
-                }
-                UsageEvents.Event.SCREEN_NON_INTERACTIVE -> visibleActivities.clear()
+                // A deep link can stop an older instance after another instance resumes.
+                UsageEvents.Event.ACTIVITY_STOPPED -> Unit
+                UsageEvents.Event.SCREEN_NON_INTERACTIVE -> resumedPackages.clear()
             }
         }
         lastQueryTime = now
-        return visibleActivities.lastOrNull()
+        return resumedPackages.lastOrNull()
     }
 }
 
