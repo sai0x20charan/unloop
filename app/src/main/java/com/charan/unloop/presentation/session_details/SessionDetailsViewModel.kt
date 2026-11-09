@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.local.model.enums.SessionEventType
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toBlockedAppUiModel
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = SessionDetailsViewModel.Factory::class)
 class SessionDetailsViewModel @AssistedInject constructor(
+    private val dataStoreRepository: DataStoreRepository,
     @Assisted("sessionId") private val sessionId: String,
     private val sessionRepository: SessionRepository,
     private val sessionEventRepository: SessionEventRepository,
@@ -44,6 +46,11 @@ class SessionDetailsViewModel @AssistedInject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         loadSessionDetails()
     }
 

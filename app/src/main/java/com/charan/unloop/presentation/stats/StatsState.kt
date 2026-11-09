@@ -5,6 +5,7 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 
 data class StatsState(
+    val is24Hour: Boolean = false,
     val totalFocusDurationSeconds: Int = 0,
     val selectedPeriod: StatsPeriod = StatsPeriod.WEEKLY,
     val appBlockCount: Int = 0,

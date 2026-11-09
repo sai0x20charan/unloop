@@ -112,7 +112,7 @@ fun RoutinesScreen(
                 val routine = state.allRoutines[index]
                 RoutineListItem(
                     name = routine.name,
-                    formattedTime = routine.toFormattedTime(),
+                    formattedTime = routine.toFormattedTime(state.is24Hour),
                     blockedAppSize = routine.blockedAppPackages.size,
                     formattedDays = routine.toFormattedDays(),
                     isEnabled = routine.isEnabled,

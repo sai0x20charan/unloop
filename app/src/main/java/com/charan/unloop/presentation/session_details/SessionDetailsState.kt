@@ -7,6 +7,7 @@ import com.charan.unloop.presentation.common.model.FocusSegmentUiModel
 import kotlinx.datetime.LocalDateTime
 
 data class SessionDetailsState(
+    val is24Hour: Boolean = false,
     val totalFocusDurationSeconds: Int = 0,
     val endTime : LocalDateTime = DateTimeUtils.getCurrentDateTime(),
     val actualEndTime: LocalDateTime? = null,

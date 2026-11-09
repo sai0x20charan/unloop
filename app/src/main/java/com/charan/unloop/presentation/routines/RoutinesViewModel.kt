@@ -2,6 +2,7 @@ package com.charan.unloop.presentation.routines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.presentation.common.mapper.toRoutineUiModel
 import com.charan.unloop.session.SessionManager
@@ -16,6 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RoutinesViewModel @Inject constructor(
+    private val dataStoreRepository: DataStoreRepository,
     private val routineRepository: RoutineRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
@@ -27,6 +29,11 @@ class RoutinesViewModel @Inject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         observeRoutines()
     }
 

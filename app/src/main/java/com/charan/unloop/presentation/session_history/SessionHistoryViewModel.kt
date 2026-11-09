@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.utils.DateTimeUtils.atEndOfDay
 import com.charan.unloop.core.utils.DateTimeUtils.atStartOfDay
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toSessionSummaryUiModel
 import dagger.assisted.Assisted
@@ -20,6 +21,7 @@ import kotlinx.datetime.LocalDate
 
 @HiltViewModel(assistedFactory = SessionHistoryViewModel.Factory::class)
 class SessionHistoryViewModel @AssistedInject constructor(
+    private val dataStoreRepository: DataStoreRepository,
     @Assisted("startDate") startDate: LocalDate,
     @Assisted("endDate") endDate: LocalDate,
     private val sessionRepository: SessionRepository
@@ -39,6 +41,11 @@ class SessionHistoryViewModel @AssistedInject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         loadSessions()
     }
 
@@ -47,7 +54,7 @@ class SessionHistoryViewModel @AssistedInject constructor(
             is SessionHistoryEvent.OnDateRangeChange -> {
                 val range = event.startDate to event.endDate
                 if (_state.value.dateRange != range) {
-                    _state.value = SessionHistoryState(dateRange = range)
+                    _state.update { it.copy(dateRange = range) }
                     loadSessions()
                 }
             }

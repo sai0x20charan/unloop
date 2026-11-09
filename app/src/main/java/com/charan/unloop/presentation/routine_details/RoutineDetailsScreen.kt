@@ -78,6 +78,7 @@ fun RoutineDetailsScreen(
 
     if (state.showStartTimeDialog) {
         TimePickerDialog(
+            is24Hour = state.is24Hour,
             title = stringResource(R.string.routine_select_start_time),
             initialHour = routine.startTime.hour,
             initialMinute = routine.startTime.minute,
@@ -89,6 +90,7 @@ fun RoutineDetailsScreen(
     }
     if (state.showEndTimeDialog) {
         TimePickerDialog(
+            is24Hour = state.is24Hour,
             title = stringResource(R.string.routine_select_end_time),
             initialHour = routine.endTime.hour,
             initialMinute = routine.endTime.minute,
@@ -171,7 +173,7 @@ fun RoutineDetailsScreen(
                             text = stringResource(
                                 R.string.routine_list_metadata,
                                 routine.toFormattedDays(),
-                                routine.toFormattedTime(),
+                                routine.toFormattedTime(state.is24Hour),
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -182,6 +184,7 @@ fun RoutineDetailsScreen(
                     onExpandToggle = { viewModel.onEvent(RoutineDetailsEvent.OnScheduleToggle) },
                     expandedContent = {
                         RoutineScheduleContent(
+                            is24Hour = state.is24Hour,
                              selectedDays = state.routine.selectedDays,
                             startTime = state.routine.startTime,
                             endTime = state.routine.endTime,

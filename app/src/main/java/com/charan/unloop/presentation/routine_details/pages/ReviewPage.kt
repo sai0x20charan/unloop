@@ -39,6 +39,7 @@ import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 
 @Composable
 fun ReviewPage(
+    is24Hour: Boolean,
     routine: RoutineUiModel,
     selectedApps: List<AppInfoUiModel>,
     modifier: Modifier = Modifier,
@@ -97,7 +98,7 @@ fun ReviewPage(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            val timeText = routine.toFormattedTime()
+                            val timeText = routine.toFormattedTime(is24Hour)
                             Text(timeText, style = MaterialTheme.typography.bodyLarge)
                         }
                     }

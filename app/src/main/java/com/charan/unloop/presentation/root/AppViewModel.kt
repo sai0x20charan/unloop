@@ -22,6 +22,11 @@ class AppViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         observeAppState()
     }
 

@@ -347,7 +347,7 @@ fun OverlayScreenPreview() {
         unlockType = UnlockChallengeType.WAIT_TIME,
         routineName = stringResource(R.string.routine_example_morning),
         appName = stringResource(R.string.home_app_youtube),
-        endTime = LocalTime(10, 30).toDisplayString(),
+        endTime = LocalTime(10, 30).toDisplayString(is24Hour = false),
         waitDurationSeconds = 5
     )
 }
@@ -359,7 +359,7 @@ fun OverlayScreenStrictPreview() {
         unlockType = UnlockChallengeType.STRICT_MODE,
         routineName = stringResource(R.string.routine_example_morning),
         appName = stringResource(R.string.home_app_youtube),
-        endTime = LocalTime(10, 30).toDisplayString(),
+        endTime = LocalTime(10, 30).toDisplayString(is24Hour = false),
         waitDurationSeconds = 5
     )
 }

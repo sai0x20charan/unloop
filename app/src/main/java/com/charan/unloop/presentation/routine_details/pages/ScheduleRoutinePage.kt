@@ -59,6 +59,7 @@ import com.charan.unloop.presentation.routine_details.RoutineDetailsEvent
 
 @Composable
 fun ScheduleRoutinePage(
+    is24Hour: Boolean,
     routine: RoutineUiModel,
     showIntervalDialog: Boolean,
     onEvent: (RoutineDetailsEvent) -> Unit,
@@ -133,14 +134,14 @@ fun ScheduleRoutinePage(
                         ) {
                             TimeCard(
                                 label = stringResource(R.string.routine_start_time),
-                                value = routine.startTime.toDisplayString(),
+                                value = routine.startTime.toDisplayString(is24Hour),
                                 icon = Icons.Rounded.MoreTime,
                                 onClick = { onEvent(RoutineDetailsEvent.OnStartTimeToggle) },
                                 modifier = Modifier.weight(1f)
                             )
                             TimeCard(
                                 label = stringResource(R.string.routine_end_time),
-                                value = routine.endTime.toDisplayString(),
+                                value = routine.endTime.toDisplayString(is24Hour),
                                 icon = Icons.Rounded.MoreTime,
                                 onClick = { onEvent(RoutineDetailsEvent.OnEndTimeToggle) },
                                 modifier = Modifier.weight(1f)

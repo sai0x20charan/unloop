@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.routine_details.components
 
+import androidx.compose.runtime.LaunchedEffect
 import com.charan.unloop.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.ui.window.Dialog
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(
+    is24Hour: Boolean,
     title: String,
     initialHour: Int,
     initialMinute: Int,
@@ -36,8 +38,12 @@ fun TimePickerDialog(
     val state = rememberTimePickerState(
         initialHour = initialHour,
         initialMinute = initialMinute,
-        is24Hour = true
+        is24Hour = is24Hour
     )
+
+    LaunchedEffect(is24Hour) {
+        state.is24hour = is24Hour
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(

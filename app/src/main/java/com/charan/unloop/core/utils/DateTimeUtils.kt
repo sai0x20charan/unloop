@@ -1,8 +1,8 @@
 package com.charan.unloop.core.utils
 
 import android.content.res.Resources
+import android.text.format.DateFormat
 import com.charan.unloop.R
-import java.text.DateFormatSymbols
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.format.TextStyle
@@ -23,6 +23,7 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toJavaDayOfWeek
 import kotlinx.datetime.toJavaLocalDate
+import kotlinx.datetime.toJavaLocalTime
 import kotlinx.datetime.toJavaMonth
 import kotlinx.datetime.toLocalDateTime
 
@@ -55,19 +56,18 @@ object DateTimeUtils {
         )
     }
 
-    fun LocalTime.toDisplayString() : String {
-        val hour = this.hour
-        val minute = this.minute
-        val amPm = DateFormatSymbols.getInstance().amPmStrings[if (hour < 12) 0 else 1]
-        val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
-        return String.format(locale = Locale.getDefault(),"%02d:%02d %s", displayHour, minute, amPm)
+    fun LocalTime.toDisplayString(is24Hour: Boolean): String {
+        val locale = Locale.getDefault()
+        val skeleton = if (is24Hour) "Hm" else "hm"
+        val pattern = DateFormat.getBestDateTimePattern(locale, skeleton)
+        return toJavaLocalTime().format(DateTimeFormatter.ofPattern(pattern, locale))
     }
 
     fun LocalDate.toDisplayString(): String = toJavaLocalDate().format(
         DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
     )
 
-    fun LocalDateTime.toDisplayString(): String = time.toDisplayString()
+    fun LocalDateTime.toDisplayString(is24Hour: Boolean): String = time.toDisplayString(is24Hour)
 
     fun getCurrentDateTime() : LocalDateTime {
         return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())

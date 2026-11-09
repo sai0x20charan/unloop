@@ -10,10 +10,10 @@ import kotlinx.datetime.DayOfWeek
 import java.time.format.TextStyle
 
 @Composable
-fun RoutineUiModel.toFormattedTime(): String = stringResource(
+fun RoutineUiModel.toFormattedTime(is24Hour: Boolean): String = stringResource(
     R.string.routine_list_time_range,
-    startTime.toDisplayString(),
-    endTime.toDisplayString(),
+    startTime.toDisplayString(is24Hour),
+    endTime.toDisplayString(is24Hour),
 )
 
 @Composable

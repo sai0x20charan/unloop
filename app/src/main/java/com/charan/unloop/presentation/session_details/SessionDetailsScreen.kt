@@ -121,7 +121,7 @@ fun SessionDetailsScreen(
 
                 FocusDurationBar(
                     focusSegments = state.focusSegments,
-                    stoppedTime = state.actualEndTime?.toDisplayString(),
+                    stoppedTime = state.actualEndTime?.toDisplayString(state.is24Hour),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 8.dp)
@@ -133,7 +133,7 @@ fun SessionDetailsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = state.createdAt.toDisplayString(),
+                        text = state.createdAt.toDisplayString(state.is24Hour),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -141,12 +141,12 @@ fun SessionDetailsScreen(
 
                     Text(
                         text = if (state.endTime.date == state.createdAt.date) {
-                            state.endTime.toDisplayString()
+                            state.endTime.toDisplayString(state.is24Hour)
                         } else {
                             stringResource(
                                 R.string.sessions_date_and_time,
                                 state.endTime.date.toDisplayString(),
-                                state.endTime.toDisplayString()
+                                state.endTime.toDisplayString(state.is24Hour)
                             )
                         },
                         modifier = Modifier.weight(1f),

@@ -1,6 +1,7 @@
 package com.charan.unloop.presentation.onboarding
 
 data class OnboardingState(
+    val is24Hour: Boolean = false,
     val isNotificationPermissionGranted : Boolean = false,
     val isDisplayOverAppsPermissionGranted : Boolean = false,
     val isUsageStatsPermissionGranted : Boolean = false,

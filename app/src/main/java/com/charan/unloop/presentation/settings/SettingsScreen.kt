@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -41,6 +42,7 @@ import com.charan.unloop.presentation.common.components.SectionHeader
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.settings.components.SettingsSwitchItem
 import com.charan.unloop.presentation.settings.components.ThemeOptionButtonGroup
+import com.charan.unloop.presentation.settings.components.TimeFormatOptionButtonGroup
 import com.charan.unloop.presentation.theme.IndexItem
 import kotlinx.coroutines.flow.collectLatest
 
@@ -115,12 +117,25 @@ fun SettingsScreen(
 
                 SettingsSwitchItem(
                     title = stringResource(R.string.use_dynamic_color),
-                    index = IndexItem.LAST,
+                    index = IndexItem.MIDDLE,
                     isChecked = state.isDynamicColorsEnabled,
                     onCheckedChange = {
                         viewModel.onEvent(SettingsEvent.OnDynamicColorsChange(it))
                     },
                     leadingIcon = Icons.Rounded.ColorLens
+                )
+
+                CustomSegmentedListItem(
+                    indexItem = IndexItem.LAST,
+                    headLineContent = { Text(stringResource(R.string.time_format)) },
+                    supportingContent = {
+                        TimeFormatOptionButtonGroup(selectedFormat = state.timeFormat) {
+                            viewModel.onEvent(SettingsEvent.OnTimeFormatChange(it))
+                        }
+                    },
+                    leadingContent = {
+                        Icon(Icons.Rounded.Schedule, contentDescription = null)
+                    }
                 )
             }
 

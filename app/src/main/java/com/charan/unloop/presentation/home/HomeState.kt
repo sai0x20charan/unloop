@@ -4,8 +4,10 @@ import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.presentation.common.model.AppInfoUiModel
 import com.charan.unloop.data.local.model.enums.UnlockChallengeType
+import kotlinx.datetime.LocalDateTime
 
 data class HomeState(
+    val is24Hour: Boolean = false,
     val instantSessionUiModel: InstantSessionUiModel = InstantSessionUiModel(),
     val currentSessionUiModel: CurrentSessionUiModel = CurrentSessionUiModel(),
 )
@@ -44,7 +46,7 @@ data class CurrentSessionUiModel(
     val sessionId : String = "",
     val routineId : String? = null,
     val sessionName: String = "",
-    val endTime: String = "",
+    val endTime: LocalDateTime? = null,
     val blockedAppPackages: List<String> = emptyList(),
     val remainingSeconds: Int = 0,
     val totalSeconds: Int = 0,

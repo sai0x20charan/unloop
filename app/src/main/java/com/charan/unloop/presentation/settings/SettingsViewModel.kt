@@ -30,12 +30,25 @@ class SettingsViewModel @Inject constructor(
     val effect = _effect.asSharedFlow()
 
     init {
+        viewModelScope.launch {
+            dataStore.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
+        viewModelScope.launch {
+            dataStore.timeFormat.collect { format ->
+                _state.update { it.copy(timeFormat = format) }
+            }
+        }
         observeSettingsDataStore()
         init()
     }
 
     fun onEvent(event: SettingsEvent) {
         when (event) {
+            is SettingsEvent.OnTimeFormatChange -> viewModelScope.launch {
+                dataStore.setTimeFormat(event.format)
+            }
             is SettingsEvent.OnThemeChange -> {
                 changeTheme(event.theme)
             }

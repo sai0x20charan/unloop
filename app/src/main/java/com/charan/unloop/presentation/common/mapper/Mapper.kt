@@ -3,7 +3,6 @@ package com.charan.unloop.presentation.common.mapper
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.core.utils.DateTimeUtils.getHour
 import com.charan.unloop.core.utils.DateTimeUtils.getMinute
-import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.core.utils.generateUuid
 import com.charan.unloop.data.local.entity.RoutineEntity
 import com.charan.unloop.data.local.entity.SessionEntity
@@ -71,7 +70,7 @@ fun SessionEntity.toCurrentSessionUiModel() : CurrentSessionUiModel {
         routineId = routineId,
         sessionName = name,
         sessionStatus = status,
-        endTime = scheduledEndTime.toDisplayString(),
+        endTime = scheduledEndTime,
         remainingSeconds = remaining,
         totalSeconds = total,
         blockedAppPackages = blockedAppPackages.orEmpty(),
