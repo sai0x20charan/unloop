@@ -5,6 +5,7 @@ import com.charan.unloop.presentation.common.model.RoutineUiModel
 import kotlinx.datetime.LocalTime
 
 data class RoutineDetailsState(
+    val is24Hour: Boolean = false,
     val routine: RoutineUiModel = RoutineUiModel(
         startTime = LocalTime(0, 0),
         endTime = LocalTime(0, 0),

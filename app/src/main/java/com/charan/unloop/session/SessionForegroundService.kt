@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.os.SystemClock
 import androidx.core.app.ServiceCompat
 import com.charan.unloop.R
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.session.blocking.AppUsageChecker
 import com.charan.unloop.session.blocking.FullScreenOverlayService
 import com.charan.unloop.core.notification.NotificationHelper
@@ -25,6 +26,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -45,6 +47,9 @@ class SessionForegroundService : Service() {
 
     @Inject
     lateinit var notificationHelper: NotificationHelper
+
+    @Inject
+    lateinit var dataStoreRepository: DataStoreRepository
 
     private var sessionId : String? = null
     private var sessionName: String? = null
@@ -291,7 +296,7 @@ class SessionForegroundService : Service() {
 
                         putExtra(
                             FullScreenOverlayService.EXTRA_END_TIME,
-                            currentSession.scheduledEndTime.toDisplayString()
+                            currentSession.scheduledEndTime.toDisplayString(dataStoreRepository.is24Hour.first())
                         )
                     }
                     startService(overlayIntent)

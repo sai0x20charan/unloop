@@ -34,6 +34,7 @@ import java.time.format.TextStyle
 
 @Composable
 fun RoutineScheduleContent(
+    is24Hour: Boolean,
     selectedDays : List<DayOfWeek>,
     onEvent: (RoutineDetailsEvent) -> Unit,
     startTime : LocalTime,
@@ -82,13 +83,13 @@ fun RoutineScheduleContent(
         ) {
             RoutineTimeField(
                 label = stringResource(R.string.routine_start_time),
-                value = startTime.toDisplayString(),
+                value = startTime.toDisplayString(is24Hour),
                 onClick = { onEvent(RoutineDetailsEvent.OnStartTimeToggle) },
                 modifier = Modifier.weight(1f),
             )
             RoutineTimeField(
                 label = stringResource(R.string.routine_end_time),
-                value = endTime.toDisplayString(),
+                value = endTime.toDisplayString(is24Hour),
                 onClick = { onEvent(RoutineDetailsEvent.OnEndTimeToggle) },
                 modifier = Modifier.weight(1f),
             )

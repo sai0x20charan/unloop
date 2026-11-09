@@ -195,6 +195,7 @@ fun StatsScreen(
                     key = { _, session -> session.id }
                 ) { index, session ->
                     SessionListItem(
+                    is24Hour = state.is24Hour,
                         sessionName = session.sessionName,
                         startTime = session.startTime,
                         endTime = session.endTime,

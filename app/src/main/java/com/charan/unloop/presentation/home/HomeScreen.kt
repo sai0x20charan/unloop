@@ -80,6 +80,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
+import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.presentation.common.components.BlockedAppsSetting
 import com.charan.unloop.presentation.common.components.LockSessionControlsSetting
 import com.charan.unloop.presentation.common.components.SelectAppsSheet
@@ -227,7 +228,7 @@ fun HomeScreen(
                         0f
                     },
                     text = if (isSessionActive) state.currentSessionUiModel.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
-                    endTimeText = state.currentSessionUiModel.endTime,
+                    endTimeText = state.currentSessionUiModel.endTime?.toDisplayString(state.is24Hour).orEmpty(),
                     onTimeChangeClick = {
                         focusManager.clearFocus()
                         viewModel.onEvent(HomeEvent.OnEditSessionTime)

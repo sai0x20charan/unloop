@@ -7,6 +7,7 @@ import com.charan.unloop.core.utils.DateTimeUtils.atEndOfDay
 import com.charan.unloop.core.utils.DateTimeUtils.atStartOfDay
 import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.local.model.enums.SessionEventType
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toBlockedAppUiModel
 import com.charan.unloop.presentation.common.model.BlockedAppUiModel
@@ -24,6 +25,7 @@ import kotlinx.datetime.LocalDate
 
 @HiltViewModel(assistedFactory = AppBlockHistoryViewModel.Factory::class)
 class AppBlockHistoryViewModel @AssistedInject constructor(
+    private val dataStoreRepository: DataStoreRepository,
     @Assisted("startDate") startDate: LocalDate,
     @Assisted("endDate") endDate: LocalDate,
     private val sessionRepository: SessionRepository,
@@ -45,6 +47,11 @@ class AppBlockHistoryViewModel @AssistedInject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         loadBlockedApps()
     }
 
@@ -53,7 +60,7 @@ class AppBlockHistoryViewModel @AssistedInject constructor(
             is AppBlockHistoryEvent.OnDateRangeChange -> {
                 val range = event.startDate to event.endDate
                 if (_state.value.dateRange != range) {
-                    _state.value = AppBlockHistoryState(dateRange = range)
+                    _state.update { it.copy(dateRange = range) }
                     loadBlockedApps()
                 }
             }

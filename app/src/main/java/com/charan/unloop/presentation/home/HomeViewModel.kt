@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.charan.unloop.core.utils.DateTimeUtils
 import com.charan.unloop.data.apps.InstalledAppsProvider
 import com.charan.unloop.data.local.model.enums.SessionStatus
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toAppInfoUiModel
 import com.charan.unloop.presentation.common.model.toggleAppSelection
@@ -26,6 +27,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    private val dataStoreRepository: DataStoreRepository,
     private val installedAppsProvider: InstalledAppsProvider,
     private val sessionRepository: SessionRepository,
     private val sessionManager: SessionManager
@@ -35,6 +37,11 @@ class HomeViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         loadInstantSessionAndApps()
         observeActiveSession()
     }

@@ -13,6 +13,7 @@ import com.charan.unloop.core.utils.DateTimeUtils.getPreviousMonth
 import com.charan.unloop.core.utils.DateTimeUtils.getPreviousWeek
 import com.charan.unloop.core.utils.DateTimeUtils.toSeconds
 import com.charan.unloop.data.local.model.enums.SessionEventType
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.data.repository.SessionEventRepository
 import com.charan.unloop.data.repository.SessionRepository
 import com.charan.unloop.presentation.common.mapper.toFocusChartDataUiModels
@@ -36,6 +37,7 @@ import kotlinx.datetime.toInstant
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
+    private val dataStoreRepository: DataStoreRepository,
     private val sessionRepository: SessionRepository,
     private val sessionEventRepository: SessionEventRepository
 ) : ViewModel(){
@@ -46,6 +48,11 @@ class StatsViewModel @Inject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         init()
         observePeriodChanges()
     }

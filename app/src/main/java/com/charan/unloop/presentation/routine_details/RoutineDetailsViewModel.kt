@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.charan.unloop.R
 import com.charan.unloop.data.apps.InstalledAppsProvider
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.presentation.common.ToastMessage
 import com.charan.unloop.presentation.common.mapper.toAppInfoUiModel
@@ -29,6 +30,7 @@ import kotlinx.datetime.LocalTime
 
 @HiltViewModel(assistedFactory = RoutineDetailsViewModel.Factory::class)
 class RoutineDetailsViewModel @AssistedInject constructor(
+    private val dataStoreRepository: DataStoreRepository,
     @Assisted("routineId") private val routineId: String?,
     private val installedAppsProvider: InstalledAppsProvider,
     private val routineRepository: RoutineRepository,
@@ -47,6 +49,11 @@ class RoutineDetailsViewModel @AssistedInject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            dataStoreRepository.is24Hour.collect { is24Hour ->
+                _state.update { it.copy(is24Hour = is24Hour) }
+            }
+        }
         initRoutineAndApps()
     }
 

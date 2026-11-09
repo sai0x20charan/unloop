@@ -30,6 +30,7 @@ import kotlinx.datetime.LocalDateTime
 
 @Composable
 fun SessionListItem(
+    is24Hour: Boolean,
     sessionName : String,
     startTime : LocalDateTime,
     endTime : LocalDateTime,
@@ -54,14 +55,14 @@ fun SessionListItem(
                 Text(
                     text = stringResource(
                         R.string.stats_date_range,
-                        startTime.toDisplayString(),
+                        startTime.toDisplayString(is24Hour),
                         if (endTime.date == startTime.date) {
-                            endTime.toDisplayString()
+                            endTime.toDisplayString(is24Hour)
                         } else {
                             stringResource(
                                 R.string.sessions_date_and_time,
                                 endTime.date.toDisplayString(),
-                                endTime.toDisplayString()
+                                endTime.toDisplayString(is24Hour)
                             )
                         }
                     ),
