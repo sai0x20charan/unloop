@@ -1,0 +1,155 @@
+---
+import UnloopLayout from '../layouts/UnloopLayout.astro';
+import { ArrowLeft, ArrowUpRight, CircleUserRound, Clock, LifeBuoy, Bug } from 'lucide';
+import Icon from '../components/Icon.astro';
+
+const steps = [
+  {
+    title: 'Join the Google Group',
+    description: 'Open the Unloop testers group and select Join group with the Google account you use on Google Play.',
+    label: 'Join the testers group',
+    url: 'https://groups.google.com/g/unloop-testers',
+  },
+  {
+    title: 'Become a tester',
+    description: 'After joining the group, open the testing page and select Become a tester to opt in.',
+    label: 'Join on the web',
+    url: 'https://play.google.com/apps/testing/com.charan.unloop',
+  },
+  {
+    title: 'Download Unloop',
+    description: 'Open Google Play on your Android device and install Unloop.',
+    warning: 'Download access may take a couple of minutes after opting in.',
+    label: 'Download Unloop',
+    url: 'https://play.google.com/store/apps/details?id=com.charan.unloop',
+    store: true,
+  },
+];
+---
+<UnloopLayout
+  title="Join testing · Unloop"
+  description="Try Unloop before release. Join the testers group, opt in to testing, and download the app from Google Play."
+  showDownload={false}
+>
+  <main class="testing shell" id="main">
+    <a class="back-link" href="/"><Icon icon={ArrowLeft} size={16} /> Back to Unloop</a>
+
+    <header class="testing-intro">
+      <img src="/media/logo.svg" width="80" height="80" alt="" />
+      <h1>Help test <span>Unloop</span></h1>
+      <p class="testing-lead">Try Unloop before release and help make it better. Follow these steps in order to get the app on your Android device.</p>
+    </header>
+
+    <p class="account-note">
+      <span class="note-icon"><Icon icon={CircleUserRound} /></span>
+      <span>Use the <strong>same Google account</strong> for the group, the testing page, and Google Play.</span>
+    </p>
+
+    <ol class="testing-steps" aria-label="How to join Unloop testing">
+      {steps.map((step, index) => (
+        <li class={`step step-${index + 1}`}>
+          <div class="step-marker" aria-hidden="true">
+            <span class="step-number">{index + 1}</span>
+          </div>
+          <div class="step-content">
+            <h2>{step.title}</h2>
+            <p>{step.description}</p>
+            {step.warning && (
+              <p class="download-note"><Icon icon={Clock} size={18} /><span>{step.warning}</span></p>
+            )}
+            <a class="download" href={step.url} target="_blank" rel="noopener noreferrer">
+              {step.store && <img class="play-store-logo" src="/play_store.svg" width="18" height="20" alt="" />}
+              {step.label}<Icon icon={ArrowUpRight} size={18} /><span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <section class="testing-help" aria-label="Help and feedback">
+      <article class="help-tile">
+        <span class="bento-icon"><Icon icon={LifeBuoy} /></span>
+        <h2>Having trouble getting access?</h2>
+        <p>Check that you joined the group and opted in with the same account you use on Google Play. If access is not available yet, wait a couple of minutes and try again.</p>
+      </article>
+      <article class="help-tile help-feedback">
+        <span class="bento-icon"><Icon icon={Bug} /></span>
+        <h2>Found a bug or have feedback?</h2>
+        <p>Open an issue on GitHub with what happened and the steps to reproduce it.</p>
+        <a class="help-link" href="https://github.com/sai0x20charan/unloop/issues" target="_blank" rel="noopener noreferrer">
+          Share it on GitHub<Icon icon={ArrowUpRight} size={16} /><span class="sr-only"> (opens in a new tab)</span>
+        </a>
+      </article>
+    </section>
+  </main>
+</UnloopLayout>
+
+<style>
+  .testing { max-width: 840px; padding-block: 32px 80px; }
+
+  /* Intro */
+  .testing-intro { display: grid; justify-items: center; text-align: center; margin-top: 48px; }
+  .testing-intro img { display: block; width: 80px; height: 80px; object-fit: contain; margin-bottom: 24px; }
+  h1 { font-size: clamp(40px, 6.4vw, 68px); line-height: 1.02; letter-spacing: -.045em; margin-bottom: 20px; }
+  h1 span { color: var(--primary); }
+  .testing-lead { max-width: 46ch; margin: 0; font-size: 18px; line-height: 1.6; color: var(--muted); }
+
+  /* Account note */
+  .account-note { display: flex; align-items: center; gap: 14px; margin: 48px 0 16px; padding: 16px 20px; border-radius: 24px; background: var(--tertiary-container); font-size: 15px; }
+  .account-note strong { font-weight: 600; }
+  .note-icon { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 14px; background: var(--surface); color: var(--primary); }
+
+  /* Steps: grouped M3 list, large outer radius and small inner radius */
+  .testing-steps { display: grid; gap: 4px; list-style: none; padding: 0; margin: 0; }
+  .step { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; padding: 28px; border-radius: 8px; background: var(--container); }
+  .step:first-child { border-radius: 28px 28px 8px 8px; }
+  .step:last-child { border-radius: 8px 8px 28px 28px; }
+
+  .step-marker { position: relative; display: flex; justify-content: center; }
+  .step-number { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 18px; background: var(--primary); color: var(--on-primary); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .step-content { min-width: 0; }
+
+  h2 { font-size: clamp(22px, 2.4vw, 26px); line-height: 1.25; letter-spacing: -.025em; }
+  .step-content { padding-top: 10px; }
+  .step-content > p { max-width: 56ch; margin: 8px 0 20px; color: var(--muted); }
+  .step-content .download { height: 48px; padding-inline: 22px; gap: 10px; font-size: 15px; border-radius: 24px; }
+  .step-content .download:hover { border-radius: 16px; }
+  .step-content .download-note { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 20px; padding: 14px 16px; border-radius: 16px; background: var(--primary-container); color: var(--text); font-size: 14px; line-height: 1.55; opacity: 1; }
+  .download-note :global(svg) { margin-top: 1px; color: var(--primary); }
+
+  /* Help */
+  .testing-help { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 48px; }
+  .help-tile { display: flex; flex-direction: column; padding: 24px; border-radius: 28px; background: var(--container); }
+  .help-feedback { background: var(--primary-container); }
+  .help-tile h2 { margin: 16px 0 8px; font-size: 20px; line-height: 1.3; letter-spacing: -.02em; }
+  .help-tile p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+  .help-tile .bento-icon { color: var(--primary); }
+  .help-link { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; height: 40px; margin-top: 20px; padding-inline: 16px; border: 1px solid var(--primary); border-radius: 20px; color: var(--primary); font-size: 14px; font-weight: 550; transition: border-radius .3s var(--spring), background .2s var(--ease), transform .12s ease-out; }
+  .help-link:hover { border-radius: 12px; background: color-mix(in srgb, var(--primary) 8%, transparent); }
+  .help-link:active { transform: var(--press); }
+
+  @keyframes enter { from { opacity: 0; transform: translateY(20px); } }
+  @media (prefers-reduced-motion: no-preference) {
+    .testing-intro > *, .account-note, .step, .help-tile { animation: enter .6s var(--spring-soft) backwards; }
+    .testing-intro > :nth-child(2) { animation-delay: .04s; }
+    .testing-intro > :nth-child(3) { animation-delay: .08s; }
+    .account-note { animation-delay: .18s; }
+    .step-1 { animation-delay: .24s; }
+    .step-2 { animation-delay: .30s; }
+    .step-3 { animation-delay: .36s; }
+    .help-tile { animation-delay: .42s; }
+  }
+
+  @media (max-width: 680px) {
+    .testing-intro { margin-top: 32px; }
+    .testing-intro img { width: 64px; height: 64px; margin-bottom: 20px; }
+    .testing-lead { font-size: 17px; }
+    .account-note { margin-top: 36px; align-items: flex-start; }
+    .step { grid-template-columns: 1fr; gap: 16px; padding: 20px; }
+    .step-marker { justify-content: flex-start; }
+    .step-number { width: 44px; height: 44px; border-radius: 15px; font-size: 19px; }
+    .step-content .download { width: 100%; }
+    .testing-help { grid-template-columns: 1fr; }
+  }
+</style>

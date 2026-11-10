@@ -1,14 +1,15 @@
 ---
 import '../styles/unloop.css';
-interface Props { title?: string; description?: string; privacy?: boolean; }
+interface Props { title?: string; description?: string; privacy?: boolean; showDownload?: boolean; }
 const {
   title = 'Unloop · Block distracting apps and stay focused.',
   description = 'Block distracting apps and stay focused.',
   privacy = false,
+  showDownload = !privacy,
 } = Astro.props;
 const base = Astro.url.pathname.startsWith('/unloop') ? '/unloop' : '';
 const siteUrl = Astro.site ? Astro.site.origin : 'https://unloop.nsaicharan.com';
-const canonicalUrl = `${siteUrl}${privacy ? '/privacy-policy' : '/'}`;
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
 const bannerUrl = `${siteUrl}/banner.png`;
 ---
 <!doctype html>
@@ -46,7 +47,7 @@ const bannerUrl = `${siteUrl}/banner.png`;
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <slot />
-    {!privacy && (
+    {showDownload && (
       <section class="download-section shell" aria-labelledby="download-title">
         <img src="/media/logo.svg" width="64" height="64" alt="" />
         <h2 id="download-title">Start focusing with Unloop</h2>
@@ -57,6 +58,7 @@ const bannerUrl = `${siteUrl}/banner.png`;
       <div class="site-footer-content shell">
         <nav class="footer-links" aria-label="Footer">
           <a href="https://github.com/sai0x20charan/unloop" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href={`${base}/testing`}>Join testing</a>
           <a href={`${base}/privacy-policy`} target="_blank" rel="noopener noreferrer">Privacy policy</a>
         </nav>
         <p>Designed & built by <a href="https://nsaicharan.com" target="_blank" rel="noopener noreferrer">Sai Charan</a></p>

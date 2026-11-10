@@ -21,3 +21,4 @@ npm run preview
 ## Pages
 - `/` - Main landing page with interactive demos, Material 3 theming preview, routines, and app screenshots.
 - `/privacy-policy` - Privacy policy covering local app data, permissions, crash diagnostics, and Android backups.
+- `/testing` - Shareable early access page with Google Group, testing opt-in, and Google Play download links.
