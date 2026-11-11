@@ -36,12 +36,14 @@ fun SessionListItem(
     endTime : LocalDateTime,
     focusDuration : Int,
     indexItem: IndexItem,
+    isSelected : Boolean = false,
     onClick : () -> Unit
 
 ) {
     val resources = LocalResources.current
 
     CustomSegmentedListItem(
+        isSelected = isSelected,
         headLineContent = {
             Text(sessionName, style = MaterialTheme.typography.titleMedium)
         },

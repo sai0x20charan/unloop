@@ -12,7 +12,7 @@ data class StatsState(
     val focusChartData: List<FocusChartDataUiModel> = emptyList(),
     val selectedDateRange: Pair<LocalDate, LocalDate> = Pair(LocalDate(2024, 6, 1), LocalDate(2024, 6, 7)),
     val sessionCount: Int = 0,
-    val recentSessions: List<SessionSummaryUiModel> = emptyList()
+    val recentSessions: List<SessionSummaryUiModel> = emptyList(),
 )
 
 enum class StatsPeriod {

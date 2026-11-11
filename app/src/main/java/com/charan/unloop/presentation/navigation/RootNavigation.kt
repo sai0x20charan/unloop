@@ -6,11 +6,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneScope
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
@@ -26,11 +30,13 @@ private val navigationAnimationSpec = tween<IntOffset>(
     easing = LinearOutSlowInEasing
 )
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun RootNavigation(
     isOnboardingCompleted : Boolean = false
 ) {
     val backStack = rememberNavBackStack(Destination.BottomBarNav)
+    val twoPaneSceneStrategy = rememberListDetailSceneStrategy<NavKey>()
 
     LaunchedEffect(isOnboardingCompleted) {
         if (!isOnboardingCompleted) {
@@ -46,6 +52,9 @@ fun RootNavigation(
                 backStack.removeLastOrNull()
             }
         },
+        sceneStrategies = listOf(
+            twoPaneSceneStrategy
+        ),
         entryDecorators = listOf(
 
             rememberSaveableStateHolderNavEntryDecorator(),
@@ -94,7 +103,10 @@ fun RootNavigation(
                         backStack.add(Destination.BottomBarNav)
                     })
                 }
-                is Destination.BottomBarNav -> NavEntry(key) {
+                is Destination.BottomBarNav -> NavEntry(
+                    key,
+                    metadata = ListDetailScene.listPane()
+                ) {
                     BottomBarNavigation(
                         onNavigateToRoutineDetails = {
                             backStack.add(Destination.RoutineDetails(it))
@@ -122,7 +134,10 @@ fun RootNavigation(
                     )
                 }
 
-                is Destination.SessionHistory -> NavEntry(key) {
+                is Destination.SessionHistory -> NavEntry(
+                    key,
+                    metadata = ListDetailScene.listPane()
+                    ) {
                     SessionHistoryScreen(
                         startDate = key.startDate,
                         endDate = key.endDate,
@@ -141,7 +156,10 @@ fun RootNavigation(
                     )
                 }
 
-                is Destination.RoutineDetails -> NavEntry(key) {
+                is Destination.RoutineDetails -> NavEntry(
+                    key,
+                    metadata = ListDetailScene.detailPane()
+                ) {
                     RoutineDetailsScreen(
                         onBackClick = {
                             backStack.removeLastOrNull()
@@ -153,7 +171,10 @@ fun RootNavigation(
                     )
                 }
 
-                is Destination.SessionDetails -> NavEntry(key) {
+                is Destination.SessionDetails -> NavEntry(
+                    key,
+                    metadata = ListDetailScene.detailPane()
+                ) {
                     SessionDetailsScreen(
                         sessionId = key.id,
                         onBack = { backStack.removeLastOrNull() }

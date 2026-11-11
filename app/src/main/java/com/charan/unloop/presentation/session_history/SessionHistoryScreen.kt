@@ -33,6 +33,7 @@ import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.SectionHeader
 import com.charan.unloop.presentation.common.components.SessionListItem
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
+import com.charan.unloop.presentation.navigation.LocalTwoPaneVisibility
 import com.charan.unloop.presentation.theme.indexItemFor
 import kotlinx.datetime.LocalDate
 
@@ -64,7 +65,7 @@ fun SessionHistoryScreen(
             CustomMediumTopBar(
                 title = stringResource(R.string.stats_sessions),
                 onBackClick = { viewModel.onEvent(SessionHistoryEvent.OnBack) },
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
             )
         }
     ) { innerPadding ->

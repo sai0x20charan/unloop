@@ -12,6 +12,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
@@ -23,6 +24,7 @@ fun CustomMediumTopBar(
     onBackClick: () -> Unit = {},
     showBackButton: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
+    showCloseIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     MediumTopAppBar(
@@ -33,7 +35,10 @@ fun CustomMediumTopBar(
         },
         navigationIcon = {
             if (showBackButton) {
-                BackButton(onBackClick)
+                BackButton(
+                    onBackClick = onBackClick,
+                    showCloseIcon = showCloseIcon,
+                )
             }
         },
         actions = actions,
@@ -51,6 +56,7 @@ fun CustomTopBar(
     onBackClick: () -> Unit = {},
     showBackButton: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
+    showCloseIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
@@ -61,7 +67,10 @@ fun CustomTopBar(
         },
         navigationIcon = {
             if (showBackButton) {
-                BackButton(onBackClick)
+                BackButton(
+                    onBackClick = onBackClick,
+                    showCloseIcon = showCloseIcon,
+                )
             }
         },
         actions = actions,
@@ -79,6 +88,7 @@ fun CustomCenterAlignTopBar(
     onBackClick: () -> Unit = {},
     showBackButton: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior,
+    showCloseIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
@@ -89,7 +99,10 @@ fun CustomCenterAlignTopBar(
         },
         navigationIcon = {
             if (showBackButton) {
-                BackButton(onBackClick)
+                BackButton(
+                    onBackClick = onBackClick,
+                    showCloseIcon = showCloseIcon,
+                )
             }
         },
         actions = actions,
@@ -102,11 +115,16 @@ fun CustomCenterAlignTopBar(
 }
 
 @Composable
-fun BackButton(onBackClick: () -> Unit) {
+fun BackButton(
+    onBackClick: () -> Unit,
+    showCloseIcon: Boolean = false,
+) {
     IconButton(onClick = onBackClick) {
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = stringResource(R.string.action_back)
+            imageVector = if (showCloseIcon) Icons.Filled.Close else Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(
+                if (showCloseIcon) R.string.action_close else R.string.action_back
+            )
         )
     }
 }

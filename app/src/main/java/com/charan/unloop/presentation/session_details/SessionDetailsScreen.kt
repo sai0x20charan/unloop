@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
+import com.charan.unloop.presentation.navigation.LocalTwoPaneVisibility
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
 import com.charan.unloop.core.utils.DateTimeUtils.toFocusDuration
 import com.charan.unloop.data.local.model.enums.SessionType
@@ -76,7 +77,8 @@ fun SessionDetailsScreen(
             CustomTopBar(
                 title = stringResource(R.string.session_details_title),
                 onBackClick = { viewModel.onEvent(SessionDetailsEvent.OnBack) },
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                showCloseIcon = LocalTwoPaneVisibility.current,
             )
         }
     ) { innerPadding ->
