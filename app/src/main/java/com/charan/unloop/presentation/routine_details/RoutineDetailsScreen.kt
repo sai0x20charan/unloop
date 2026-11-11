@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
+import com.charan.unloop.presentation.navigation.LocalTwoPaneVisibility
 import com.charan.unloop.presentation.common.mapper.toFormattedDays
 import com.charan.unloop.presentation.common.mapper.toFormattedTime
 import com.charan.unloop.presentation.common.components.BlockedAppsSetting
@@ -118,6 +119,7 @@ fun RoutineDetailsScreen(
                 title = stringResource(if (state.isEditing) R.string.routine_edit else R.string.routine_create),
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
+                showCloseIcon = LocalTwoPaneVisibility.current,
             )
         },
         bottomBar = {

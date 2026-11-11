@@ -157,4 +157,11 @@ dependencies {
 
     implementation(libs.aboutlibraries.core)
     implementation(libs.aboutlibraries.compose.m3)
+
+
+        implementation (libs.androidx.compose.adaptive)
+        implementation (libs.androidx.compose.adaptive.layout)
+        implementation (libs.androidx.compose.adaptive.navigation)
+        implementation (libs.androidx.compose.adaptive.navigation3)
+
 }

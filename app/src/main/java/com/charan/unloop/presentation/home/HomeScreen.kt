@@ -1,9 +1,7 @@
 package com.charan.unloop.presentation.home
 
-import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -16,6 +14,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalFlexBoxApi
+import androidx.compose.foundation.layout.FlexAlignItems
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +27,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -42,20 +45,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,14 +71,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toDrawable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.DateTimeUtils.toDisplayString
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.presentation.common.components.BlockedAppsSetting
 import com.charan.unloop.presentation.common.components.LockSessionControlsSetting
 import com.charan.unloop.presentation.common.components.SelectAppsSheet
@@ -88,13 +85,15 @@ import com.charan.unloop.presentation.common.components.WaitTimeSetting
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.home.components.DurationInputField
 import com.charan.unloop.presentation.home.components.PresetDurationSelector
-import com.charan.unloop.presentation.home.components.SelectedAppsPreview
-import com.charan.unloop.presentation.home.components.SelectedBlockedAppsCard
-import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.presentation.theme.IndexItem
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalFlexBoxApi::class,
+)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -109,6 +108,7 @@ fun HomeScreen(
     val mediumButtonIconSize = ButtonDefaults.iconSizeFor(mediumButtonSize)
     val focusRequester = remember { FocusRequester() }
     val scroll = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     LaunchedEffect(state.instantSessionUiModel.isTitleEditable) {
         if (state.instantSessionUiModel.isTitleEditable) focusRequester.requestFocus()
     }
@@ -212,174 +212,197 @@ fun HomeScreen(
         }
 
     ) { innerPadding ->
-        LazyColumn(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
             modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            contentPadding = innerPadding.toScreenContentPadding()
+                .fillMaxSize()
+                .padding(innerPadding.toScreenContentPadding()),
+            contentAlignment = Alignment.Center,
         ) {
-            item {
-
-                TimerRing(
-                    progress = if (isSessionActive && state.currentSessionUiModel.totalSeconds > 0) {
-                        state.currentSessionUiModel.progress
-                    } else {
-                        0f
+            FlexBox(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                config = {
+                    wrap(FlexWrap.Wrap)
+                    alignItems(FlexAlignItems.Center)
+                    gap(24.dp)
+                },
+            ) {
+                Column(
+                    modifier = Modifier.flex {
+                        basis(340.dp)
+                        grow(1f)
+                        shrink(1f)
                     },
-                    text = if (isSessionActive) state.currentSessionUiModel.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
-                    endTimeText = state.currentSessionUiModel.endTime?.toDisplayString(state.is24Hour).orEmpty(),
-                    onTimeChangeClick = {
-                        focusManager.clearFocus()
-                        viewModel.onEvent(HomeEvent.OnEditSessionTime)
-                    },
-                    hour = state.instantSessionUiModel.hour,
-                    minute = state.instantSessionUiModel.minute,
-                    isSessionActive = isSessionActive,
-                    isPaused = isSessionPaused,
-                    isEditing = state.instantSessionUiModel.isSessionTimeEditing,
-                    onHourChange = { viewModel.onEvent(HomeEvent.OnHourChange(it)) },
-                    onMinuteChange = { viewModel.onEvent(HomeEvent.OnMinuteChange(it)) },
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    TimerRing(
+                        progress = if (isSessionActive && state.currentSessionUiModel.totalSeconds > 0) {
+                            state.currentSessionUiModel.progress
+                        } else {
+                            0f
+                        },
+                        text = if (isSessionActive) state.currentSessionUiModel.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
+                        endTimeText = state.currentSessionUiModel.endTime?.toDisplayString(state.is24Hour).orEmpty(),
+                        onTimeChangeClick = {
+                            focusManager.clearFocus()
+                            viewModel.onEvent(HomeEvent.OnEditSessionTime)
+                        },
+                        hour = state.instantSessionUiModel.hour,
+                        minute = state.instantSessionUiModel.minute,
+                        isSessionActive = isSessionActive,
+                        isPaused = isSessionPaused,
+                        isEditing = state.instantSessionUiModel.isSessionTimeEditing,
+                        onHourChange = { viewModel.onEvent(HomeEvent.OnHourChange(it)) },
+                        onMinuteChange = { viewModel.onEvent(HomeEvent.OnMinuteChange(it)) },
+                    )
 
-                Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(20.dp))
 
-                AnimatedVisibility(visible = !isSessionActive) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        PresetDurationSelector(
-                            presetsMinutes = state.instantSessionUiModel.durationPresetsMinutes,
-                            hour = state.instantSessionUiModel.hour,
-                            minute = state.instantSessionUiModel.minute,
-                            isHourValid = state.instantSessionUiModel.isHourValid,
-                            isMinutesValid = state.instantSessionUiModel.isMinutesValid,
-                            onPresetSelect = {
-                                viewModel.onEvent(HomeEvent.OnPresetDurationSelect(it))
-                            },
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(20.dp))
-                AnimatedVisibility(visible = !isSessionActive) {
-                    val selectedApps = state.instantSessionUiModel.installedApps.filter { it.isSelected }
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        BlockedAppsSetting(
-                            selectedAppCount = selectedApps.size,
-                            title = stringResource(R.string.home_apps_to_block),
-                            indexItem = IndexItem.FIRST,
-                            onClick = {
-                                viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle)
-                            },
-                            appIcons = selectedApps.mapNotNull { it.icon }
-                        )
-                        WaitTimeSetting(
-                            isWaitEnabled = state.instantSessionUiModel.unlockChallengeType == UnlockChallengeType.WAIT_TIME,
-                            waitDurationSeconds = state.instantSessionUiModel.waitDurationSeconds,
-                            indexItem = IndexItem.MIDDLE,
-                            onWaitToggle = { viewModel.onEvent(HomeEvent.OnWaitTimeToggle) },
-                            onWaitTimeChange = { viewModel.onEvent(HomeEvent.OnWaitTimeChange(it)) },
-                        )
-                        LockSessionControlsSetting(
-                            isLocked = state.instantSessionUiModel.areSessionControlsLocked,
-                            indexItem = IndexItem.LAST,
-                            onLockedChange = { viewModel.onEvent(HomeEvent.OnSessionControlsLockToggle) },
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(32.dp))
-
-                AnimatedContent(
-                    targetState = isSessionActive,
-                    label = "sessionAction",
-                    modifier = Modifier.fillMaxWidth(),
-                ) { sessionActive ->
-                     if (sessionActive && !state.currentSessionUiModel.areSessionControlsLocked) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Button(
-                                onClick = {
-                                    viewModel.onEvent(HomeEvent.OnPauseSessionClick)
+                    AnimatedVisibility(visible = !isSessionActive) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            PresetDurationSelector(
+                                presetsMinutes = state.instantSessionUiModel.durationPresetsMinutes,
+                                hour = state.instantSessionUiModel.hour,
+                                minute = state.instantSessionUiModel.minute,
+                                isHourValid = state.instantSessionUiModel.isHourValid,
+                                isMinutesValid = state.instantSessionUiModel.isMinutesValid,
+                                onPresetSelect = {
+                                    viewModel.onEvent(HomeEvent.OnPresetDurationSelect(it))
                                 },
-                                shapes = ButtonDefaults.shapes(),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(mediumButtonSize),
+                            )
+                        }
+                    }
+
+                }
+
+                Column(
+                    modifier = Modifier.flex {
+                        basis(340.dp)
+                        grow(1f)
+                        shrink(1f)
+                    },
+                ) {
+                    AnimatedVisibility(visible = !isSessionActive) {
+                        val selectedApps = state.instantSessionUiModel.installedApps.filter { it.isSelected }
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            BlockedAppsSetting(
+                                selectedAppCount = selectedApps.size,
+                                title = stringResource(R.string.home_apps_to_block),
+                                indexItem = IndexItem.FIRST,
+                                onClick = {
+                                    viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle)
+                                },
+                                appIcons = selectedApps.mapNotNull { it.icon }
+                            )
+                            WaitTimeSetting(
+                                isWaitEnabled = state.instantSessionUiModel.unlockChallengeType == UnlockChallengeType.WAIT_TIME,
+                                waitDurationSeconds = state.instantSessionUiModel.waitDurationSeconds,
+                                indexItem = IndexItem.MIDDLE,
+                                onWaitToggle = { viewModel.onEvent(HomeEvent.OnWaitTimeToggle) },
+                                onWaitTimeChange = { viewModel.onEvent(HomeEvent.OnWaitTimeChange(it)) },
+                            )
+                            LockSessionControlsSetting(
+                                isLocked = state.instantSessionUiModel.areSessionControlsLocked,
+                                indexItem = IndexItem.LAST,
+                                onLockedChange = { viewModel.onEvent(HomeEvent.OnSessionControlsLockToggle) },
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(32.dp))
+
+                    AnimatedContent(
+                        targetState = isSessionActive,
+                        label = "sessionAction",
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { sessionActive ->
+                        if (sessionActive && !state.currentSessionUiModel.areSessionControlsLocked) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
-                                AnimatedContent(
-                                    targetState = isSessionPaused,
-                                    label = "pauseResumeButtonContent",
-                                ) { paused ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(mediumButtonIconSize),
-                                        )
-                                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                        Text(
-                                            text = stringResource(
-                                                if (paused) R.string.home_resume_session else R.string.home_pause_session
-                                            ),
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
+                                Button(
+                                    onClick = {
+                                        viewModel.onEvent(HomeEvent.OnPauseSessionClick)
+                                    },
+                                    shapes = ButtonDefaults.shapes(),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(mediumButtonSize),
+                                ) {
+                                    AnimatedContent(
+                                        targetState = isSessionPaused,
+                                        label = "pauseResumeButtonContent",
+                                    ) { paused ->
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center,
+                                        ) {
+                                            Icon(
+                                                imageVector = if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(mediumButtonIconSize),
+                                            )
+                                            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                            Text(
+                                                text = stringResource(
+                                                    if (paused) R.string.home_resume_session else R.string.home_pause_session
+                                                ),
+                                                style = MaterialTheme.typography.titleMedium,
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                            FilledTonalButton(
-                                onClick = { viewModel.onEvent(HomeEvent.OnEndSessionClick) },
-                                shapes = ButtonDefaults.shapes(),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(mediumButtonSize),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Stop,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(mediumButtonIconSize),
-                                )
-                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                Text(
-                                    text = stringResource(R.string.home_end_session),
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
+                                FilledTonalButton(
+                                    onClick = { viewModel.onEvent(HomeEvent.OnEndSessionClick) },
+                                    shapes = ButtonDefaults.shapes(),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(mediumButtonSize),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Stop,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(mediumButtonIconSize),
+                                    )
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                    Text(
+                                        text = stringResource(R.string.home_end_session),
+                                        style = MaterialTheme.typography.titleMedium,
+                                    )
+                                }
                             }
-                        }
-                    } else if(!sessionActive) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Button(
-                                onClick = {
-                                    viewModel.onEvent(HomeEvent.OnStartSessionClick)
-                                },
-                                enabled = state.instantSessionUiModel.canStart,
-                                shapes = ButtonDefaults.shapes(),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(mediumButtonSize),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.PlayArrow,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(mediumButtonIconSize),
-                                )
-                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                Text(
-                                    text = stringResource(R.string.home_start_session),
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
+                        } else if (!sessionActive) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Button(
+                                    onClick = {
+                                        viewModel.onEvent(HomeEvent.OnStartSessionClick)
+                                    },
+                                    enabled = state.instantSessionUiModel.canStart,
+                                    shapes = ButtonDefaults.shapes(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(mediumButtonSize),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.PlayArrow,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(mediumButtonIconSize),
+                                    )
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                    Text(
+                                        text = stringResource(R.string.home_start_session),
+                                        style = MaterialTheme.typography.titleMedium,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
     }
 
     if (state.instantSessionUiModel.showBottomSheet) {

@@ -146,6 +146,7 @@
     <string name="home_app_x" translatable="false">X</string>
     <string name="home_app_chrome" translatable="false">Chrome</string>
     <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
     <string name="action_previous">Previous</string>
     <string name="action_next">Next</string>
     <string name="action_finish">Finish</string>
