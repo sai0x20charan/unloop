@@ -73,6 +73,20 @@ object DateTimeUtils {
         return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     }
 
+    fun getCurrentDateTimeUtc() : LocalDateTime {
+        return Clock.System.now().toLocalDateTime(TimeZone.UTC)
+    }
+
+    fun getBackupSessionEndTime(
+        startTime: LocalDateTime,
+        scheduledEndTime: LocalDateTime,
+        backedUpAtUtc: LocalDateTime
+    ): LocalDateTime {
+        val backedUpAt = backedUpAtUtc.toInstant(TimeZone.UTC)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+        return minOf(scheduledEndTime, backedUpAt).coerceAtLeast(startTime)
+    }
+
     fun getCurrentTime (): LocalTime {
         return getCurrentDateTime().time
     }

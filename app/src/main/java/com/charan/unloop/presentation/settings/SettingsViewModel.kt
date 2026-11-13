@@ -1,12 +1,17 @@
 package com.charan.unloop.presentation.settings
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.charan.unloop.R
+import com.charan.unloop.presentation.common.ToastMessage
 import com.charan.unloop.core.utils.GITHUB_URL
 import com.charan.unloop.core.utils.PLAY_STORE_URL
 import com.charan.unloop.core.utils.getAppVersionWithVersionCode
 import com.charan.unloop.data.model.ThemeOptions
+import com.charan.unloop.data.repository.BackupRepository
 import com.charan.unloop.data.repository.DataStoreRepository
+import com.charan.unloop.presentation.settings.SettingsEffect.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val dataStore: DataStoreRepository
+    private val dataStore: DataStoreRepository,
+    private val backupRepository: BackupRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -56,15 +62,51 @@ class SettingsViewModel @Inject constructor(
                 setDynamicColorsEnabled(event.isEnabled)
             }
             SettingsEvent.OnBack -> {
-                sendEffect(SettingsEffect.OnBack)
+                sendEffect(OnBack)
             }
 
-            SettingsEvent.OnSendFeedbackClick -> sendEffect(SettingsEffect.LaunchSendFeedbackEmail)
-            SettingsEvent.OnRateAppClick -> sendEffect(SettingsEffect.OpenUrl(PLAY_STORE_URL))
-            SettingsEvent.OnOpenSourceCodeClick -> sendEffect(SettingsEffect.OpenUrl(GITHUB_URL))
+            SettingsEvent.OnSendFeedbackClick -> sendEffect(LaunchSendFeedbackEmail)
+            SettingsEvent.OnRateAppClick -> sendEffect(OpenUrl(PLAY_STORE_URL))
+            SettingsEvent.OnOpenSourceCodeClick -> sendEffect(OpenUrl(GITHUB_URL))
 
-            SettingsEvent.OnOpenSourceLicensesClick -> sendEffect(SettingsEffect.OnNavigateToOpenSourceLicenses)
+            SettingsEvent.OnOpenSourceLicensesClick -> sendEffect(OnNavigateToOpenSourceLicenses)
+            SettingsEvent.OnExportDataClick -> sendEffect(SelectBackupDestination(backupRepository.suggestedBackupFileName))
+            SettingsEvent.OnImportDataClick -> sendEffect(SelectBackupFile)
+            is SettingsEvent.OnBackupDestinationSelected -> handleExport(event.uri)
+            is SettingsEvent.OnBackupFileSelected -> handleImport(event.uri)
         }
+    }
+
+    private fun handleExport(destinationUri: Uri) = viewModelScope.launch {
+        if (_state.value.isExportingData || _state.value.isImportingData) return@launch
+        _state.update { it.copy(isExportingData = true) }
+        val result = try {
+            backupRepository.exportBackup(destinationUri)
+        } finally {
+            _state.update { it.copy(isExportingData = false) }
+        }
+        val message = if (result.isSuccess) {
+            R.string.backup_export_success
+        } else {
+            R.string.backup_export_failed
+        }
+        _effect.emit(ShowToast(ToastMessage.Res(message)))
+    }
+
+    private fun handleImport(sourceUri: Uri) = viewModelScope.launch {
+        if (_state.value.isExportingData || _state.value.isImportingData) return@launch
+        _state.update { it.copy(isImportingData = true) }
+        val result = try {
+            backupRepository.importBackup(sourceUri)
+        } finally {
+            _state.update { it.copy(isImportingData = false) }
+        }
+        val message = if (result.isSuccess) {
+            R.string.backup_import_success
+        } else {
+            R.string.backup_import_failed
+        }
+        _effect.emit(ShowToast(ToastMessage.Res(message)))
     }
 
     private fun init() {

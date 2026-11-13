@@ -1,5 +1,7 @@
 package com.charan.unloop.presentation.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,9 +14,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -36,10 +40,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.launchFeedbackEmail
 import com.charan.unloop.core.utils.launchUrl
+import com.charan.unloop.data.repository.impl.BackupRepositoryImpl.Companion.BACKUP_MIME_TYPE
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
 import com.charan.unloop.presentation.common.components.SectionHeader
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
+import com.charan.unloop.presentation.common.showToast
+import com.charan.unloop.presentation.settings.components.LoadingDialog
 import com.charan.unloop.presentation.settings.components.SettingsSwitchItem
 import com.charan.unloop.presentation.settings.components.ThemeOptionButtonGroup
 import com.charan.unloop.presentation.settings.components.TimeFormatOptionButtonGroup
@@ -56,6 +63,24 @@ fun SettingsScreen(
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+    val createDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument(
+            BACKUP_MIME_TYPE
+        )
+    ) {
+        if(it !=null){
+            viewModel.onEvent(SettingsEvent.OnBackupDestinationSelected(it))
+        }
+    }
+
+    val openDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ){
+        if(it !=null){
+            viewModel.onEvent(SettingsEvent.OnBackupFileSelected(it))
+        }
+    }
+
     LaunchedEffect(context) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
@@ -63,8 +88,20 @@ fun SettingsScreen(
                 is SettingsEffect.OpenUrl -> context.launchUrl(effect.url)
                 SettingsEffect.OnBack -> onNavigateBack()
                 SettingsEffect.OnNavigateToOpenSourceLicenses -> onNavigateToOpenSourceLicenses()
+                is SettingsEffect.SelectBackupDestination -> createDocument.launch(effect.suggestedBackupFileName)
+                SettingsEffect.SelectBackupFile -> openDocument.launch(arrayOf(BACKUP_MIME_TYPE))
+                is SettingsEffect.ShowToast -> context.showToast(effect.message)
             }
         }
+    }
+
+    if(state.isExportingData || state.isImportingData){
+        LoadingDialog(
+            title = stringResource(
+                if (state.isExportingData) R.string.backup_exporting else R.string.backup_importing
+            ),
+        )
+
     }
 
     Scaffold(
@@ -135,6 +172,44 @@ fun SettingsScreen(
                     },
                     leadingContent = {
                         Icon(Icons.Rounded.Schedule, contentDescription = null)
+                    }
+                )
+            }
+
+            item {
+                SectionHeader(
+                    title = "Backup and Restore"
+                )
+
+                CustomSegmentedListItem(
+                    indexItem = IndexItem.FIRST,
+                    headLineContent = {
+                        Text("Export Data")
+                    },
+                    leadingContent = {
+                        Icon(
+                            Icons.Rounded.Upload,
+                            null
+                        )
+                    },
+                    onClick = {
+                        viewModel.onEvent(SettingsEvent.OnExportDataClick)
+                    }
+                )
+
+                CustomSegmentedListItem(
+                    indexItem = IndexItem.LAST,
+                    headLineContent = {
+                        Text("Import Data")
+                    },
+                    leadingContent = {
+                        Icon(
+                            Icons.Rounded.Download,
+                            null
+                        )
+                    },
+                    onClick = {
+                        viewModel.onEvent(SettingsEvent.OnImportDataClick)
                     }
                 )
             }

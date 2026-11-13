@@ -18,6 +18,10 @@ interface SessionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSession(session: SessionEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSession(session: List<SessionEntity>)
+
+
     @Update
     suspend fun updateSession(session: SessionEntity)
 
@@ -74,5 +78,9 @@ interface SessionDao {
     @Transaction
     @Query("SELECT * from sessions WHERE id = :sessionId")
     suspend fun getSessionWithSessionEventsById(sessionId: String): SessionWithSessionEvents
+
+    @Transaction
+    @Query("SELECT * from sessions")
+    suspend fun getAllSessionsWithSessionEvents() : List<SessionWithSessionEvents>
 
 }

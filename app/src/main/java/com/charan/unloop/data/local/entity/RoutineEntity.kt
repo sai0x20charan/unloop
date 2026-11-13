@@ -7,8 +7,10 @@ import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "routines")
+@Serializable
 data class RoutineEntity(
     @PrimaryKey
     val id: String,

@@ -6,8 +6,10 @@ import com.charan.unloop.data.local.model.enums.SessionStatus
 import com.charan.unloop.data.local.model.enums.SessionType
 import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "sessions")
+@Serializable
 data class SessionEntity(
     @PrimaryKey
     val id : String,

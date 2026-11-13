@@ -17,6 +17,14 @@ class SessionEventRepositoryImpl @Inject constructor(
         sessionEventDao.insertSessionEvent(sessionEvents)
     }
 
+    override suspend fun insertSessionEvents(sessionEvents: List<SessionEventEntity>) {
+        sessionEventDao.insertSessionEvents(sessionEvents)
+    }
+
+    override suspend fun deleteEventsForSessions(sessionIds: List<String>) {
+        sessionEventDao.deleteEventsForSessions(sessionIds)
+    }
+
     override suspend fun recordSessionEvent(
         sessionId: String,
         sessionEvents: SessionEventType,

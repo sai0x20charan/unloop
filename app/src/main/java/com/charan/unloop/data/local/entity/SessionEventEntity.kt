@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.charan.unloop.data.local.model.enums.SessionEventType
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "session_events")
+@Serializable
 data class SessionEventEntity(
     @PrimaryKey
     val id : String,
