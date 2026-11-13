@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.settings
 
+import android.net.Uri
 import com.charan.unloop.data.model.ThemeOptions
 import com.charan.unloop.data.model.TimeFormatOptions
 
@@ -14,4 +15,12 @@ sealed interface SettingsEvent {
     data object OnOpenSourceCodeClick : SettingsEvent
 
     data object OnOpenSourceLicensesClick : SettingsEvent
+
+    data object OnExportDataClick : SettingsEvent
+
+    data object OnImportDataClick : SettingsEvent
+
+    data class OnBackupDestinationSelected(val uri : Uri) : SettingsEvent
+
+    data class OnBackupFileSelected(val uri : Uri) : SettingsEvent
 }

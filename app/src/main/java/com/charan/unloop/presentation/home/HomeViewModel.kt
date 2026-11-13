@@ -60,7 +60,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun observeActiveSession() = viewModelScope.launch {
-        sessionRepository.getActiveSession().collectLatest { sessionEntity ->
+        sessionRepository.activeSession.collectLatest { sessionEntity ->
             if (sessionEntity == null) {
                 _state.update {
                     it.copy(currentSessionUiModel = CurrentSessionUiModel())

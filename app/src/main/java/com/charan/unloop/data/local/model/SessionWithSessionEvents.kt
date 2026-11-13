@@ -6,7 +6,7 @@ import com.charan.unloop.data.local.entity.SessionEntity
 import com.charan.unloop.data.local.entity.SessionEventEntity
 import kotlinx.serialization.Serializable
 
-
+@Serializable
 data class SessionWithSessionEvents(
     @Embedded val sessionEntity: SessionEntity,
     @Relation(

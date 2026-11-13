@@ -13,11 +13,17 @@ interface RoutineDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRoutine(routineEntity: RoutineEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertRoutine(routineEntity: List<RoutineEntity>)
+
     @Query("SELECT * FROM ROUTINES WHERE id = :routineId")
     suspend fun getRoutineById(routineId: String): RoutineEntity?
 
     @Query("SELECT * FROM routines WHERE isDeleted = 0 ORDER BY createdAt DESC")
     fun getAllRoutines(): Flow<List<RoutineEntity>>
+
+    @Query("SELECT * FROM routines WHERE isDeleted = 0 ORDER BY createdAt DESC")
+    suspend fun getAllRoutinesSnapshot() : List<RoutineEntity>
 
     @Query("UPDATE routines SET isEnabled = :isEnabled WHERE id = :routineId")
     suspend fun updateRoutineEnabled(routineId: String, isEnabled: Boolean)

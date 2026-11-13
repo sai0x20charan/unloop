@@ -30,7 +30,6 @@ class BootCompletedReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent == null) return
-        Log.d("TAG", "onReceive: Boot completed or package replaced event received: ${intent.action}")
 
         if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
             intent.action == "android.intent.action.QUICKBOOT_POWERON" ||
@@ -46,7 +45,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     if(runningSession !=null && runningSession.status == SessionStatus.RUNNING){
                         sessionManager.restoreSession(runningSession.id)
                     }
-                    val routines = routineRepository.getAllRoutines().firstOrNull().orEmpty()
+                    val routines = routineRepository.getAllRoutines()
                     val activeRoutines = routines.filter { it.isEnabled && !it.isDeleted }
 
                     for (routine in activeRoutines) {

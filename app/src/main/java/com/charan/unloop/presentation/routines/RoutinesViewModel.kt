@@ -38,7 +38,7 @@ class RoutinesViewModel @Inject constructor(
     }
 
     private fun observeRoutines() = viewModelScope.launch {
-        routineRepository.getAllRoutines().collect { routines ->
+        routineRepository.observeAllRoutines().collect { routines ->
             _state.update {
                 it.copy(
                     allRoutines = routines.map { routine -> routine.toRoutineUiModel() },

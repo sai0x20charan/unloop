@@ -267,4 +267,10 @@
     <string name="time_format">Time format</string>
     <string name="time_format_12_hour">12-hour</string>
     <string name="time_format_24_hour">24-hour</string>
+    <string name="backup_export_success">Backup exported</string>
+    <string name="backup_export_failed">Could not export the backup. Please try again.</string>
+    <string name="backup_import_success">Backup imported.</string>
+    <string name="backup_import_failed">Could not finish importing the backup.</string>
+    <string name="backup_exporting">Exporting data</string>
+    <string name="backup_importing">Importing data</string>
 </resources>

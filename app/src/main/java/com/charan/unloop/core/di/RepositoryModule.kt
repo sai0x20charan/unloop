@@ -1,7 +1,9 @@
 package com.charan.unloop.core.di
 
+import com.charan.unloop.data.repository.BackupRepository
 import com.charan.unloop.data.repository.RoutineRepository
 import com.charan.unloop.data.repository.SessionEventRepository
+import com.charan.unloop.data.repository.impl.BackupRepositoryImpl
 import com.charan.unloop.data.repository.impl.DataStoreRepositoryImpl
 import com.charan.unloop.data.repository.impl.RoutineRepositoryImpl
 import com.charan.unloop.data.repository.impl.SessionEventRepositoryImpl
@@ -39,5 +41,12 @@ abstract class RepositoryModule {
     abstract fun bindSessionEventRepository(
         sessionEventRepositoryImpl: SessionEventRepositoryImpl
     ): SessionEventRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBackupRepository(
+        backupRepositoryImpl: BackupRepositoryImpl
+    ): BackupRepository
+
 
 }

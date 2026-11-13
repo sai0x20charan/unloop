@@ -213,6 +213,7 @@ class SessionManagerImpl @Inject constructor(
         routineId: String,
     ): String? = mutex.withLock {
         val routine = routineRepository.getRoutineById(routineId) ?: return@withLock null
+        if (!routine.isEnabled || routine.isDeleted) return@withLock null
         val sessionId = generateUuid()
         val currentDateTime = DateTimeUtils.getCurrentDateTime()
         val calculatedEndTime = DateTimeUtils.getScheduledEndTime(

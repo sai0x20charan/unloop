@@ -25,6 +25,10 @@ class SessionRepositoryImpl @Inject constructor(
     override suspend fun insertSession(session: SessionEntity) =
         sessionDao.insertSession(session)
 
+    override suspend fun insertSession(session: List<SessionEntity>) {
+        sessionDao.insertSession(session)
+    }
+
     override suspend fun updateSession(session: SessionEntity) =
         sessionDao.updateSession(session)
 
@@ -34,7 +38,7 @@ class SessionRepositoryImpl @Inject constructor(
         actualEndTime: LocalDateTime?
     ) = sessionDao.updateSessionStatus(sessionId, status, actualEndTime)
 
-    override fun getActiveSession(): Flow<SessionEntity?> =
+    override fun observeActiveSession(): Flow<SessionEntity?> =
         activeSession
 
     override suspend fun getActiveSessionOnce(): SessionEntity? =
@@ -59,5 +63,9 @@ class SessionRepositoryImpl @Inject constructor(
 
     override suspend fun getSessionWithSessionEventById(sessionId: String): SessionWithSessionEvents {
         return sessionDao.getSessionWithSessionEventsById(sessionId)
+    }
+
+    override suspend fun getAllSessionsWithSessionEvents(): List<SessionWithSessionEvents> {
+       return sessionDao.getAllSessionsWithSessionEvents()
     }
 }

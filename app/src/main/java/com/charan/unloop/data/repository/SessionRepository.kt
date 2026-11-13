@@ -14,6 +14,8 @@ interface SessionRepository {
 
     suspend fun insertSession(session: SessionEntity)
 
+    suspend fun insertSession(session : List<SessionEntity>)
+
     suspend fun updateSession(session: SessionEntity)
 
     suspend fun updateSessionStatus(
@@ -22,7 +24,7 @@ interface SessionRepository {
         actualEndTime: LocalDateTime? = null
     )
 
-    fun getActiveSession(): Flow<SessionEntity?>
+    fun observeActiveSession(): Flow<SessionEntity?>
 
     suspend fun getActiveSessionOnce(): SessionEntity?
 
@@ -38,5 +40,7 @@ interface SessionRepository {
     ): List<SessionWithSessionEvents>
 
     suspend fun getSessionWithSessionEventById(sessionId: String): SessionWithSessionEvents
+
+    suspend fun getAllSessionsWithSessionEvents() : List<SessionWithSessionEvents>
 
 }

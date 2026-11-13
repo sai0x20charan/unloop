@@ -12,10 +12,14 @@ class RoutineRepositoryImpl @Inject constructor(
     override suspend fun upsertRoutine(routineEntity: RoutineEntity) =
         routineDao.upsertRoutine(routineEntity)
 
+    override suspend fun upsertRoutine(routineEntity: List<RoutineEntity>) {
+        return routineDao.upsertRoutine(routineEntity)
+    }
+
     override suspend fun getRoutineById(routineId: String): RoutineEntity? =
         routineDao.getRoutineById(routineId)
 
-    override fun getAllRoutines(): Flow<List<RoutineEntity>> =
+    override fun observeAllRoutines(): Flow<List<RoutineEntity>> =
         routineDao.getAllRoutines()
 
     override suspend fun updateRoutineEnabled(routineId: String, isEnabled: Boolean) =
@@ -23,4 +27,8 @@ class RoutineRepositoryImpl @Inject constructor(
 
     override suspend fun deleteRoutine(routineId: String) =
         routineDao.deleteRoutine(routineId)
+
+    override suspend fun getAllRoutines(): List<RoutineEntity> {
+        return routineDao.getAllRoutinesSnapshot()
+    }
 }
