@@ -15,6 +15,7 @@ import com.charan.unloop.presentation.common.mapper.toInstantSessionUiModel
 import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,14 +48,23 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadInstantSessionAndApps() = viewModelScope.launch {
-        val lastInstantSession = sessionRepository.getLastInstantSession()
-        val installedApps = installedAppsProvider.getLaunchableApps().map { app ->
-            app.toAppInfoUiModel()
+        val lastInstantSessionDeferred = async {
+            sessionRepository.getLastInstantSession()
         }
-        _state.update {
-            it.copy(
-                instantSessionUiModel = lastInstantSession?.toInstantSessionUiModel(installedApps)
-                    ?: it.instantSessionUiModel.copy(installedApps = installedApps)
+        val installedAppsDeferred = async {
+            installedAppsProvider.getLaunchableApps().map { app ->
+                app.toAppInfoUiModel()
+            }
+        }
+
+        val lastInstantSession = lastInstantSessionDeferred.await()
+        val installedApps = installedAppsDeferred.await()
+
+        _state.update { state ->
+            state.copy(
+                instantSessionUiModel =
+                    lastInstantSession?.toInstantSessionUiModel(installedApps)
+                        ?: state.instantSessionUiModel.copy(installedApps = installedApps)
             )
         }
     }
