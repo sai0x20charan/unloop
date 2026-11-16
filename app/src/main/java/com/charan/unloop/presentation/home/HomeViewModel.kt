@@ -58,13 +58,25 @@ class HomeViewModel @Inject constructor(
         }
 
         val lastInstantSession = lastInstantSessionDeferred.await()
+        if (lastInstantSession != null) {
+            _state.update { state ->
+                state.copy(
+                    instantSessionUiModel = lastInstantSession.toInstantSessionUiModel(emptyList())
+                )
+            }
+        }
+
         val installedApps = installedAppsDeferred.await()
+        val appsWithSelection = lastInstantSession
+            ?.toInstantSessionUiModel(installedApps)
+            ?.installedApps
+            ?: installedApps
 
         _state.update { state ->
             state.copy(
-                instantSessionUiModel =
-                    lastInstantSession?.toInstantSessionUiModel(installedApps)
-                        ?: state.instantSessionUiModel.copy(installedApps = installedApps)
+                instantSessionUiModel = state.instantSessionUiModel.copy(
+                    installedApps = appsWithSelection
+                )
             )
         }
     }
