@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.stats
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -37,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.res.stringResource
@@ -226,13 +228,17 @@ private fun LazyListScope.recentSessions(
     onEvent: (StatsEvent) -> Unit,
 ) {
     item {
+        val haptics = LocalHapticFeedback.current
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             SectionHeader(title = stringResource(R.string.stats_recent_sessions))
-            TextButton(onClick = { onEvent(StatsEvent.OnSeeAllSessions) }) {
+            TextButton(onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                onEvent(StatsEvent.OnSeeAllSessions)
+            }) {
                 Text(stringResource(R.string.sessions_see_all))
             }
         }
@@ -266,6 +272,8 @@ private fun StatsPeriodSelector(
     selected: StatsPeriod,
     onSelect: (StatsPeriod) -> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -275,7 +283,10 @@ private fun StatsPeriodSelector(
         StatsPeriod.entries.forEachIndexed { index, type ->
             ToggleButton(
                 checked = type == selected,
-                onCheckedChange = { onSelect(type) },
+                onCheckedChange = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onSelect(type)
+                },
                 modifier = Modifier.weight(1f),
                 shapes = when (index) {
                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
@@ -297,12 +308,17 @@ private fun PeriodNavigator(
     onNext: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptics = LocalHapticFeedback.current
+
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
-            onClick = onPrevious,
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                onPrevious()
+            },
             shapes = IconButtonDefaults.shapes()
         ) {
             Icon(
@@ -317,7 +333,10 @@ private fun PeriodNavigator(
             modifier = Modifier.weight(1f)
         )
         IconButton(
-            onClick = onNext,
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                onNext()
+            },
             shapes = IconButtonDefaults.shapes()
         ) {
             Icon(

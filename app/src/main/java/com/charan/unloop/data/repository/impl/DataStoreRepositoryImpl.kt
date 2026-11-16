@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.shareIn
 
 class DataStoreRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    @ApplicationScope private val applicationScope: CoroutineScope
+    @ApplicationScope private val applicationScope: CoroutineScope,
 ) : DataStoreRepository {
     companion object {
         private val Context.dataStore by preferencesDataStore("app_preferences")
@@ -38,18 +38,19 @@ class DataStoreRepositoryImpl @Inject constructor(
         private val KEY_THEME = stringPreferencesKey("theme_option")
         private val KEY_TIME_FORMAT = stringPreferencesKey("time_format")
         private val KEY_DYNAMIC_COLORS = booleanPreferencesKey("dynamic_colors")
+
+        private val KEY_HAPTICS = booleanPreferencesKey("haptics")
     }
 
     override val timeFormat: Flow<TimeFormatOptions> = context.dataStore.data.map { preferences ->
         val name = preferences[KEY_TIME_FORMAT]
-        TimeFormatOptions.entries.firstOrNull { it.name == name } ?: TimeFormatOptions.SYSTEM_DEFAULT
+        TimeFormatOptions.entries.firstOrNull { it.name == name }
+            ?: TimeFormatOptions.SYSTEM_DEFAULT
     }
 
     override suspend fun setTimeFormat(format: TimeFormatOptions) {
         context.dataStore.edit { it[KEY_TIME_FORMAT] = format.name }
     }
-
-
 
 
     override val is24Hour: Flow<Boolean> = timeFormat
@@ -104,4 +105,16 @@ class DataStoreRepositoryImpl @Inject constructor(
         get() = context.dataStore.data.map { pref ->
             pref[KEY_DYNAMIC_COLORS] ?: true
         }
+
+    override suspend fun setHapticsEnabled(isEnabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_HAPTICS] = isEnabled
+        }
+    }
+
+    override val isHapticsEnabled: Flow<Boolean>
+        get() = context.dataStore.data.map { pref ->
+            pref[KEY_HAPTICS] ?: true
+        }
 }
+

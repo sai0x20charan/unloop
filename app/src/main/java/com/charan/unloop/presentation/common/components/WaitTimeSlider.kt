@@ -9,6 +9,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -23,6 +25,7 @@ fun WaitTimeSlider(
     onSecondsChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val haptics = LocalHapticFeedback.current
     val label = stringResource(R.string.routine_wait_time)
     val sliderState = rememberSliderState(
         value = seconds.toFloat(),
@@ -40,6 +43,9 @@ fun WaitTimeSlider(
         Slider(
             state = sliderState,
             onValueChange = { onSecondsChange(it.roundToInt()) },
+            onValueChangeFinished = {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            },
             modifier = Modifier.semantics { contentDescription = label },
         )
         Row(

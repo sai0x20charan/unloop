@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.overlay
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -69,6 +70,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -91,6 +93,8 @@ fun OverlayScreen(
     onKeepFocusing: () -> Unit = {},
     onUnlock: () -> Unit = {}
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val strict = unlockType == UnlockChallengeType.STRICT_MODE
     val interactionSource = remember(unlockType, routineName, appName, waitDurationSeconds) {
         MutableInteractionSource()
@@ -98,6 +102,7 @@ fun OverlayScreen(
     val isHolding by interactionSource.collectIsPressedAsState()
     val progress = remember { Animatable(0f) }
     val currentOnUnlock by rememberUpdatedState(onUnlock)
+    val currentHaptics by rememberUpdatedState(haptics)
 
 
     LaunchedEffect(isHolding, strict) {
@@ -110,6 +115,7 @@ fun OverlayScreen(
                     easing = LinearEasing
                 )
             )
+            currentHaptics.performHapticFeedback(HapticFeedbackType.Confirm)
             currentOnUnlock()
         }
     }
@@ -191,7 +197,10 @@ fun OverlayScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Button(
-                        onClick = onKeepFocusing,
+                        onClick = {
+    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+    onKeepFocusing()
+},
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(ButtonDefaults.MediumContainerHeight)

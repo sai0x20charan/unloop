@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.common.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -40,6 +42,8 @@ fun SessionListItem(
     onClick : () -> Unit
 
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val resources = LocalResources.current
 
     CustomSegmentedListItem(
@@ -93,7 +97,10 @@ fun SessionListItem(
             )
         },
         indexItem = indexItem,
-        onClick = onClick
+        onClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            onClick()
+        }
     )
 
 }

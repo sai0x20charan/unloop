@@ -1,5 +1,7 @@
 package com.charan.unloop.presentation.settings.open_source_licenses
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +51,8 @@ import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryDetailMode
 fun OpenSourceLicensesScreen(
     onBack : () -> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val libraries by produceLibraries(R.raw.aboutlibraries)
     val scroll = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val libraryDefaultStyle = LibraryDefaults.m3LibrariesStyle()
@@ -139,7 +143,10 @@ fun OpenSourceLicensesScreen(
                             }
                         }
                     },
-                    onClick = toggle,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        toggle()
+                    },
                 )
 
             }

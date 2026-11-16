@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.onboarding
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -57,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -322,6 +324,8 @@ private fun PermissionItem(
     badgeShape: Shape,
     modifier: Modifier = Modifier,
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val containerColor by animateColorAsState(
         targetValue = if (permission.isGranted)
             MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
@@ -393,7 +397,10 @@ private fun PermissionItem(
 
             AnimatedVisibility(visible = !permission.isGranted) {
                 FilledTonalButton(
-                    onClick = permission.onRequest,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        permission.onRequest()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
@@ -417,6 +424,8 @@ private fun OnboardingBottomBar(
     onBackClick: () -> Unit,
     onNextClick: () -> Unit,
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val isLastPage = currentPage == pageCount - 1
     val pageDescription = stringResource(R.string.onboarding_page_position, currentPage + 1, pageCount)
     val buttonSize = ButtonDefaults.MediumContainerHeight
@@ -442,7 +451,10 @@ private fun OnboardingBottomBar(
         ) {
             AnimatedVisibility(visible = currentPage > 0) {
                 FilledTonalIconButton(
-                    onClick = onBackClick,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onBackClick()
+                    },
                     modifier = Modifier.size(iconButtonSize),
                 ) {
                     Icon(
@@ -453,7 +465,10 @@ private fun OnboardingBottomBar(
                 }
             }
             Button(
-                onClick = onNextClick,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onNextClick()
+                },
                 enabled = !isLastPage || allGranted,
                 modifier = Modifier
                     .weight(1f)

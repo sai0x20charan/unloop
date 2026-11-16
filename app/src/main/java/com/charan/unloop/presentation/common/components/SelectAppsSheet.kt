@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.common.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,6 +25,7 @@ import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -39,6 +41,8 @@ fun SelectAppsSheet(
     onAllAppsSelect: () -> Unit,
     onClose: () -> Unit,
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val sheetState = rememberBottomSheetState(
         initialValue = SheetValue.Hidden,
     )
@@ -82,7 +86,10 @@ fun SelectAppsSheet(
 
         val selectedCount = apps.count { it.isSelected }
         Button(
-            onClick = onClose,
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                onClose()
+            },
             shapes = ButtonDefaults.shapes(),
             modifier = Modifier
                 .fillMaxWidth()

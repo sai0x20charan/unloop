@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.routine_details.pages
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -38,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -57,6 +59,8 @@ fun UnlockChallengePage(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
 ) {
+    val haptics = LocalHapticFeedback.current
+
 
     RoutineLazyColumn(
         modifier = modifier,
@@ -81,7 +85,10 @@ fun UnlockChallengePage(
                     description = stringResource(R.string.routine_wait_challenge_description),
                     icon = Icons.Rounded.HourglassEmpty,
                     isSelected = unlockChallengeType == UnlockChallengeType.WAIT_TIME,
-                    onClick = { onEvent(RoutineDetailsEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.WAIT_TIME)) }
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onEvent(RoutineDetailsEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.WAIT_TIME))
+                    }
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -104,6 +111,9 @@ fun UnlockChallengePage(
                             value = waitDurationSeconds.toFloat(),
                             onValueChange = { onEvent(RoutineDetailsEvent.OnWaitTimeSecondsChange(it.toInt())) },
                             valueRange = 5f..120f,
+                            onValueChangeFinished = {
+                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                            },
                             steps = 22
                         )
                     }
@@ -114,7 +124,10 @@ fun UnlockChallengePage(
                     description = stringResource(R.string.routine_strict_mode_description),
                     icon = Icons.Rounded.Lock,
                     isSelected = unlockChallengeType == UnlockChallengeType.STRICT_MODE,
-                    onClick = { onEvent(RoutineDetailsEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.STRICT_MODE)) }
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onEvent(RoutineDetailsEvent.OnUnlockChallengeTypeChange(UnlockChallengeType.STRICT_MODE))
+                    }
                 ) {
                     Surface(
                         shape = MaterialTheme.shapes.medium,
@@ -173,7 +186,10 @@ fun UnlockChallengePage(
                 trailingContent = {
                     Switch(
                         checked = areSessionControlsLocked,
-                        onCheckedChange = { onEvent(RoutineDetailsEvent.OnSessionControlsLockedChange(it)) }
+                        onCheckedChange = {
+                            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                            onEvent(RoutineDetailsEvent.OnSessionControlsLockedChange(it))
+                        }
                     )
                 }
             )

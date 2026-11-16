@@ -1,6 +1,8 @@
 package com.charan.unloop.presentation.routine_details.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.charan.unloop.R
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +34,8 @@ fun RoutineBottomBar(
     onFinish: () -> Unit = onNext,
     modifier: Modifier = Modifier
 ) {
+    val haptics = LocalHapticFeedback.current
+
     Surface(
         modifier = modifier,
         shape = CircleShape,
@@ -47,7 +51,10 @@ fun RoutineBottomBar(
                 visible = showPreviousButton,
             ) {
                 TextButton(
-                    onClick = onPrevious,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onPrevious()
+                    },
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -61,7 +68,10 @@ fun RoutineBottomBar(
             }
 
             Button(
-                onClick = if (isLastPage) onFinish else onNext,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    if (isLastPage) onFinish() else onNext()
+                },
             ) {
                 Text(
                     text = stringResource(if (isLastPage) R.string.action_finish else R.string.action_next),

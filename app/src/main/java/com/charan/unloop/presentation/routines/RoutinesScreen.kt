@@ -1,5 +1,7 @@
 package com.charan.unloop.presentation.routines
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +59,8 @@ import com.charan.unloop.presentation.theme.indexItemFor
 fun RoutinesScreen(
     onNavigateToRoutineDetails: (String?) -> Unit = {},
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val viewModel = hiltViewModel<RoutinesViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -93,6 +97,7 @@ fun RoutinesScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                     viewModel.onEvent(RoutinesEvent.OnEditRoutineClick(null))
                 }
             ) {
@@ -117,9 +122,11 @@ fun RoutinesScreen(
                     formattedDays = routine.toFormattedDays(),
                     isEnabled = routine.isEnabled,
                     onEnableSwitchClick = { isChecked ->
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(RoutinesEvent.OnToggleRoutine(routine.id, isChecked))
                     },
                     onItemClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(RoutinesEvent.OnEditRoutineClick(routine.id))
                     },
                     indexItem = state.allRoutines.indexItemFor(index)

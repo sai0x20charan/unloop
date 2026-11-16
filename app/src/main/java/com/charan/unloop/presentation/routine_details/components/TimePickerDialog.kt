@@ -1,7 +1,9 @@
 package com.charan.unloop.presentation.routine_details.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.runtime.LaunchedEffect
 import com.charan.unloop.R
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,8 @@ fun TimePickerDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val state = rememberTimePickerState(
         initialHour = initialHour,
         initialMinute = initialMinute,
@@ -70,11 +74,15 @@ fun TimePickerDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    TextButton(onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onDismiss()
+                    }) {
                         Text(stringResource(R.string.action_cancel))
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         onConfirm(state.hour, state.minute)
                     }) {
                         Text(stringResource(R.string.action_ok))

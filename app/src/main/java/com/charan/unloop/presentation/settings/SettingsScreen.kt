@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.settings
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Upload
+import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -32,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -59,6 +62,8 @@ fun SettingsScreen(
     onNavigateToOpenSourceLicenses : () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -157,13 +162,14 @@ fun SettingsScreen(
                     index = IndexItem.MIDDLE,
                     isChecked = state.isDynamicColorsEnabled,
                     onCheckedChange = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(SettingsEvent.OnDynamicColorsChange(it))
                     },
                     leadingIcon = Icons.Rounded.ColorLens
                 )
 
                 CustomSegmentedListItem(
-                    indexItem = IndexItem.LAST,
+                    indexItem = IndexItem.MIDDLE,
                     headLineContent = { Text(stringResource(R.string.time_format)) },
                     supportingContent = {
                         TimeFormatOptionButtonGroup(selectedFormat = state.timeFormat) {
@@ -173,6 +179,16 @@ fun SettingsScreen(
                     leadingContent = {
                         Icon(Icons.Rounded.Schedule, contentDescription = null)
                     }
+                )
+                SettingsSwitchItem(
+                    title = stringResource(R.string.settings_haptic_feedback),
+                    index = IndexItem.LAST,
+                    isChecked = state.isHapticsEnabled,
+                    onCheckedChange = {
+                        viewModel.onEvent(SettingsEvent.OnHapticsChange(it))
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    },
+                    leadingIcon = Icons.Rounded.Vibration,
                 )
             }
 
@@ -193,6 +209,7 @@ fun SettingsScreen(
                         )
                     },
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(SettingsEvent.OnExportDataClick)
                     }
                 )
@@ -209,6 +226,7 @@ fun SettingsScreen(
                         )
                     },
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(SettingsEvent.OnImportDataClick)
                     }
                 )
@@ -224,6 +242,7 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_send_feedback))
                     },
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(SettingsEvent.OnSendFeedbackClick)
                     },
                     leadingContent = {
@@ -239,6 +258,7 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_rate_app))
                     },
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(SettingsEvent.OnRateAppClick)
                     },
                     leadingContent = {
@@ -261,6 +281,7 @@ fun SettingsScreen(
                     },
                     indexItem = IndexItem.FIRST,
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(SettingsEvent.OnOpenSourceLicensesClick)
                     },
                     leadingContent = {
@@ -276,6 +297,7 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_source_code))
                     },
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(SettingsEvent.OnOpenSourceCodeClick)
                     },
                     leadingContent = {

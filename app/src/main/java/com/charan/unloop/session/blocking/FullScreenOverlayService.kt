@@ -20,6 +20,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistry
@@ -29,7 +30,9 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.charan.unloop.core.di.ApplicationScope
 import com.charan.unloop.R
 import com.charan.unloop.data.local.model.enums.SessionEventType
+import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.presentation.overlay.OverlayScreen
+import com.charan.unloop.presentation.root.ProvideAppHaptics
 import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.presentation.theme.UnloopTheme
 import com.charan.unloop.session.SessionManager
@@ -49,6 +52,9 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
+
+    @Inject
+    lateinit var dataStoreRepository: DataStoreRepository
 
     companion object {
         const val EXTRA_UNLOCK_TYPE = "unlock_type"
@@ -130,18 +136,22 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             setViewTreeSavedStateRegistryOwner(this@FullScreenOverlayService)
             fitsSystemWindows = false
             setContent {
-                UnloopTheme {
-                    details?.let { current ->
-                        key(current) {
-                            OverlayScreen(
-                                unlockType = current.unlockType,
-                                routineName = current.routineName,
-                                appName = appLabel(current.packageName),
-                                waitDurationSeconds = current.waitSeconds,
-                                endTime = current.endTime,
-                                onKeepFocusing = ::returnHome,
-                                onUnlock = { unlockApp(current) }
-                            )
+                val isHapticsEnabled by dataStoreRepository.isHapticsEnabled
+                    .collectAsStateWithLifecycle(initialValue = false)
+                ProvideAppHaptics(enabled = isHapticsEnabled) {
+                    UnloopTheme {
+                        details?.let { current ->
+                            key(current) {
+                                OverlayScreen(
+                                    unlockType = current.unlockType,
+                                    routineName = current.routineName,
+                                    appName = appLabel(current.packageName),
+                                    waitDurationSeconds = current.waitSeconds,
+                                    endTime = current.endTime,
+                                    onKeepFocusing = ::returnHome,
+                                    onUnlock = { unlockApp(current) }
+                                )
+                            }
                         }
                     }
                 }

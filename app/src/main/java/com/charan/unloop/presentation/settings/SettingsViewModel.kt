@@ -61,6 +61,9 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.OnDynamicColorsChange -> {
                 setDynamicColorsEnabled(event.isEnabled)
             }
+            is SettingsEvent.OnHapticsChange -> viewModelScope.launch {
+                dataStore.setHapticsEnabled(event.isEnabled)
+            }
             SettingsEvent.OnBack -> {
                 sendEffect(OnBack)
             }
@@ -121,14 +124,16 @@ class SettingsViewModel @Inject constructor(
     private fun observeSettingsDataStore() = viewModelScope.launch {
         combine(
             dataStore.theme,
-            dataStore.isDynamicColorsEnabled
-        ) { theme, dynamic ->
-            theme to dynamic
-        }.collectLatest { (theme, dynamic) ->
+            dataStore.isDynamicColorsEnabled,
+            dataStore.isHapticsEnabled
+        ) { theme, dynamic, haptics ->
+            Triple(theme, dynamic, haptics)
+        }.collectLatest { (theme, dynamic, haptics) ->
             _state.update {
                 it.copy(
                     theme = theme,
-                    isDynamicColorsEnabled = dynamic
+                    isDynamicColorsEnabled = dynamic,
+                    isHapticsEnabled = haptics
                 )
             }
         }

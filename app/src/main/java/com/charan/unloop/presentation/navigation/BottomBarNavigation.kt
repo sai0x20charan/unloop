@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.navigation
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
@@ -89,6 +91,8 @@ fun BottomBarNavigation(
     onNavigateToAppBlockHistory: (LocalDate, LocalDate) -> Unit,
     onNavigateToSessionDetails : (String) -> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val bottomBarBackStack = rememberNavBackStack(BottomBarNavDestinations.Home)
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     var previousSelectedItem by rememberSaveable { mutableIntStateOf(0) }
@@ -144,8 +148,11 @@ fun BottomBarNavigation(
                     navigationSuiteType = navigationSuiteType,
                     selected = selected,
                     onClick = {
-                        previousSelectedItem = selectedItem
-                        selectedItem = index
+                        if (!selected) {
+                            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                            previousSelectedItem = selectedItem
+                            selectedItem = index
+                        }
                     },
                     icon = {
                         Icon(

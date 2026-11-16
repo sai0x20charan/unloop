@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.stats.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.presentation.theme.IndexItem
 import com.charan.unloop.presentation.theme.customListItemShapes
@@ -40,6 +42,8 @@ fun StatSummaryTile(
     modifier: Modifier = Modifier,
     onClick : ()-> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val interactionSource = remember { MutableInteractionSource() }
     Surface(
         modifier = modifier.indication(
@@ -53,7 +57,10 @@ fun StatSummaryTile(
         shape = customListItemShapesForHorizontal(indexItem).shape,
         color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        onClick = onClick,
+        onClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            onClick()
+        },
     ) {
 
         Row(

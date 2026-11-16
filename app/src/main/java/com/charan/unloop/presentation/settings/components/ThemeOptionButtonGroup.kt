@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.settings.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -11,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.data.model.ThemeOptions
@@ -22,6 +24,8 @@ fun ThemeOptionButtonGroup(
     selectedTheme: ThemeOptions,
     onSelectTheme: (ThemeOptions) -> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
+
     FlowRow(
         modifier = modifier
             .padding(horizontal = 8.dp),
@@ -33,7 +37,10 @@ fun ThemeOptionButtonGroup(
 
             FilledTonalToggleButton(
                 checked = isSelected,
-                onCheckedChange = { onSelectTheme(option) },
+                onCheckedChange = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onSelectTheme(option)
+                },
                 modifier = Modifier
                     .weight(1f),
                 shapes = when (index) {

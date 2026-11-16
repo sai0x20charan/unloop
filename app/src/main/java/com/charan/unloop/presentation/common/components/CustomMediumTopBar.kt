@@ -1,6 +1,8 @@
 package com.charan.unloop.presentation.common.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.charan.unloop.R
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -119,7 +121,12 @@ fun BackButton(
     onBackClick: () -> Unit,
     showCloseIcon: Boolean = false,
 ) {
-    IconButton(onClick = onBackClick) {
+    val haptics = LocalHapticFeedback.current
+
+    IconButton(onClick = {
+        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+        onBackClick()
+    }) {
         Icon(
             imageVector = if (showCloseIcon) Icons.Filled.Close else Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = stringResource(

@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.routine_details.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +18,7 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -41,6 +43,8 @@ fun RoutineScheduleContent(
     endTime : LocalTime,
     modifier: Modifier = Modifier,
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val days = remember { DateTimeUtils.getDaysOfWeek() }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -59,7 +63,10 @@ fun RoutineScheduleContent(
                             containerColor = FilledTonalToggleButtonDefaults.colors().containerColor.copy(alpha = 0.5f),
                             checkedContainerColor = MaterialTheme.colorScheme.primary),
                     checked = day in selectedDays,
-                    onCheckedChange = { onEvent(RoutineDetailsEvent.OnRoutineDaySelect(day)) },
+                    onCheckedChange = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onEvent(RoutineDetailsEvent.OnRoutineDaySelect(day))
+                    },
                     shapes = when (index) {
                         0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                         days.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
@@ -84,13 +91,19 @@ fun RoutineScheduleContent(
             RoutineTimeField(
                 label = stringResource(R.string.routine_start_time),
                 value = startTime.toDisplayString(is24Hour),
-                onClick = { onEvent(RoutineDetailsEvent.OnStartTimeToggle) },
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onEvent(RoutineDetailsEvent.OnStartTimeToggle)
+                },
                 modifier = Modifier.weight(1f),
             )
             RoutineTimeField(
                 label = stringResource(R.string.routine_end_time),
                 value = endTime.toDisplayString(is24Hour),
-                onClick = { onEvent(RoutineDetailsEvent.OnEndTimeToggle) },
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onEvent(RoutineDetailsEvent.OnEndTimeToggle)
+                },
                 modifier = Modifier.weight(1f),
             )
         }

@@ -43,21 +43,26 @@ class AppViewModel @Inject constructor(
                 isOnboardingCompleted = initialOnboarding
             )
         }
-
         launch {
             combine(
                 dataStoreRepository.theme,
-                dataStoreRepository.isDynamicColorsEnabled
-            ) { theme, dynamicColorsEnabled ->
-                theme to dynamicColorsEnabled
-            }.collectLatest { (theme, dynamicColorsEnabled) ->
+                dataStoreRepository.isDynamicColorsEnabled,
+                dataStoreRepository.isHapticsEnabled
+            ) { theme, dynamicColorsEnabled, hapticsEnabled ->
+                Triple(theme, dynamicColorsEnabled, hapticsEnabled)
+            }.collectLatest { (theme, dynamicColorsEnabled, hapticsEnabled) ->
                 _state.update {
                     it.copy(
                         theme = theme,
-                        dynamicColorsEnabled = dynamicColorsEnabled
+                        dynamicColorsEnabled = dynamicColorsEnabled,
+                        isHapticsEnabled = hapticsEnabled
                     )
                 }
             }
         }
+
+
+
+
     }
 }

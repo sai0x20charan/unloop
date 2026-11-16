@@ -24,9 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -62,6 +64,7 @@ fun RoutineDetailsScreen(
     val routine = state.routine
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val haptics = LocalHapticFeedback.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val selectedAppCount = state.installedApps.count { it.isSelected }
     val isWaitEnabled = routine.unlockChallengeType == UnlockChallengeType.WAIT_TIME
@@ -104,7 +107,10 @@ fun RoutineDetailsScreen(
     if (state.showAppsSheet) {
         SelectAppsSheet(
             apps = state.installedApps,
-            onAppSelect = { viewModel.onEvent(RoutineDetailsEvent.OnInstalledAppSelect(it)) },
+            onAppSelect = {
+                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                viewModel.onEvent(RoutineDetailsEvent.OnInstalledAppSelect(it))
+            },
             onAllAppsSelect = { viewModel.onEvent(RoutineDetailsEvent.OnSelectAllAppsClick) },
             onClose = { viewModel.onEvent(RoutineDetailsEvent.OnAppsSheetToggle) },
         )
@@ -125,6 +131,7 @@ fun RoutineDetailsScreen(
         bottomBar = {
             Button(
                 onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                     focusManager.clearFocus()
                     viewModel.onEvent(RoutineDetailsEvent.OnSaveRoutineClick)
                 },
@@ -183,7 +190,10 @@ fun RoutineDetailsScreen(
                     },
                     leadingContent = { Icon(Icons.Rounded.Schedule, contentDescription = null) },
                     isExpanded = state.isScheduleExpanded,
-                    onExpandToggle = { viewModel.onEvent(RoutineDetailsEvent.OnScheduleToggle) },
+                    onExpandToggle = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        viewModel.onEvent(RoutineDetailsEvent.OnScheduleToggle)
+                    },
                     expandedContent = {
                         RoutineScheduleContent(
                             is24Hour = state.is24Hour,
@@ -199,6 +209,7 @@ fun RoutineDetailsScreen(
                     selectedAppCount = selectedAppCount,
                     indexItem = IndexItem.MIDDLE,
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         focusManager.clearFocus()
                         viewModel.onEvent(RoutineDetailsEvent.OnAppsSheetToggle)
                     },
@@ -211,6 +222,7 @@ fun RoutineDetailsScreen(
                     waitDurationSeconds = routine.waitDurationSeconds ?: 30,
                     indexItem = IndexItem.MIDDLE,
                     onWaitToggle = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                         viewModel.onEvent(
                             RoutineDetailsEvent.OnUnlockChallengeTypeChange(
                                 if (isWaitEnabled) UnlockChallengeType.STRICT_MODE else UnlockChallengeType.WAIT_TIME
@@ -225,7 +237,10 @@ fun RoutineDetailsScreen(
                     isLocked = routine.areSessionControlsLocked,
                     indexItem = IndexItem.LAST,
                     description = stringResource(R.string.routine_lock_session_controls_description),
-                    onLockedChange = { viewModel.onEvent(RoutineDetailsEvent.OnSessionControlsLockedChange(it)) },
+                    onLockedChange = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        viewModel.onEvent(RoutineDetailsEvent.OnSessionControlsLockedChange(it))
+                    },
                 )
             }
         }

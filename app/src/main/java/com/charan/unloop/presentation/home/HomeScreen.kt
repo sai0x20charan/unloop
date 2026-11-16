@@ -64,8 +64,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -90,8 +92,6 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalFlexBoxApi::class,
 )
 @Composable
@@ -101,6 +101,7 @@ fun HomeScreen(
     val viewModel = hiltViewModel<HomeViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    val haptics = LocalHapticFeedback.current
     val isSessionRunning = state.currentSessionUiModel.isRunning
     val isSessionPaused = state.currentSessionUiModel.isPaused
     val isSessionActive = isSessionRunning || isSessionPaused
@@ -189,7 +190,10 @@ fun HomeScreen(
                         }
                         AnimatedVisibility(!isSessionActive) {
                             FilledTonalIconButton(
-                                onClick = { viewModel.onEvent(HomeEvent.OnEditTitleClick) },
+                                onClick = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    viewModel.onEvent(HomeEvent.OnEditTitleClick)
+                                },
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 AnimatedContent(targetState = isEditing, label = "iconAnimation") { editing ->
@@ -245,6 +249,7 @@ fun HomeScreen(
                         text = if (isSessionActive) state.currentSessionUiModel.remainingTimeFormatted else state.instantSessionUiModel.durationFormatted,
                         endTimeText = state.currentSessionUiModel.endTime?.toDisplayString(state.is24Hour).orEmpty(),
                         onTimeChangeClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                             focusManager.clearFocus()
                             viewModel.onEvent(HomeEvent.OnEditSessionTime)
                         },
@@ -268,6 +273,7 @@ fun HomeScreen(
                                 isHourValid = state.instantSessionUiModel.isHourValid,
                                 isMinutesValid = state.instantSessionUiModel.isMinutesValid,
                                 onPresetSelect = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                                     viewModel.onEvent(HomeEvent.OnPresetDurationSelect(it))
                                 },
                             )
@@ -291,6 +297,7 @@ fun HomeScreen(
                                 title = stringResource(R.string.home_apps_to_block),
                                 indexItem = IndexItem.FIRST,
                                 onClick = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                                     viewModel.onEvent(HomeEvent.OnInstantSessionCustomizeToggle)
                                 },
                                 appIcons = selectedApps.mapNotNull { it.icon }
@@ -299,13 +306,20 @@ fun HomeScreen(
                                 isWaitEnabled = state.instantSessionUiModel.unlockChallengeType == UnlockChallengeType.WAIT_TIME,
                                 waitDurationSeconds = state.instantSessionUiModel.waitDurationSeconds,
                                 indexItem = IndexItem.MIDDLE,
-                                onWaitToggle = { viewModel.onEvent(HomeEvent.OnWaitTimeToggle) },
+                                onWaitToggle = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+
+                                    viewModel.onEvent(HomeEvent.OnWaitTimeToggle)
+                                },
                                 onWaitTimeChange = { viewModel.onEvent(HomeEvent.OnWaitTimeChange(it)) },
                             )
                             LockSessionControlsSetting(
                                 isLocked = state.instantSessionUiModel.areSessionControlsLocked,
                                 indexItem = IndexItem.LAST,
-                                onLockedChange = { viewModel.onEvent(HomeEvent.OnSessionControlsLockToggle) },
+                                onLockedChange = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    viewModel.onEvent(HomeEvent.OnSessionControlsLockToggle)
+                                },
                             )
                         }
                     }
@@ -324,6 +338,7 @@ fun HomeScreen(
                             ) {
                                 Button(
                                     onClick = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                                         viewModel.onEvent(HomeEvent.OnPauseSessionClick)
                                     },
                                     shapes = ButtonDefaults.shapes(),
@@ -356,7 +371,10 @@ fun HomeScreen(
                                 }
 
                                 FilledTonalButton(
-                                    onClick = { viewModel.onEvent(HomeEvent.OnEndSessionClick) },
+                                    onClick = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                        viewModel.onEvent(HomeEvent.OnEndSessionClick)
+                                    },
                                     shapes = ButtonDefaults.shapes(),
                                     modifier = Modifier
                                         .weight(1f)
@@ -378,6 +396,7 @@ fun HomeScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Button(
                                     onClick = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                                         viewModel.onEvent(HomeEvent.OnStartSessionClick)
                                     },
                                     enabled = state.instantSessionUiModel.canStart,
@@ -408,8 +427,14 @@ fun HomeScreen(
     if (state.instantSessionUiModel.showBottomSheet) {
         SelectAppsSheet(
             apps = state.instantSessionUiModel.installedApps,
-            onAppSelect = { viewModel.onEvent(HomeEvent.OnAppClicked(it)) },
-            onAllAppsSelect = { viewModel.onEvent(HomeEvent.OnSelectAllApps) },
+            onAppSelect = {
+                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+
+                viewModel.onEvent(HomeEvent.OnAppClicked(it))
+            },
+            onAllAppsSelect = {
+                viewModel.onEvent(HomeEvent.OnSelectAllApps)
+            },
             onClose = { viewModel.onEvent(HomeEvent.OnAppsSheetDismiss) },
         )
     }

@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.settings.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -10,6 +11,7 @@ import androidx.compose.material3.FilledTonalToggleButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.charan.unloop.data.model.TimeFormatOptions
@@ -21,6 +23,8 @@ fun TimeFormatOptionButtonGroup(
     selectedFormat: TimeFormatOptions,
     onSelectFormat: (TimeFormatOptions) -> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
+
     FlowRow(
         modifier = modifier
             .padding(horizontal = 8.dp),
@@ -32,7 +36,10 @@ fun TimeFormatOptionButtonGroup(
 
             FilledTonalToggleButton(
                 checked = isSelected,
-                onCheckedChange = { onSelectFormat(option) },
+                onCheckedChange = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onSelectFormat(option)
+                },
                 modifier = Modifier
                     .weight(1f),
                 shapes = when (index) {

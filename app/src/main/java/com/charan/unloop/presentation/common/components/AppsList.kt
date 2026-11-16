@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.common.components
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.state.ToggleableState
@@ -67,6 +69,8 @@ fun AppsList(
     onStartSearching: () -> Unit = {}
 
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val textFieldState = rememberTextFieldState()
     val searchBarState = rememberSearchBarState()
     val scope = rememberCoroutineScope()
@@ -100,7 +104,10 @@ fun AppsList(
             },
             trailingIcon = {
                 if (textFieldState.text.isNotEmpty()) {
-                    IconButton(onClick = { textFieldState.clearText() }) {
+                    IconButton(onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                        textFieldState.clearText()
+                    }) {
                         Icon(
                             imageVector = Icons.Rounded.Close,
                             contentDescription = stringResource(R.string.apps_clear_search)
@@ -157,7 +164,10 @@ fun AppsList(
                         .triStateToggleable(
                             state = selectionState,
                             enabled = apps.isNotEmpty() && query.isEmpty(),
-                            onClick = onAllAppsSelect,
+                            onClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                onAllAppsSelect()
+                            },
                             role = Role.Checkbox,
                         ),
                 ) {

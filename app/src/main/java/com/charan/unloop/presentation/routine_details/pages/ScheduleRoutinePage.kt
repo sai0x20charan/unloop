@@ -1,5 +1,6 @@
 package com.charan.unloop.presentation.routine_details.pages
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +69,8 @@ fun ScheduleRoutinePage(
     dayInitials: List<DayOfWeek> = DateTimeUtils.getDaysOfWeek(),
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
 ) {
+    val haptics = LocalHapticFeedback.current
+
 
     RoutineLazyColumn(
         modifier = modifier,
@@ -101,6 +105,7 @@ fun ScheduleRoutinePage(
                         ToggleButton(
                             checked = isSelected,
                             onCheckedChange = {
+                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onEvent(RoutineDetailsEvent.OnRoutineDaySelect(day))
                             },
                             shapes = when (index) {
@@ -136,14 +141,20 @@ fun ScheduleRoutinePage(
                                 label = stringResource(R.string.routine_start_time),
                                 value = routine.startTime.toDisplayString(is24Hour),
                                 icon = Icons.Rounded.MoreTime,
-                                onClick = { onEvent(RoutineDetailsEvent.OnStartTimeToggle) },
+                                onClick = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    onEvent(RoutineDetailsEvent.OnStartTimeToggle)
+                                },
                                 modifier = Modifier.weight(1f)
                             )
                             TimeCard(
                                 label = stringResource(R.string.routine_end_time),
                                 value = routine.endTime.toDisplayString(is24Hour),
                                 icon = Icons.Rounded.MoreTime,
-                                onClick = { onEvent(RoutineDetailsEvent.OnEndTimeToggle) },
+                                onClick = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    onEvent(RoutineDetailsEvent.OnEndTimeToggle)
+                                },
                                 modifier = Modifier.weight(1f)
                             )
                         }
