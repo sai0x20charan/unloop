@@ -90,7 +90,22 @@ class RoutineDetailsViewModel @AssistedInject constructor(
             RoutineDetailsEvent.OnAppsSheetToggle -> {
                 _state.update { it.copy(showAppsSheet = !it.showAppsSheet) }
             }
+            RoutineDetailsEvent.OnDeleteRoutine -> {
+                _state.update { it.copy(showDeleteConfirmation = true) }
+            }
+            RoutineDetailsEvent.OnConfirmDeleteRoutine -> handleDeleteRoutine()
+            RoutineDetailsEvent.OnDismissDeleteDialog -> {
+                    _state.update { it.copy(showDeleteConfirmation = false) }
+            }
         }
+    }
+
+    private suspend fun handleDeleteRoutine() {
+        val id = routineId ?: return
+        routineRepository.deleteRoutine(id)
+        sessionManager.cancelScheduledRoutine(id)
+        _state.update { it.copy(showDeleteConfirmation = false) }
+        _effect.send(RoutineDetailsEffect.OnBack)
     }
 
     private fun handleScheduleToggle() {

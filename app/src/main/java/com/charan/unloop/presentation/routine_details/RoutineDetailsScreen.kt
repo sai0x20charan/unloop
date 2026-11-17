@@ -11,10 +11,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -44,6 +46,7 @@ import com.charan.unloop.presentation.common.components.CustomExpandedSegmentedL
 import com.charan.unloop.presentation.common.components.LockSessionControlsSetting
 import com.charan.unloop.presentation.common.components.WaitTimeSetting
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
+import com.charan.unloop.presentation.common.components.DeleteAlertDialog
 import com.charan.unloop.presentation.common.components.SelectAppsSheet
 import com.charan.unloop.presentation.common.components.toScreenContentPadding
 import com.charan.unloop.presentation.common.showToast
@@ -78,6 +81,15 @@ fun RoutineDetailsScreen(
                 }
             }
         }
+    }
+
+    if (state.showDeleteConfirmation) {
+        DeleteAlertDialog(
+            title = stringResource(R.string.routine_delete_title),
+            message = stringResource(R.string.routine_delete_message),
+            onDismiss = { viewModel.onEvent(RoutineDetailsEvent.OnDismissDeleteDialog) },
+            onConfirm = { viewModel.onEvent(RoutineDetailsEvent.OnConfirmDeleteRoutine) },
+        )
     }
 
     if (state.showStartTimeDialog) {
@@ -126,6 +138,19 @@ fun RoutineDetailsScreen(
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
                 showCloseIcon = LocalTwoPaneVisibility.current,
+                actions = {
+                    if (state.isEditing) {
+                        IconButton(
+                            onClick = { viewModel.onEvent(RoutineDetailsEvent.OnDeleteRoutine) },
+                            enabled = !state.isSaving,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Delete,
+                                contentDescription = stringResource(R.string.routine_delete),
+                            )
+                        }
+                    }
+                }
             )
         },
         bottomBar = {

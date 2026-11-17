@@ -67,6 +67,11 @@
     <string name="routine_name_required">Enter a routine name.</string>
     <string name="routine_days_required">Select at least one day for the routine.</string>
     <string name="routine_apps_required">Select at least one app to block.</string>
+    <string name="action_delete">Delete</string>
+    <string name="routine_delete">Delete routine</string>
+    <string name="routine_delete_title">Delete this routine?</string>
+    <string name="routine_delete_message">This routine will no longer run. Your session history will be kept, and any session already running will continue.</string>
+    <string name="routine_delete_failed">Couldn\'t delete the routine. Try again.</string>
     <string name="routine_save_failed">Couldn\'t save the routine. Try again.</string>
     <string name="section_expanded">Expanded</string>
     <string name="section_collapsed">Collapsed</string>

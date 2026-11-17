@@ -22,4 +22,8 @@ sealed class RoutineDetailsEvent {
 
     data object OnScheduleToggle : RoutineDetailsEvent()
     data object OnAppsSheetToggle : RoutineDetailsEvent()
+
+    data object OnDeleteRoutine : RoutineDetailsEvent()
+    data object OnConfirmDeleteRoutine : RoutineDetailsEvent()
+    data object OnDismissDeleteDialog : RoutineDetailsEvent()
 }

@@ -18,6 +18,7 @@ data class RoutineDetailsState(
     val isScheduleExpanded: Boolean = false,
     val isEditing: Boolean = false,
     val isSaving: Boolean = false,
+    val showDeleteConfirmation: Boolean = false,
 )
 
 
