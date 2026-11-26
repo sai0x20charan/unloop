@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.charan.unloop.data.model.ThemeOptions
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -93,15 +94,23 @@ private val darkScheme = darkColorScheme(
 )
 
 @Composable
+fun ThemeOptions.isDarkTheme(): Boolean = when (this) {
+    ThemeOptions.DARK -> true
+    ThemeOptions.LIGHT -> false
+    ThemeOptions.SYSTEM_DEFAULT -> isSystemInDarkTheme()
+}
+
+@Composable
 fun UnloopTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    amoled: Boolean = false,
     content: @Composable () -> Unit
 ) {
     SetSystemBars(darkTheme)
 
-    val colorScheme = when {
+    val baseScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -109,6 +118,17 @@ fun UnloopTheme(
 
         darkTheme -> darkScheme
         else -> lightScheme
+    }
+
+    val colorScheme = if (darkTheme && amoled) {
+        baseScheme.copy(
+            background = Color.Black,
+            onBackground = Color.White,
+            surface = Color.Black,
+            onSurface = Color.White,
+        )
+    } else {
+        baseScheme
     }
 
     MaterialExpressiveTheme(

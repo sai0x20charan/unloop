@@ -8,5 +8,6 @@ data class AppState(
     val isOnboardingCompleted: Boolean = true,
     val theme: ThemeOptions = ThemeOptions.SYSTEM_DEFAULT,
     val dynamicColorsEnabled: Boolean = true,
+    val isAmoledThemeEnabled: Boolean = false,
     val isHapticsEnabled : Boolean = true
 )

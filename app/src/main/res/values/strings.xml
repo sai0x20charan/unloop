@@ -93,6 +93,7 @@
     <string name="settings_haptic_feedback">Haptic feedback</string>
     <string name="theme">Theme</string>
     <string name="use_dynamic_color">Use Dynamic Color</string>
+    <string name="use_amoled_theme">AMOLED dark</string>
     <string name="system">System</string>
     <string name="light">Light</string>
     <string name="dark">Dark</string>

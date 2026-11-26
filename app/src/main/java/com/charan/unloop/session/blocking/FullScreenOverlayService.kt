@@ -30,11 +30,13 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.charan.unloop.core.di.ApplicationScope
 import com.charan.unloop.R
 import com.charan.unloop.data.local.model.enums.SessionEventType
+import com.charan.unloop.data.local.model.enums.UnlockChallengeType
+import com.charan.unloop.data.model.ThemeOptions
 import com.charan.unloop.data.repository.DataStoreRepository
 import com.charan.unloop.presentation.overlay.OverlayScreen
 import com.charan.unloop.presentation.root.ProvideAppHaptics
-import com.charan.unloop.data.local.model.enums.UnlockChallengeType
 import com.charan.unloop.presentation.theme.UnloopTheme
+import com.charan.unloop.presentation.theme.isDarkTheme
 import com.charan.unloop.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
@@ -138,8 +140,18 @@ class FullScreenOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner,
             setContent {
                 val isHapticsEnabled by dataStoreRepository.isHapticsEnabled
                     .collectAsStateWithLifecycle(initialValue = false)
+                val theme by dataStoreRepository.theme
+                    .collectAsStateWithLifecycle(initialValue = ThemeOptions.SYSTEM_DEFAULT)
+                val isDynamicColorsEnabled by dataStoreRepository.isDynamicColorsEnabled
+                    .collectAsStateWithLifecycle(initialValue = true)
+                val isAmoledThemeEnabled by dataStoreRepository.isAmoledThemeEnabled
+                    .collectAsStateWithLifecycle(initialValue = false)
                 ProvideAppHaptics(enabled = isHapticsEnabled) {
-                    UnloopTheme {
+                    UnloopTheme(
+                        darkTheme = theme.isDarkTheme(),
+                        dynamicColor = isDynamicColorsEnabled,
+                        amoled = isAmoledThemeEnabled
+                    ) {
                         details?.let { current ->
                             key(current) {
                                 OverlayScreen(

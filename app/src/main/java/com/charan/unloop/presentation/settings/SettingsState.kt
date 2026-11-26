@@ -8,6 +8,7 @@ data class SettingsState(
     val timeFormat: TimeFormatOptions = TimeFormatOptions.SYSTEM_DEFAULT,
     val theme: ThemeOptions = ThemeOptions.SYSTEM_DEFAULT,
     val isDynamicColorsEnabled: Boolean = true,
+    val isAmoledThemeEnabled: Boolean = false,
     val isHapticsEnabled: Boolean = true,
     val appVersion : String = "",
     val isExportingData : Boolean = false,

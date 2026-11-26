@@ -125,103 +125,101 @@ fun OverlayScreen(
         label = "unlockProgress"
     )
 
-    UnloopTheme {
-        val colors = MaterialTheme.colorScheme
+    val colors = MaterialTheme.colorScheme
 
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = colors.surface
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = colors.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                colors.primaryContainer.copy(alpha = 0.3f),
+                                Color.Transparent
+                            ),
+                            center = Offset(size.width / 2f, size.height * 0.3f),
+                            radius = size.width * 0.9f
+                        ),
+                        radius = size.width * 0.9f,
+                        center = Offset(size.width / 2f, size.height * 0.3f)
+                    )
+                }
+                .safeDrawingPadding()
+                .padding(horizontal = 24.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .drawBehind {
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    colors.primaryContainer.copy(alpha = 0.3f),
-                                    Color.Transparent
-                                ),
-                                center = Offset(size.width / 2f, size.height * 0.3f),
-                                radius = size.width * 0.9f
-                            ),
-                            radius = size.width * 0.9f,
-                            center = Offset(size.width / 2f, size.height * 0.3f)
-                        )
-                    }
-                    .safeDrawingPadding()
-                    .padding(horizontal = 24.dp)
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
+                OverlayHero(
+                    strict = strict,
+                    isHolding = isHolding,
+                )
+                Spacer(Modifier.height(32.dp))
+                RoutineStatus(
+                    routineName = routineName,
+                    endTime = endTime
+                )
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = stringResource(
+                        if (strict) R.string.overlay_app_locked else R.string.overlay_app_paused,
+                        appName
+                    ),
+                    style = MaterialTheme.typography.headlineLargeEmphasized,
+                    color = colors.onSurface,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.overlay_app_blocked_description),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onKeepFocusing()
+                    },
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .height(ButtonDefaults.MediumContainerHeight)
                 ) {
-                    OverlayHero(
-                        strict = strict,
-                        isHolding = isHolding,
-                    )
-                    Spacer(Modifier.height(32.dp))
-                    RoutineStatus(
-                        routineName = routineName,
-                        endTime = endTime
-                    )
-                    Spacer(Modifier.height(16.dp))
                     Text(
-                        text = stringResource(
-                            if (strict) R.string.overlay_app_locked else R.string.overlay_app_paused,
-                            appName
-                        ),
-                        style = MaterialTheme.typography.headlineLargeEmphasized,
-                        color = colors.onSurface,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.overlay_app_blocked_description),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colors.onSurfaceVariant,
-                        textAlign = TextAlign.Center
+                        text = stringResource(R.string.overlay_keep_focusing),
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = {
-    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-    onKeepFocusing()
-},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(ButtonDefaults.MediumContainerHeight)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.overlay_keep_focusing),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    if (!strict) {
-                        HoldToUnlockButton(
-                            label = pluralStringResource(
-                                R.plurals.overlay_hold_to_unlock,
-                                waitDurationSeconds,
-                                waitDurationSeconds
-                            ),
-                            progress = { shownProgress },
-                            interactionSource = interactionSource,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+                if (!strict) {
+                    HoldToUnlockButton(
+                        label = pluralStringResource(
+                            R.plurals.overlay_hold_to_unlock,
+                            waitDurationSeconds,
+                            waitDurationSeconds
+                        ),
+                        progress = { shownProgress },
+                        interactionSource = interactionSource,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }
@@ -352,23 +350,27 @@ private fun HoldToUnlockButton(
 @Preview(showSystemUi = true)
 @Composable
 fun OverlayScreenPreview() {
-    OverlayScreen(
-        unlockType = UnlockChallengeType.WAIT_TIME,
-        routineName = stringResource(R.string.routine_example_morning),
-        appName = stringResource(R.string.home_app_youtube),
-        endTime = LocalTime(10, 30).toDisplayString(is24Hour = false),
-        waitDurationSeconds = 5
-    )
+    UnloopTheme {
+        OverlayScreen(
+            unlockType = UnlockChallengeType.WAIT_TIME,
+            routineName = stringResource(R.string.routine_example_morning),
+            appName = stringResource(R.string.home_app_youtube),
+            endTime = LocalTime(10, 30).toDisplayString(is24Hour = false),
+            waitDurationSeconds = 5
+        )
+    }
 }
 
 @Preview(showSystemUi = true)
 @Composable
 fun OverlayScreenStrictPreview() {
-    OverlayScreen(
-        unlockType = UnlockChallengeType.STRICT_MODE,
-        routineName = stringResource(R.string.routine_example_morning),
-        appName = stringResource(R.string.home_app_youtube),
-        endTime = LocalTime(10, 30).toDisplayString(is24Hour = false),
-        waitDurationSeconds = 5
-    )
+    UnloopTheme {
+        OverlayScreen(
+            unlockType = UnlockChallengeType.STRICT_MODE,
+            routineName = stringResource(R.string.routine_example_morning),
+            appName = stringResource(R.string.home_app_youtube),
+            endTime = LocalTime(10, 30).toDisplayString(is24Hour = false),
+            waitDurationSeconds = 5
+        )
+    }
 }

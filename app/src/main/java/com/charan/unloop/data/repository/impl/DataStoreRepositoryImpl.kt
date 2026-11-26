@@ -38,6 +38,7 @@ class DataStoreRepositoryImpl @Inject constructor(
         private val KEY_THEME = stringPreferencesKey("theme_option")
         private val KEY_TIME_FORMAT = stringPreferencesKey("time_format")
         private val KEY_DYNAMIC_COLORS = booleanPreferencesKey("dynamic_colors")
+        private val KEY_AMOLED_THEME = booleanPreferencesKey("amoled_theme")
 
         private val KEY_HAPTICS = booleanPreferencesKey("haptics")
     }
@@ -104,6 +105,17 @@ class DataStoreRepositoryImpl @Inject constructor(
     override val isDynamicColorsEnabled: Flow<Boolean>
         get() = context.dataStore.data.map { pref ->
             pref[KEY_DYNAMIC_COLORS] ?: true
+        }
+
+    override suspend fun setAmoledThemeEnabled(isEnabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_AMOLED_THEME] = isEnabled
+        }
+    }
+
+    override val isAmoledThemeEnabled: Flow<Boolean>
+        get() = context.dataStore.data.map { pref ->
+            pref[KEY_AMOLED_THEME] ?: false
         }
 
     override suspend fun setHapticsEnabled(isEnabled: Boolean) {
