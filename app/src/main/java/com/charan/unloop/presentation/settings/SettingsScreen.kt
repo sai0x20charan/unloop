@@ -3,6 +3,9 @@ package com.charan.unloop.presentation.settings
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Folder
@@ -43,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.unloop.R
 import com.charan.unloop.core.utils.launchFeedbackEmail
 import com.charan.unloop.core.utils.launchUrl
+import com.charan.unloop.data.model.ThemeOptions
 import com.charan.unloop.data.repository.impl.BackupRepositoryImpl.Companion.BACKUP_MIME_TYPE
 import com.charan.unloop.presentation.common.components.CustomMediumTopBar
 import com.charan.unloop.presentation.common.components.CustomSegmentedListItem
@@ -167,6 +172,18 @@ fun SettingsScreen(
                     },
                     leadingIcon = Icons.Rounded.ColorLens
                 )
+
+                    SettingsSwitchItem(
+                        title = stringResource(R.string.use_amoled_theme),
+                        index = IndexItem.MIDDLE,
+                        isChecked = state.isAmoledThemeEnabled,
+                        onCheckedChange = {
+                            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                            viewModel.onEvent(SettingsEvent.OnAmoledThemeChange(it))
+                        },
+                        leadingIcon = Icons.Rounded.DarkMode
+                    )
+
 
                 CustomSegmentedListItem(
                     indexItem = IndexItem.MIDDLE,

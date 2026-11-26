@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
@@ -60,6 +61,9 @@ class SettingsViewModel @Inject constructor(
             }
             is SettingsEvent.OnDynamicColorsChange -> {
                 setDynamicColorsEnabled(event.isEnabled)
+            }
+            is SettingsEvent.OnAmoledThemeChange -> {
+                setAmoledThemeEnabled(event.isEnabled)
             }
             is SettingsEvent.OnHapticsChange -> viewModelScope.launch {
                 dataStore.setHapticsEnabled(event.isEnabled)
@@ -119,24 +123,22 @@ class SettingsViewModel @Inject constructor(
             )
         }
     }
-
-
     private fun observeSettingsDataStore() = viewModelScope.launch {
         combine(
             dataStore.theme,
             dataStore.isDynamicColorsEnabled,
+            dataStore.isAmoledThemeEnabled,
             dataStore.isHapticsEnabled
-        ) { theme, dynamic, haptics ->
-            Triple(theme, dynamic, haptics)
-        }.collectLatest { (theme, dynamic, haptics) ->
+        ) { theme, dynamic, amoled, haptics ->
             _state.update {
                 it.copy(
                     theme = theme,
                     isDynamicColorsEnabled = dynamic,
+                    isAmoledThemeEnabled = amoled,
                     isHapticsEnabled = haptics
                 )
             }
-        }
+        }.collect()
     }
 
     private fun changeTheme(theme: ThemeOptions) = viewModelScope.launch {
@@ -145,6 +147,10 @@ class SettingsViewModel @Inject constructor(
 
     private fun setDynamicColorsEnabled(isEnabled: Boolean) = viewModelScope.launch {
         dataStore.setDynamicColorsEnabled(isEnabled)
+    }
+
+    private fun setAmoledThemeEnabled(isEnabled: Boolean) = viewModelScope.launch {
+        dataStore.setAmoledThemeEnabled(isEnabled)
     }
 
     private fun sendEffect(effect: SettingsEffect) = viewModelScope.launch {

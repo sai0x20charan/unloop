@@ -8,6 +8,7 @@ sealed interface SettingsEvent {
     data class OnTimeFormatChange(val format: TimeFormatOptions) : SettingsEvent
     data class OnThemeChange(val theme: ThemeOptions) : SettingsEvent
     data class OnDynamicColorsChange(val isEnabled: Boolean) : SettingsEvent
+    data class OnAmoledThemeChange(val isEnabled: Boolean) : SettingsEvent
     data class OnHapticsChange(val isEnabled: Boolean) : SettingsEvent
     data object OnBack : SettingsEvent
 

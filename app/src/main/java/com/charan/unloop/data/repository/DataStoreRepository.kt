@@ -22,6 +22,10 @@ interface DataStoreRepository {
 
     val isDynamicColorsEnabled: Flow<Boolean>
 
+    suspend fun setAmoledThemeEnabled(isEnabled: Boolean)
+
+    val isAmoledThemeEnabled: Flow<Boolean>
+
     suspend fun setHapticsEnabled(isEnabled: Boolean)
 
     val isHapticsEnabled : Flow<Boolean>
