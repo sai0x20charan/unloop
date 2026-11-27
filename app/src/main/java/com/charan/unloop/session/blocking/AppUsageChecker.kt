@@ -3,6 +3,7 @@ package com.charan.unloop.session.blocking
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -15,30 +16,35 @@ class AppUsageChecker @Inject constructor(
     private var lastQueryTime = System.currentTimeMillis() - 10_000
     private val resumedPackages = mutableSetOf<String?>()
 
-    fun getForegroundApp(): String? {
+    fun getForegroundApp(): List<String?> {
         val now = System.currentTimeMillis()
         val events = usm.queryEvents(lastQueryTime, now)
         val event = UsageEvents.Event()
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
-
             when (event.eventType) {
                 UsageEvents.Event.ACTIVITY_RESUMED -> {
                     val packageName = event.packageName
                     resumedPackages.remove(packageName)
                     resumedPackages.add(packageName)
+
                 }
                 UsageEvents.Event.ACTIVITY_PAUSED -> {
                     resumedPackages.remove(event.packageName)
                 }
                 // A deep link can stop an older instance after another instance resumes.
-                UsageEvents.Event.ACTIVITY_STOPPED -> Unit
+                UsageEvents.Event.ACTIVITY_STOPPED -> resumedPackages.remove(event.packageName)
                 UsageEvents.Event.SCREEN_NON_INTERACTIVE -> resumedPackages.clear()
             }
         }
         lastQueryTime = now
-        return resumedPackages.lastOrNull()
+        return resumedPackages.toList()
+    }
+
+    fun isLaunchableApp(packageName: String): Boolean {
+        return context.packageManager
+            .getLaunchIntentForPackage(packageName) != null
     }
 }
 

@@ -241,7 +241,7 @@ class SessionForegroundService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
-    private fun observeForegroundApp(): Flow<String?> = flow {
+    private fun observeForegroundApp(): Flow<List<String?>> = flow {
         while (currentCoroutineContext().isActive) {
             emit(appUsageChecker.getForegroundApp())
             delay(1.seconds)
@@ -253,7 +253,7 @@ class SessionForegroundService : Service() {
 
         monitoringJob = serviceScope.launch {
             observeForegroundApp().collect { foregroundPackage ->
-                if (foregroundPackage.isNullOrBlank()) {
+                if (foregroundPackage.isEmpty() || !appUsageChecker.isLaunchableApp(foregroundPackage.lastOrNull() ?: "")) {
                     removeOverLay()
                     return@collect
                 }
@@ -263,11 +263,12 @@ class SessionForegroundService : Service() {
 
                 val blockedAppPackages = currentSession.blockedAppPackages.orEmpty()
 
-                if (foregroundPackage in blockedAppPackages) {
+                if (foregroundPackage.any { it in blockedAppPackages }) {
+                    val blockedApp = foregroundPackage.findLast {it in blockedAppPackages }
                     sessionManager.logSessionEvent(
                         sessionId = currentSession.id,
                         eventName = SessionEventType.APP_BLOCKED,
-                        packageName = foregroundPackage
+                        packageName = blockedApp
                     )
                     val overlayIntent = Intent(
                         this@SessionForegroundService,
@@ -287,7 +288,7 @@ class SessionForegroundService : Service() {
                         )
                         putExtra(
                             FullScreenOverlayService.EXTRA_APP_PACKAGE,
-                            foregroundPackage
+                            blockedApp
                         )
                         putExtra(
                             FullScreenOverlayService.EXTRA_WAIT_SECONDS,
