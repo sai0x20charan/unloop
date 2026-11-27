@@ -1,8 +1,11 @@
 ## New Features
 
-- Added routine deletion with a confirmation dialog.
-- Added haptic feedback throughout the app, with an option to turn it off in Settings.
+- Added an AMOLED dark theme option in Settings.
 
 ## Improvements
 
-- Saved session details now appear sooner on the home screen while the app list loads.
+- Added a tinted background to the back button in the top bar.
+
+## Bug Fixes
+
+- Fixed the app theme so Material Expressive styling applies properly.
