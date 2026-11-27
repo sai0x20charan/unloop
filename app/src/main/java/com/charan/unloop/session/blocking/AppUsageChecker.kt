@@ -34,7 +34,7 @@ class AppUsageChecker @Inject constructor(
                     resumedPackages.remove(event.packageName)
                 }
                 // A deep link can stop an older instance after another instance resumes.
-                UsageEvents.Event.ACTIVITY_STOPPED -> resumedPackages.remove(event.packageName)
+                UsageEvents.Event.ACTIVITY_STOPPED -> Unit
                 UsageEvents.Event.SCREEN_NON_INTERACTIVE -> resumedPackages.clear()
             }
         }
